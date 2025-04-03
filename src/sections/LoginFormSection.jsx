@@ -7,6 +7,7 @@ import SocialLoginButton from '../components/SocialLoginButton';
 import { formContainer, socialButtonsWrapper } from './LoginFormSectionStyles';
 import { FcGoogle } from 'react-icons/fc';          
 import { FaFacebookF } from 'react-icons/fa';
+
 import { useGoogleLogin } from '@react-oauth/google';
 
 const LoginFormSection = () => {
