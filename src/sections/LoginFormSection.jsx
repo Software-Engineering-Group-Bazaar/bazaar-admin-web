@@ -8,7 +8,22 @@ import { formContainer, socialButtonsWrapper } from './LoginFormSectionStyles';
 import { FcGoogle } from 'react-icons/fc';          
 import { FaFacebookF } from 'react-icons/fa';
 
+import { useGoogleLogin } from '@react-oauth/google';
+
 const LoginFormSection = () => {
+
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {  
+      const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: {
+          Authorization: `Bearer ${tokenResponse.access_token}`,
+        },
+      });
+      const userInfo = await res.json();
+    },
+    onError: error => console.log('Login Failed:', error),
+  });
+  
   return (
     <Box sx={formContainer}>
       <Typography variant="h4" color="text.secondary" fontWeight={700} mb={2}>
@@ -43,7 +58,7 @@ const LoginFormSection = () => {
         <Box flex={1} height="1px" bgcolor="#ccc" />
       </Box>
       <Box sx={socialButtonsWrapper}>
-      <SocialLoginButton icon={<FcGoogle />} label="Google" />
+      <SocialLoginButton onClick={() => { console.log("Clicked Google login"); login(); }} icon={<FcGoogle />} label="Google" />
       <SocialLoginButton icon={<FaFacebookF />} label="Facebook" />
       </Box>
       <Typography align="center" color="text.secondary" mt={4}>
