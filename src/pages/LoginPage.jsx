@@ -3,7 +3,7 @@ import { Box, Grid, Typography } from '@mui/material';
 import LoginFormSection from '../sections/LoginFormSection';
 import backgroundImg from '@images/bazaar.png';
 
-const LoginPage = () => {
+const LoginPage = () => {  
     useEffect(() => {
       document.body.classList.add('login-background');
   
@@ -21,8 +21,8 @@ const LoginPage = () => {
           maxWidth: 1000,
           borderRadius: 4,
           overflow: 'hidden',
-          boxShadow: 5,
-          backgroundColor: '#fff',
+          //boxShadow: 5,
+          //backgroundColor: '#fff',
           backgroundColor: 'rgba(255, 255, 255, 0.9)', 
           backdropFilter: 'blur(12px)',
           boxShadow: '0 20px 60px rgba(0,0,0,0.5)',   
