@@ -3,7 +3,7 @@ import LoginPage from "@pages/LoginPage";
 import { ThemeProvider } from '@mui/material/styles';
 import theme from '@styles/theme';
 import CssBaseline from '@mui/material/CssBaseline';
-import UserManagement from "./sections/UserManagementSection.jsx";
+import UserManagement from "./sections/UserDetailsSection.jsx";
 
 
 function App() {
