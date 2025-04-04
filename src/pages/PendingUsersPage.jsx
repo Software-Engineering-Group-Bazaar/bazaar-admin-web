@@ -4,23 +4,34 @@ import ConfirmDialog from '@components/ConfirmDialog';
 import mockUsers from '@data/pendingUsers';
 
 const PendingUsers = () => {
-  //temporary
-  const [users, setUsers] = useState(mockUsers.filter(u => u.isApproved === false));
+  const [users, setUsers] = useState(mockUsers);
   const [search, setSearch] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  //temporary
   const handleApprove = (id) => {
-    setUsers(prev => prev.filter(user => user.id !== id));
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === id ? { ...user, status: 'Approved' } : user
+      )
+    );
   };
+
+  const handleReject = (id) => {
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === id ? { ...user, status: 'Rejected' } : user
+      )
+    );
+  };
+
   const handleDelete = (id) => {
     setUserToDelete(id);
     setConfirmOpen(true);
   };
 
   const confirmDelete = () => {
-    setUsers(prev => prev.filter(user => user.id !== userToDelete));
+    setUsers((prev) => prev.filter((user) => user.id !== userToDelete));
     setUserToDelete(null);
     setConfirmOpen(false);
   };
@@ -30,7 +41,6 @@ const PendingUsers = () => {
     setConfirmOpen(false);
   };
 
-  //temporary
   const filtered = users.filter(
     (u) =>
       u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -44,6 +54,7 @@ const PendingUsers = () => {
         onSearch={setSearch}
         users={filtered}
         onApprove={handleApprove}
+        onReject={handleReject}
         onDelete={handleDelete}
       />
 
