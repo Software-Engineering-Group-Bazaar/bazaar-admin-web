@@ -22,7 +22,8 @@
     "react-icons": "^5.5.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.4.1",
-    "web-admin": "file:"
+    "web-admin": "file:",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
