@@ -1,42 +1,76 @@
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Avatar, IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteUserButton from "./DeleteUserButton"; 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Avatar,
+} from "@mui/material";
+import DeleteUserButton from "./DeleteUserButton";
 
-export default function UserList({ users, onDelete, onEdit, onView }) {
+export default function UserList({
+  users,
+  onDelete,
+  onEdit,
+  onView,
+  currentPage,
+  usersPerPage,
+}) {
   return (
-    <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+    <TableContainer
+      component={Paper}
+      sx={{
+        marginTop: 2,
+        maxHeight: "calc(100vh - 320px)",
+        overflowY: "auto",
+      }}
+    >
       <Table>
         <TableHead>
-          <TableRow>
-            <TableCell>#</TableCell> 
-            <TableCell>Pic</TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell align="right">Actions</TableCell>
+          <TableRow sx={{ backgroundColor: "#fafafa" }}>
+            <TableCell sx={{ fontWeight: "bold" }}>#</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Pic</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+            <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
+            <TableCell align="right" sx={{ fontWeight: "bold" }}>
+              Actions
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {users.map((user, index) => (
-            <TableRow 
-              key={user.id} 
+            <TableRow
+              key={user.id}
               sx={{
-                cursor: 'pointer', 
-                '&:hover': {
-                  backgroundColor: '#f5f5f5', 
-                }
+                height: 72,
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "#f9f9f9",
+                },
               }}
-              onClick={() => onView(user.id)} 
+              onClick={() => onView(user.id)}
             >
-              <TableCell>{index + 1}</TableCell> 
-              <TableCell>
-                <Avatar alt={user.name} src={user.imageUrl} />
+              <TableCell sx={{ fontSize: 15 }}>
+                {(currentPage - 1) * usersPerPage + index + 1}
               </TableCell>
-              <TableCell>{user.name}</TableCell>
+              <TableCell>
+                <Avatar
+                  alt={user.name}
+                  src={user.imageUrl}
+                  sx={{ width: 40, height: 40 }}
+                />
+              </TableCell>
+              <TableCell sx={{ fontWeight: 500 }}>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell align="right">
-                {}
-                <DeleteUserButton onClick={(e) => { e.stopPropagation(); onDelete(user.id); }} />
+                <DeleteUserButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(user.id);
+                  }}
+                />
               </TableCell>
             </TableRow>
           ))}

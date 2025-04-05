@@ -1,19 +1,16 @@
 import React, { useState } from "react";
-import SearchBar from "../components/SearchBar.jsx";
+import { Box } from "@mui/material";
 import UserList from "../components/UserList.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
-import { getUsers, deleteUser, searchUsers } from "../data/users.js";
 
-export default function UserManagementSection() {
-  const [users, setUsers] = useState(getUsers());
-  const [searchTerm, setSearchTerm] = useState("");
+export default function UserManagementSection({
+  allUsers,
+  currentPage,
+  usersPerPage,
+  onDelete,
+}) {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-    setUsers(searchUsers(event.target.value)); 
-  };
 
   const handleDelete = (userId) => {
     setUserToDelete(userId);
@@ -21,8 +18,7 @@ export default function UserManagementSection() {
   };
 
   const confirmDelete = () => {
-    deleteUser(userToDelete); 
-    setUsers(getUsers()); 
+    onDelete(userToDelete);
     setConfirmDialogOpen(false);
     setUserToDelete(null);
   };
@@ -32,16 +28,31 @@ export default function UserManagementSection() {
     setUserToDelete(null);
   };
 
+  const handleEdit = (userId) => {
+    console.log("Edit user:", userId);
+  };
+
+  const handleView = (userId) => {
+    console.log("View user:", userId);
+  };
+
   return (
-    <div>
-      <SearchBar value={searchTerm} onChange={handleSearchChange} />
-      <UserList users={users} onDelete={handleDelete} />
+    <Box>
+      <UserList
+        users={allUsers}
+        onDelete={handleDelete}
+        onEdit={handleEdit} 
+        onView={handleView} 
+        currentPage={currentPage}
+        usersPerPage={usersPerPage}
+      />
+
       <ConfirmDialog
         open={confirmDialogOpen}
         onClose={cancelDelete}
         onConfirm={confirmDelete}
-        message="Are you sure you want to delete this user?" 
+        message="Are you sure you want to delete this user?"
       />
-    </div>
+    </Box>
   );
 }
