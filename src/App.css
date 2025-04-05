@@ -40,3 +40,28 @@
 .read-the-docs {
   color: #888;
 }
+
+body.login-background {
+  background-image: url('/src/assets/images/background.jpg'); /* ili drugi image */
+  background-size: cover;
+  background-color: rgba(0, 0, 0, 0.2); /* zatamnjenje */
+  backdrop-filter: blur(2px);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* ako želiš dodatni dim ili blur preko svega (opciono) */
+body.login-background::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* zatamnjenje */
+  backdrop-filter: blur(6px); /* blur opcionalno */
+  z-index: -1;
+}
+
