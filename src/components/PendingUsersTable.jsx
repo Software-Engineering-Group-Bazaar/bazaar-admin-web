@@ -1,4 +1,5 @@
-import React from 'react';
+// PendingUsersTable.jsx
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -7,70 +8,172 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Avatar
-} from '@mui/material';
+  Avatar,
+  TableSortLabel,
+  Box,
+  Typography,
+  Chip,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import ApproveUserButton from "./ApproveUserButton";
+import DeleteUserButton from "./DeleteUserButton";
 
-import ApproveUserButton from './ApproveUserButton';
-import DeleteUserButton from './DeleteUserButton';
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+  maxHeight: 840,
+  overflow: "auto",
+  borderRadius: 8,
+  boxShadow: "0 2px 8px #800000",
+}));
 
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  transition: "background-color 0.2s ease",
+  cursor: "pointer",
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
+  },
+}));
 
-const PendingUsersTable = ({ users, onApprove, onDelete }) => {
+const PendingUsersTable = ({
+  users = [],
+  onApprove,
+  onDelete,
+  onView,
+  currentPage,
+  usersPerPage,
+}) => {
+  const [orderBy, setOrderBy] = useState("submitDate");
+  const [order, setOrder] = useState("desc");
+
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
+
+  const compareValues = (a, b, orderBy) => {
+    if (!a[orderBy]) return 1;
+    if (!b[orderBy]) return -1;
+    if (typeof a[orderBy] === "string") {
+      return a[orderBy].toLowerCase().localeCompare(b[orderBy].toLowerCase());
+    }
+    return a[orderBy] < b[orderBy] ? -1 : 1;
+  };
+
+  const sortedUsers = [...users].sort((a, b) => {
+    return order === "asc"
+      ? compareValues(a, b, orderBy)
+      : compareValues(b, a, orderBy);
+  });
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
-    <TableContainer component={Paper}>
-      <Table>
+    <StyledTableContainer component={Paper}>
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>#</TableCell>
             <TableCell>Picture</TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Role</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderBy === "name"}
+                direction={order}
+                onClick={() => handleRequestSort("name")}
+              >
+                Name
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderBy === "email"}
+                direction={order}
+                onClick={() => handleRequestSort("email")}
+              >
+                Email
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderBy === "role"}
+                direction={order}
+                onClick={() => handleRequestSort("role")}
+              >
+                Role
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderBy === "submitDate"}
+                direction={order}
+                onClick={() => handleRequestSort("submitDate")}
+              >
+                Submit Date
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {users.map((user, index) => (
-            <TableRow
-              key={user.id}
-              sx={{
-                cursor: 'pointer',
-                '&:hover': { backgroundColor: '#f5f5f5' }
-              }}
-            >
-              <TableCell>{index + 1}</TableCell>
+          {sortedUsers.map((user, index) => (
+            <StyledTableRow key={user.id} onClick={() => onView(user.id)}>
               <TableCell>
-                <Avatar alt={user.name} src={user.imageUrl || ''} />
+                {(currentPage - 1) * usersPerPage + index + 1}
               </TableCell>
-              <TableCell>{user.name}</TableCell>
+              <TableCell>
+                <Avatar
+                  alt={user.name}
+                  src={user.imageUrl}
+                  sx={{ width: 38, height: 38, border: "2px solid #800000" }}
+                />
+              </TableCell>
+              <TableCell>
+                <Typography variant="body2" fontWeight={500}>
+                  {user.name}
+                </Typography>
+              </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.role}</TableCell>
-              <TableCell align="right">
-              <ApproveUserButton
+              <TableCell>{formatDate(user.submitDate)}</TableCell>
+              <TableCell align="center">
+                <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                  <ApproveUserButton
                     onClick={(e) => {
-                        e.stopPropagation();
-                        onApprove(user.id);
+                      e.stopPropagation();
+                      onApprove(user.id);
                     }}
-                    />
-
-                    <DeleteUserButton
+                  />
+                  <DeleteUserButton
                     onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(user.id);
+                      e.stopPropagation();
+                      onDelete(user.id);
                     }}
-                    />
+                  />
+                </Box>
               </TableCell>
-            </TableRow>
+            </StyledTableRow>
           ))}
           {users.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} align="center">
+              <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                 No pending users found.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-    </TableContainer>
+    </StyledTableContainer>
   );
 };
 

@@ -28,9 +28,14 @@ const UserEditForm = ({ user, onSave }) => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 3 }}>
-      <Typography variant="h6">Edit User Details</Typography>
-
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        mt: 3,
+      }}
+    >
       <TextField
         label="Name"
         variant="outlined"
@@ -56,13 +61,9 @@ const UserEditForm = ({ user, onSave }) => {
         sx={{ mb: 2, width: "300px" }}
       />
 
-      <FormControl fullWidth sx={{ mb: 2 }}>
+      <FormControl sx={{ mb: 2, width: "300px" }}>
         <InputLabel>Role</InputLabel>
-        <Select
-          value={role}
-          onChange={handleRoleChange}
-          label="Role"
-        >
+        <Select value={role} onChange={handleRoleChange} label="Role">
           <MenuItem value="buyer">Buyer</MenuItem>
           <MenuItem value="seller">Seller</MenuItem>
         </Select>
