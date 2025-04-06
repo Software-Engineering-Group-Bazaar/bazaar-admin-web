@@ -1,14 +1,8 @@
 import React from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  TextField,
-  InputAdornment,
-} from "@mui/material";
+import { Box, Typography, TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
-const UserManagementHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
+const PendingUsersHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
   return (
     <Box
       sx={{
@@ -23,12 +17,12 @@ const UserManagementHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
         borderBottom: "1px solid #e0e0e0",
       }}
     >
-      <Box sx={{ textAlign: "left" }}>
+      <Box sx={{ textAlign: "left", mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          User Management
+          Notifications
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Admin Panel &gt; User Management
+          Admin Panel &gt; Notifications
         </Typography>
       </Box>
 
@@ -45,31 +39,11 @@ const UserManagementHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
               </InputAdornment>
             ),
           }}
-          sx={{
-            borderRadius: 2,
-            backgroundColor: "#f9f9f9",
-            minWidth: { xs: "100%", sm: "240px" },
-          }}
+          sx={{ borderRadius: 2, backgroundColor: "#f9f9f9" }}
         />
-        <Button
-          variant="contained"
-          onClick={onAddUser}
-          sx={{
-            textTransform: "none",
-            fontWeight: 600,
-            borderRadius: 2,
-            backgroundColor: "#fbbc05",
-            color: "#000",
-            "&:hover": {
-              backgroundColor: "#e6a800",
-            },
-          }}
-        >
-          Add User
-        </Button>
       </Box>
     </Box>
   );
 };
 
-export default UserManagementHeader;
+export default PendingUsersHeader;

@@ -13,12 +13,25 @@ import {
 import AdminSearchBar from "@components/AdminSearchBar";
 import ThemeToggle from "@components/ThemeToggle";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { usePendingUsers } from "@context/PendingUsersContext";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  const { pendingUsers } = usePendingUsers();
   const menuItems = [
-    { icon: <HiOutlineUserGroup />, label: "Users", badge: null },
-    { icon: <HiOutlineBell />, label: "Notifications", badge: 4 },
-    //{ icon: <HiOutlineMail />, label: "Messages" },
+    {
+      icon: <HiOutlineUserGroup />,
+      label: "Users",
+      path: "/users",
+      badge: null,
+    },
+    {
+      icon: <HiOutlineBell />,
+      label: "Notifications",
+      path: "/notifications",
+      badge: pendingUsers.length,
+    },
   ];
   const [isDark, setIsDark] = useState(false);
   const toggleTheme = () => setIsDark(!isDark);
@@ -60,13 +73,15 @@ const Sidebar = () => {
           />
         </IconButton>
       </Box>
-
-      {/* Search */}
-      <AdminSearchBar />
-
+      {/* Search <AdminSearchBar /> */}
       {/* Menu */}
       {menuItems.map((item, index) => (
-        <Box key={index} sx={navItem}>
+        <Box
+          key={index}
+          sx={navItem}
+          onClick={() => navigate(item.path)}
+          style={{ cursor: "pointer" }}
+        >
           <Box sx={iconBox}>{item.icon}</Box>
           <Typography>{item.label}</Typography>
           {item.badge && (
@@ -83,12 +98,10 @@ const Sidebar = () => {
           )}
         </Box>
       ))}
-
       <Divider sx={{ my: 2 }} />
 
-      {/* Footer toggle */}
       <Box sx={footerBox}>
-        <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} />
+        {/* Footer toggle <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} /> */}
       </Box>
     </Box>
   );
