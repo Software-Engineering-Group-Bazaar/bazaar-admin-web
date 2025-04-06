@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Box } from "@mui/material";
 import LoginFormSection from "../sections/LoginFormSection";
-import backgroundImg from "@images/bazaar.png";
+import backgroundImg from "@images/Bazaar.png";
 
 const LoginPage = () => {
   useEffect(() => {

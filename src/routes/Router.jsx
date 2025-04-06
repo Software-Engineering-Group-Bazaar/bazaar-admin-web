@@ -55,7 +55,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/notifications"
+          path="/requests"
           element={
             <ProtectedRoute>
               <Layout>

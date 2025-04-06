@@ -17,6 +17,7 @@ import {
 import { styled } from "@mui/material/styles";
 import ApproveUserButton from "./ApproveUserButton";
 import DeleteUserButton from "./DeleteUserButton";
+import axios from 'axios';
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   maxHeight: 840,
@@ -113,15 +114,6 @@ const PendingUsersTable = ({
                 Role
               </TableSortLabel>
             </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === "submitDate"}
-                direction={order}
-                onClick={() => handleRequestSort("submitDate")}
-              >
-                Submit Date
-              </TableSortLabel>
-            </TableCell>
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -133,26 +125,47 @@ const PendingUsersTable = ({
               </TableCell>
               <TableCell>
                 <Avatar
-                  alt={user.name}
+                  alt={user.userName}
                   src={user.imageUrl}
                   sx={{ width: 38, height: 38, border: "2px solid #800000" }}
                 />
               </TableCell>
               <TableCell>
                 <Typography variant="body2" fontWeight={500}>
-                  {user.name}
+                  {user.userName}
                 </Typography>
               </TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.role}</TableCell>
-              <TableCell>{formatDate(user.submitDate)}</TableCell>
+              <TableCell>{user.roles ? user.roles[0] : "?"}</TableCell>
               <TableCell align="center">
                 <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                   <ApproveUserButton
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e.preventDefault();
                       onApprove(user.id);
-                    }}
+
+                      
+                        const token = localStorage.getItem("token");
+                      
+                        if (token) {
+                          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                        }
+                      
+                        const Payload = {
+                          userId:user.id
+                        };
+                      
+                        axios
+                          .post("http://localhost:5054/api/Admin/users/approve", Payload)
+                          .then((response) => {
+                            console.log("User approved successfully:", response.data);
+                            // optionally redirect or clear form inputs
+                          })
+                          .catch((error) => {
+                            console.error("Error approving user:", error);
+                          });
+                      }
+                    }
                   />
                   <DeleteUserButton
                     onClick={(e) => {

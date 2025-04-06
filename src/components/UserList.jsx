@@ -94,11 +94,11 @@ export default function UserList({
 
             <TableCell>
               <TableSortLabel
-                active={orderBy === "name"}
+                active={orderBy === "Username"}
                 direction={order}
-                onClick={() => handleSort("name")}
+                onClick={() => handleSort("Username")}
               >
-                Name
+                Username
               </TableSortLabel>
             </TableCell>
 
@@ -144,12 +144,12 @@ export default function UserList({
               </TableCell>
               <TableCell>
                 <Avatar
-                  alt={user.name}
+                  alt={user.userName}
                   src={user.imageUrl}
                   sx={{ width: 40, height: 40 }}
                 />
               </TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>{user.name}</TableCell>
+              <TableCell sx={{ fontWeight: 500 }}>{user.userName}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 <StatusChip status={getStatus(user)} />
