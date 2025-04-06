@@ -15,7 +15,7 @@ import UserName from "../components/UserName.jsx";
 import UserEmail from "../components/UserEmail.jsx";
 import UserPhone from "../components/UserPhone.jsx";
 import UserRoles from "../components/UserRoles.jsx";
-import UserEditForm from "../components/userEditForm.jsx";
+import UserEditForm from "../components/UserEditForm.jsx";
 
 const UserDetailsModal = ({ open, onClose, user, readOnly = false }) => {
   const [selectedUser, setSelectedUser] = useState(null);
