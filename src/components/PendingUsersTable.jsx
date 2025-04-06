@@ -114,15 +114,6 @@ const PendingUsersTable = ({
                 Role
               </TableSortLabel>
             </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === "submitDate"}
-                direction={order}
-                onClick={() => handleRequestSort("submitDate")}
-              >
-                Submit Date
-              </TableSortLabel>
-            </TableCell>
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -134,19 +125,18 @@ const PendingUsersTable = ({
               </TableCell>
               <TableCell>
                 <Avatar
-                  alt={user.name}
+                  alt={user.userName}
                   src={user.imageUrl}
                   sx={{ width: 38, height: 38, border: "2px solid #800000" }}
                 />
               </TableCell>
               <TableCell>
                 <Typography variant="body2" fontWeight={500}>
-                  {user.name}
+                  {user.userName}
                 </Typography>
               </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.roles ? user.roles[0] : "?"}</TableCell>
-              <TableCell>{formatDate(user.submitDate)}</TableCell>
               <TableCell align="center">
                 <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                   <ApproveUserButton
@@ -181,24 +171,6 @@ const PendingUsersTable = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(user.id);
-                      const token = localStorage.getItem("token");
-                      
-                        if (token) {
-                          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-                        }
-                      
-                        const Payload = {
-                          userId:user.id
-                        };
-                      axios
-                      .delete(`http://localhost:5054/api/Admin/users/${user.id}`)
-                      .then((response) => {
-                        console.log("User deleted successfully:", response.data);
-                        // optionally redirect or clear form inputs
-                      })
-                      .catch((error) => {
-                        console.error("Error deleting user:", error);
-                      });
                     }}
                   />
                 </Box>

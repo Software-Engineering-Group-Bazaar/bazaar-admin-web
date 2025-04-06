@@ -10,7 +10,7 @@ import axios from 'axios';
 const PendingUsers = () => {
   const usersPerPage = 8;
 
-  const { pendingUsers, setPendingUsers } = useContext(PendingUsersContext);
+  const { pendingUsers, setPendingUsers ,deleteUser} = useContext(PendingUsersContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -41,9 +41,9 @@ const PendingUsers = () => {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
     
-      axios.post('http://localhost:5054/api/Auth/users/approve', {userId: id}).
+      axios.post('http://localhost:5054/api/Admin/users/approve', {userId: id}).
       then(d => console.log(d)).catch((err) => console.log(err));
-      setPendingUsers((prev) => prev.filter((u) => u.id !== id));
+      deleteUser(id);
   };
 
   const handleDelete = (id) => {
@@ -51,19 +51,21 @@ const PendingUsers = () => {
     setConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    setPendingUsers((prev) => prev.filter((u) => u.id !== userToDelete));
+  const confirmDelete = () => { 
+    
+    console.log(PendingUsersContext);
     setConfirmOpen(false);
     setUserToDelete(null);
     const token = localStorage.getItem("token");
     
-      if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      }
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
     
-      axios.delete(`http://localhost:5054/api/Auth/${id}`).
-      then(d => console.log(d)).catch((err) => console.log(err));
-      setPendingUsers((prev) => prev.filter((u) => u.id !== id));
+    axios.delete(`http://localhost:5054/api/Admin/user/${userToDelete}`).
+    then(d => console.log(d)).catch((err) => console.log(err));
+    //setPendingUsers((prev) => prev.filter((u) => u.id !== userToDelete));
+    deleteUser(userToDelete);
   };
 
   const cancelDelete = () => {

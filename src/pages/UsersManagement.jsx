@@ -36,7 +36,7 @@ const UsersManagements = () => {
       }
     
       const users =  await axios.get("http://localhost:5054/api/Admin/users");
-        setAllUsers(users["data"].filter(u => u.isApproved));
+        setAllUsers(users["data"].filter(u => u.isApproved && u.roles[0]!="Admin"));
         console.log(users["data"]);
 
     }

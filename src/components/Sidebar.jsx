@@ -1,6 +1,6 @@
 import React from "react";
 import icon from "@icons/admin.svg";
-import { Box, Avatar, Typography, IconButton, Divider } from "@mui/material";
+import { Box, Avatar, Typography, IconButton, Divider, Button } from "@mui/material";
 import { HiOutlineBell } from "react-icons/hi";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import {
@@ -15,6 +15,8 @@ import ThemeToggle from "@components/ThemeToggle";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePendingUsers } from "@context/PendingUsersContext";
+import LogoutIcon from '@mui/icons-material/Logout';
+
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -28,13 +30,40 @@ const Sidebar = () => {
     },
     {
       icon: <HiOutlineBell />,
-      label: "Notifications",
-      path: "/notifications",
+      label: "Requests",
+      path: "/requests",
       badge: pendingUsers.length,
     },
   ];
   const [isDark, setIsDark] = useState(false);
   const toggleTheme = () => setIsDark(!isDark);
+
+  const handleLogout = () => {
+    console.log("Logging out...");
+
+    // 1. Clear authentication artifacts from local storage
+    //    (Add/remove items based on what you actually store)
+    localStorage.removeItem('token');
+    localStorage.removeItem('auth'); // From your AppRoutes example
+    // localStorage.removeItem('user'); // Example: if you store user info
+
+    // 2. Redirect to the login page
+    //    'replace: true' prevents the user from navigating back to the protected page
+    navigate('/login', { replace: true });
+
+    // Optional: Force reload if state isn't clearing properly (useNavigate is usually sufficient)
+    // window.location.reload();
+
+    // Optional: Call a backend logout endpoint if needed
+    // try {
+    //   await axios.post('/api/auth/logout');
+    // } catch (error) {
+    //   console.error("Backend logout failed:", error);
+    // }
+
+    // Optional: Clear any global state (Context, Redux, Zustand) if necessary
+    // authContext.logout();
+  };
 
   return (
     <Box sx={sidebarContainer}>
@@ -101,7 +130,16 @@ const Sidebar = () => {
       <Divider sx={{ my: 2 }} />
 
       <Box sx={footerBox}>
-        {/* Footer toggle <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} /> */}
+        {/* Footer toggle <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} /> */
+        <Button
+        variant="contained" // Or "outlined" or "text"
+        color="error"       // Use "error", "warning", or "secondary" typically
+        onClick={handleLogout}
+        startIcon={<LogoutIcon />} // Optional icon
+      >
+        Logout
+      </Button>
+        }
       </Box>
     </Box>
   );
