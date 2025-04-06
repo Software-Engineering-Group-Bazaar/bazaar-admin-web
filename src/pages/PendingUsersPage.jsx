@@ -6,7 +6,7 @@ import ConfirmDialog from "@components/ConfirmDialog";
 import UserDetailsModal from "@components/UserDetailsModal";
 import { Box } from "@mui/material";
 import { PendingUsersContext } from "@context/PendingUsersContext";
-
+import axios from 'axios';
 const PendingUsers = () => {
   const usersPerPage = 8;
 
@@ -21,7 +21,7 @@ const PendingUsers = () => {
 
   const filteredUsers = pendingUsers.filter(
     (u) =>
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -34,7 +34,16 @@ const PendingUsers = () => {
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
   const handleApprove = (id) => {
-    setPendingUsers((prev) => prev.filter((u) => u.id !== id));
+    
+      const token = localStorage.getItem("token");
+    
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
+    
+      axios.post('http://localhost:5054/api/Auth/users/approve', {userId: id}).
+      then(d => console.log(d)).catch((err) => console.log(err));
+      setPendingUsers((prev) => prev.filter((u) => u.id !== id));
   };
 
   const handleDelete = (id) => {
@@ -46,6 +55,15 @@ const PendingUsers = () => {
     setPendingUsers((prev) => prev.filter((u) => u.id !== userToDelete));
     setConfirmOpen(false);
     setUserToDelete(null);
+    const token = localStorage.getItem("token");
+    
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
+    
+      axios.delete(`http://localhost:5054/api/Auth/${id}`).
+      then(d => console.log(d)).catch((err) => console.log(err));
+      setPendingUsers((prev) => prev.filter((u) => u.id !== id));
   };
 
   const cancelDelete = () => {

@@ -36,7 +36,7 @@ const UsersManagements = () => {
       }
     
       const users =  await axios.get("http://localhost:5054/api/Admin/users");
-        setAllUsers(users["data"]);
+        setAllUsers(users["data"].filter(u => u.isApproved));
         console.log(users["data"]);
 
     }
@@ -89,7 +89,30 @@ const UsersManagements = () => {
   };
 
   const handleSaveUser = (newUser) => {
-    setAllUsers((prev) => [...prev, newUser]);
+    
+      const token = localStorage.getItem("token");
+    
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
+    
+      const newUserPayload = {
+        email: newUser.email,         // make sure you have `email` in your component state
+        password: newUser.password,   // same for `password`
+        userName: newUser.userName            // optionally include other fields like `role`, etc.
+      };
+      axios
+        .post("http://localhost:5054/api/Admin/users/create", newUserPayload)
+        .then((response) => {
+          console.log("User created successfully:", response.data);
+          newUser = response.data;
+          setAllUsers((prev) => [...prev, newUser]);
+          // optionally redirect or clear form inputs
+        })
+        .catch((error) => {
+          console.error("Error creating user:", error);
+        });
+    
   };
 
   const handlePageChange = (newPage) => {
@@ -159,7 +182,7 @@ const UsersManagements = () => {
         <AddUserModal
           open={addModalOpen}
           onClose={() => setAddModalOpen(false)}
-          onSave={handleSaveUser}
+          onCreate={handleSaveUser}
         />
       </Box>
     </Box>

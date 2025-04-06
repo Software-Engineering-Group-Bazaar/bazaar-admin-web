@@ -17,6 +17,7 @@ import {
 import { styled } from "@mui/material/styles";
 import ApproveUserButton from "./ApproveUserButton";
 import DeleteUserButton from "./DeleteUserButton";
+import axios from 'axios';
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   maxHeight: 840,
@@ -144,20 +145,60 @@ const PendingUsersTable = ({
                 </Typography>
               </TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.role}</TableCell>
+              <TableCell>{user.roles ? user.roles[0] : "?"}</TableCell>
               <TableCell>{formatDate(user.submitDate)}</TableCell>
               <TableCell align="center">
                 <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                   <ApproveUserButton
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e.preventDefault();
                       onApprove(user.id);
-                    }}
+
+                      
+                        const token = localStorage.getItem("token");
+                      
+                        if (token) {
+                          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                        }
+                      
+                        const Payload = {
+                          userId:user.id
+                        };
+                      
+                        axios
+                          .post("http://localhost:5054/api/Admin/users/approve", Payload)
+                          .then((response) => {
+                            console.log("User approved successfully:", response.data);
+                            // optionally redirect or clear form inputs
+                          })
+                          .catch((error) => {
+                            console.error("Error approving user:", error);
+                          });
+                      }
+                    }
                   />
                   <DeleteUserButton
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(user.id);
+                      const token = localStorage.getItem("token");
+                      
+                        if (token) {
+                          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                        }
+                      
+                        const Payload = {
+                          userId:user.id
+                        };
+                      axios
+                      .delete(`http://localhost:5054/api/Admin/users/${user.id}`)
+                      .then((response) => {
+                        console.log("User deleted successfully:", response.data);
+                        // optionally redirect or clear form inputs
+                      })
+                      .catch((error) => {
+                        console.error("Error deleting user:", error);
+                      });
                     }}
                   />
                 </Box>

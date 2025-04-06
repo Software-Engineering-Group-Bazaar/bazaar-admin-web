@@ -15,10 +15,9 @@ import {
 
 const AddUserModal = ({ open, onClose, onCreate }) => {
   const [formData, setFormData] = useState({
-    name: "",
+    userName: "",
     email: "",
-    role: "",
-    phoneNumber: "",
+    password: "",
   });
 
   const handleChange = (e) => {
@@ -30,7 +29,7 @@ const AddUserModal = ({ open, onClose, onCreate }) => {
 
   const handleSubmit = () => {
     onCreate(formData);
-    setFormData({ name: "", email: "", role: "", phoneNumber: "" });
+    setFormData({ userName: "", email: "", password: "" });
     onClose();
   };
 
@@ -40,24 +39,7 @@ const AddUserModal = ({ open, onClose, onCreate }) => {
       <DialogContent
         sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
       >
-        <TextField
-          label="Name"
-          variant="outlined"
-          fullWidth
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
-            },
-            "& .MuiInputLabel-outlined": {
-              transform: "translate(14px, 12px) scale(1)", 
-            },
-            "& .MuiInputLabel-shrink": {
-              transform: "translate(14px, -4px) scale(0.75)", 
-            },
-          }}
-        />
+        
 
         <TextField
           label="Email"
@@ -67,13 +49,20 @@ const AddUserModal = ({ open, onClose, onCreate }) => {
           fullWidth
         />
         <TextField
-          label="Phone Number"
-          name="phoneNumber"
-          value={formData.phoneNumber}
+          label="Username"
+          name="userName"
+          value={formData.userName}
           onChange={handleChange}
           fullWidth
         />
-        <FormControl fullWidth>
+        <TextField
+          label="Password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          fullWidth
+        />
+        {/* <FormControl fullWidth>
           <InputLabel>Role</InputLabel>
           <Select
             name="role"
@@ -85,7 +74,7 @@ const AddUserModal = ({ open, onClose, onCreate }) => {
             <MenuItem value="seller">Seller</MenuItem>
             <MenuItem value="admin">Admin</MenuItem>
           </Select>
-        </FormControl>
+        </FormControl> */}
       </DialogContent>
       <DialogActions sx={{ pr: 3, pb: 2 }}>
         <Button onClick={onClose} color="inherit">

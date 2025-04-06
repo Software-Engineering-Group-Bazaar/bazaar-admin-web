@@ -82,14 +82,16 @@ const UserDetailsModal = ({ open, onClose, user, readOnly = false }) => {
             <UserEmail email={selectedUser.email} />
           </Typography>
           <Typography variant="body2">
-            <strong style={{ color: "#4B0000" }}>Telefon:</strong>{" "}
-            {selectedUser.phoneNumber}
+            <strong style={{ color: "#4B0000" }}>Username:</strong>{" "}
+            {selectedUser.userName}
           </Typography>
-          <Typography variant="body2" fontStyle="italic">
-            <UserRoles roles={selectedUser.role} />
+          <Typography variant="body2">
+            <strong style={{ color: "#4B0000" }}>Role:</strong>{" "}
+            {selectedUser.roles[0]}
           </Typography>
 
-          {!readOnly && (
+
+          {/* {!readOnly && (
             <>
               <Button
                 variant="outlined"
@@ -114,7 +116,7 @@ const UserDetailsModal = ({ open, onClose, user, readOnly = false }) => {
                 </Box>
               )}
             </>
-          )}
+          )} */}
         </Box>
       </DialogContent>
     </Dialog>
