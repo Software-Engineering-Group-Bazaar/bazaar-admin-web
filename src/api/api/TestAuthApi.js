@@ -50,7 +50,7 @@ export default class TestAuthApi {
      */
     apiTestAuthLoginPost(opts, callback) {
       opts = opts || {};
-      let postBody = opts['body'];
+      let postBody = opts;
 
       let pathParams = {
         
@@ -69,6 +69,8 @@ export default class TestAuthApi {
       let contentTypes = ['application/json', 'text/json', 'application/_*+json'];
       let accepts = ['text/plain', 'application/json', 'text/json'];
       let returnType = 'String';
+
+      console.log(opts);
 
       return this.apiClient.callApi(
         '/api/TestAuth/login', 'POST',
