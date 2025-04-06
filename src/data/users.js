@@ -1,5 +1,7 @@
 // data/users.js
 
+import { fetchAdminUsers }  from "../utils/users";
+
 let users = [
   { id: 1, name: "John Doe", email: "john.doe@example.com", isApproved: true },
   {
@@ -86,9 +88,10 @@ let users = [
 ];
 
 // Funkcija za vraćanje svih korisnika
-export function getUsers() {
+export async function getUsers() {
   console.log("getUsers pozvan");
-  console.log("Trenutni users array:", users);
+  //console.log("Trenutni users array:", users);
+  const users = await fetchAdminUsers();
   return [...users];
 }
 

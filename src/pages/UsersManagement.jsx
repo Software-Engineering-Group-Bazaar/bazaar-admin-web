@@ -20,15 +20,15 @@ const UsersManagements = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Učitavanje korisnika
-  const fetchUsers = () => {
+  const fetchUsers = async () => {
     setIsLoading(true);
-    const users = getUsers();
+    const users = await getUsers();
     setAllUsers(users);
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchUsers();
+  useEffect(async () => {
+    await fetchUsers();
   }, []);
   
 

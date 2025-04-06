@@ -7,10 +7,6 @@ let users = [
     { id: 4, name: "Bob Brown", email: "bob.brown@example.com", role: "seller", phoneNumber: "061312589"}
   ];
   
-  // Funkcija za vraćanje svih korisnika
-  export function getUsers() {
-    return users;
-  }
   
   // Funkcija za ažuriranje korisnika
   export function updateUser(userId, updatedUser) {
