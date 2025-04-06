@@ -113,7 +113,7 @@ export default class TestAuthApi {
       let returnType = 'String';
 
       return this.apiClient.callApi(
-        '/api/TestAuth/register', 'POST',
+        '/api/Auth/register', 'POST',
         pathParams, queryParams, headerParams, formParams, postBody,
         authNames, contentTypes, accepts, returnType, callback
       );

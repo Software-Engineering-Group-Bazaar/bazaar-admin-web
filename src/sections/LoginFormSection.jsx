@@ -13,6 +13,8 @@ import { useState } from "react";
 // import { AdminApi, TestAuthApi } from '../api/api/AdminApi';
 import { loginUser } from "../utils/login";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+import {api} from '../utils/apiroutes'
 
 const LoginFormSection = () => {
   const [email, setEmail] = useState('');
@@ -26,6 +28,30 @@ const LoginFormSection = () => {
     if (status !== false) navigate('/users');
   }
 
+  function handleSubmit(event) {
+      event.preventDefault();
+  
+      const loginPayload = {
+        email: email,
+        password: password,
+      };
+      console.log(api.login)
+      axios
+        .post('http://localhost:5054/api/Auth/login', loginPayload)
+        .then((response) => {
+          const token = response.data.token;
+  
+          localStorage.setItem("token", token);
+          localStorage.setItem("auth", true);  
+          if (token) {
+            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          }
+  
+          navigate("/users");
+        })
+        .catch((err) => console.log(err));
+    }
+
   return (
     <Box sx={formContainer}>
       <Typography variant="h4" color="text.secondary" fontWeight={700} mb={2}>
@@ -37,7 +63,7 @@ const LoginFormSection = () => {
       <CustomTextField label="Email" sx={{ mb: 2 }} value={email} onChange={(e) => setEmail(e.target.value)} error={email.length > 0 && !isValid} helperText={email.length > 0 && error}/>
       <CustomTextField label="Password" type="password" sx={{ mb: 2 }}  value={password} onChange={p => setPassword(p.target.value)}/>
       <Box textAlign="right" mb={2}></Box>
-      <CustomButton fullWidth onClick={handleLogIn}>LOGIN</CustomButton>
+      <CustomButton fullWidth onClick={handleSubmit}>LOGIN</CustomButton>
      
     </Box>
   );

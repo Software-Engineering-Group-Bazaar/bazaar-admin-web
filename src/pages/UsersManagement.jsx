@@ -6,6 +6,7 @@ import UserDetailsModal from "@components/UserDetailsModal";
 import { Box } from "@mui/material";
 import { getUsers, deleteUser } from "@data/users";
 import AddUserModal from "@components/AddUserModal"; 
+import axios from 'axios';
 
 const UsersManagements = () => {
   const usersPerPage = 8;
@@ -20,21 +21,33 @@ const UsersManagements = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Učitavanje korisnika
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    const users = await getUsers();
-    setAllUsers(users);
-    setIsLoading(false);
-  };
 
-  useEffect(async () => {
-    await fetchUsers();
-  }, []);
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+
+   
+    setIsLoading(false);
+    
+      const token = localStorage.getItem("token");
+    
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
+    
+      const users =  await axios.get("http://localhost:5054/api/Admin/users");
+        setAllUsers(users["data"]);
+        console.log(users["data"]);
+
+    }
+    fetchData();
+  }, []); 
+
   
 
   const filteredUsers = allUsers.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -46,14 +59,30 @@ const UsersManagements = () => {
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-  const handleDelete = (userId) => {
-    deleteUser(userId);
-    fetchUsers();
 
-    if (currentPage > 1 && currentUsers.length === 1) {
-      setCurrentPage(currentPage - 1);
+
+  const handleDelete = (userId) => {
+  
+    const token = localStorage.getItem("token");
+  
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
-  };
+  
+    axios
+      .delete(`http://localhost:5054/api/Admin/user/${userId}`)
+      .then((response) => {
+        console.log(`User with ID ${userId} deleted successfully.`);
+        // optionally refresh user list or update UI
+      })
+      .catch((error) => {
+        console.error(`Failed to delete user ${userId}:`, error);
+      });
+      setAllUsers(allUsers.filter(u => u.id != userId));
+      if (currentPage > 1 && currentUsers.length === 1) {
+        setCurrentPage(currentPage - 1);
+      }
+  }
 
   const handleAddUser = () => {
     setAddModalOpen(true);
