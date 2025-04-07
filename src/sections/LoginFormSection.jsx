@@ -16,9 +16,12 @@ import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import {api} from '../utils/apiroutes'
 
-var baseURL = import.meta.env.VITE_API_BASE_URL
+
+
+
 
 const LoginFormSection = () => {
+  var baseURL = import.meta.env.VITE_API_BASE_URL
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { isValid, error } = validateEmail(email);
@@ -37,7 +40,8 @@ const LoginFormSection = () => {
         email: email,
         password: password,
       };
-      console.log(api.login)
+      console.log(baseURL)
+      console.log(import.meta.env);
       axios
         .post(`${baseURL}/api/Auth/login`, loginPayload)
         .then((response) => {

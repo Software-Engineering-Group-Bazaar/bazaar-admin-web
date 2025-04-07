@@ -9,7 +9,7 @@ import AddUserModal from "@components/AddUserModal";
 import axios from 'axios';
 
 
-var baseURL = import.meta.env.VITE_API_BASE_UR
+var baseURL = import.meta.env.VITE_API_BASE_URL
 
 const UsersManagements = () => {
   const usersPerPage = 8;
