@@ -19,10 +19,10 @@ const PendingUsersHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
     >
       <Box sx={{ textAlign: "left", mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Notifications
+          Requests
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Admin Panel &gt; Notifications
+          Admin Panel &gt; Requests
         </Typography>
       </Box>
 

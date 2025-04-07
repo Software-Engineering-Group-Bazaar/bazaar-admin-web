@@ -1,0 +1,57 @@
+name: Frontend CI Checks
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push events but only for the main branch
+  push:
+    branches: [ develop ]
+  # Triggers the workflow on pull request events targeting the main branch
+  pull_request:
+    branches: [ develop ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-and-lint: # You can name the job anything descriptive
+    runs-on: ubuntu-latest # Use a Linux runner
+
+    strategy:
+      matrix:
+        node-version: [20.15.1] # Specify the Node.js version(s) you use
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      # 1. Get the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4 # Use the standard checkout action
+
+      # 2. Setup Node.js environment
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm' # Cache npm dependencies for faster builds
+
+      # 3. Install dependencies (use 'ci' for clean installs in CI)
+      - name: Install dependencies
+        run: npm ci # 'npm ci' is generally preferred over 'npm install' in CI
+
+      # 4. Run linters (if you have ESLint configured)
+      #    Make sure you have a lint script in your package.json
+      # - name: Run linter (ESLint)
+      #   run: npm run lint # Adjust if your lint script has a different name
+
+      # 5. Run formatter check (if you use Prettier)
+      #    Make sure you have a format check script in package.json (e.g., "prettier --check .")
+      # - name: Check formatting (Prettier) # Optional: Uncomment if using Prettier check
+      #   run: npm run format:check # Adjust script name as needed
+
+      # 6. Build the project (catches syntax errors, type errors if TS, build config issues)
+      - name: Build project
+        run: npm run build --if-present # Runs 'npm run build' if the script exists
+
+      # 7. Run tests (if you have tests configured - Vitest, Jest, etc.)
+      #    Make sure you have a test script in package.json (e.g., "vitest run")
+      # - name: Run tests # Optional: Uncomment if using tests
+      #   run: npm run test # Adjust script name as needed

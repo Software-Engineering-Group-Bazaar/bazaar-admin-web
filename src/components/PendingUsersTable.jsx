@@ -19,6 +19,10 @@ import ApproveUserButton from "./ApproveUserButton";
 import DeleteUserButton from "./DeleteUserButton";
 import axios from 'axios';
 
+
+var baseURL = import.meta.env.VITE_API_BASE_URL
+
+
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   maxHeight: 840,
   overflow: "auto",
@@ -114,15 +118,6 @@ const PendingUsersTable = ({
                 Role
               </TableSortLabel>
             </TableCell>
-            <TableCell>
-              <TableSortLabel
-                active={orderBy === "submitDate"}
-                direction={order}
-                onClick={() => handleRequestSort("submitDate")}
-              >
-                Submit Date
-              </TableSortLabel>
-            </TableCell>
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -134,19 +129,20 @@ const PendingUsersTable = ({
               </TableCell>
               <TableCell>
                 <Avatar
-                  alt={user.name}
+                  alt={user.userName}
                   src={user.imageUrl}
                   sx={{ width: 38, height: 38, border: "2px solid #800000" }}
                 />
               </TableCell>
               <TableCell>
                 <Typography variant="body2" fontWeight={500}>
-                  {user.name}
+                  {user.userName}
                 </Typography>
               </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.roles ? user.roles[0] : "?"}</TableCell>
-              <TableCell>{formatDate(user.submitDate)}</TableCell>
+
+
               <TableCell align="center">
                 <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                   <ApproveUserButton
@@ -166,7 +162,9 @@ const PendingUsersTable = ({
                         };
                       
                         axios
-                          .post("http://localhost:5054/api/Admin/users/approve", Payload)
+
+                          .post(`${baseURL}/api/Admin/users/approve`, Payload)
+
                           .then((response) => {
                             console.log("User approved successfully:", response.data);
                             // optionally redirect or clear form inputs
