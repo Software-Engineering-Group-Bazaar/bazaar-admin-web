@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import mockUsers from "@data/pendingUsers";
 import axios from 'axios';
+
+var baseURL = import.meta.env.VITE_API_BASE_URL
+
 export const PendingUsersContext = createContext();
 
 export const usePendingUsers = () => useContext(PendingUsersContext);
@@ -19,7 +22,7 @@ export const PendingUsersProvider = ({ children }) => {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
     
-      const users =  await axios.get("http://localhost:5054/api/Admin/users");
+      const users =  await axios.get(`${baseURL}/api/Admin/users`);
       setPendingUsers(users["data"].filter(u => !u.isApproved));
         console.log(users["data"]);
 

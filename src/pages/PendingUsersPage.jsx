@@ -7,6 +7,8 @@ import UserDetailsModal from "@components/UserDetailsModal";
 import { Box } from "@mui/material";
 import { PendingUsersContext } from "@context/PendingUsersContext";
 import axios from 'axios';
+
+var baseURL = import.meta.env.VITE_API_BASE_URL
 const PendingUsers = () => {
   const usersPerPage = 8;
 
@@ -41,7 +43,7 @@ const PendingUsers = () => {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
     
-      axios.post('http://localhost:5054/api/Admin/users/approve', {userId: id}).
+      axios.post(`${baseURL}/api/Admin/users/approve`, {userId: id}).
       then(d => console.log(d)).catch((err) => console.log(err));
       deleteUser(id);
   };
@@ -62,7 +64,7 @@ const PendingUsers = () => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
     
-    axios.delete(`http://localhost:5054/api/Admin/user/${userToDelete}`).
+    axios.delete(`${baseURL}/api/Admin/user/${userToDelete}`).
     then(d => console.log(d)).catch((err) => console.log(err));
     //setPendingUsers((prev) => prev.filter((u) => u.id !== userToDelete));
     deleteUser(userToDelete);

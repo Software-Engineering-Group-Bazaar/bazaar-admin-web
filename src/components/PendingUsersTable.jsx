@@ -19,6 +19,8 @@ import ApproveUserButton from "./ApproveUserButton";
 import DeleteUserButton from "./DeleteUserButton";
 import axios from 'axios';
 
+var baseURL = import.meta.env.VITE_API_BASE_URL
+
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   maxHeight: 840,
   overflow: "auto",
@@ -156,7 +158,7 @@ const PendingUsersTable = ({
                         };
                       
                         axios
-                          .post("http://localhost:5054/api/Admin/users/approve", Payload)
+                          .post(`${baseURL}/api/Admin/users/approve`, Payload)
                           .then((response) => {
                             console.log("User approved successfully:", response.data);
                             // optionally redirect or clear form inputs

@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import {api} from '../utils/apiroutes'
 
+var baseURL = import.meta.env.VITE_API_BASE_URL
+
 const LoginFormSection = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,7 +39,7 @@ const LoginFormSection = () => {
       };
       console.log(api.login)
       axios
-        .post('http://localhost:5054/api/Auth/login', loginPayload)
+        .post(`${baseURL}/api/Auth/login`, loginPayload)
         .then((response) => {
           const token = response.data.token;
   
