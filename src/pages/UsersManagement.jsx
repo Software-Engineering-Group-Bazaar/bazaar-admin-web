@@ -9,7 +9,9 @@ import AddUserModal from "@components/AddUserModal";
 import axios from 'axios';
 
 
+
 var baseURL = import.meta.env.VITE_API_BASE_URL
+
 
 const UsersManagements = () => {
   const usersPerPage = 8;
@@ -38,8 +40,10 @@ const UsersManagements = () => {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
     
+
       const users =  await axios.get(`${baseURL}/api/Admin/users`);
         setAllUsers(users["data"].filter(u => u.isApproved && u.roles[0]!="Admin"));
+
         console.log(users["data"]);
 
     }
@@ -73,7 +77,9 @@ const UsersManagements = () => {
     }
   
     axios
+
       .delete(`${baseURL}/api/Admin/user/${userId}`)
+
       .then((response) => {
         console.log(`User with ID ${userId} deleted successfully.`);
         // optionally refresh user list or update UI
@@ -105,7 +111,9 @@ const UsersManagements = () => {
         userName: newUser.userName            // optionally include other fields like `role`, etc.
       };
       axios
+
         .post(`${baseURL}}/api/Admin/users/create`, newUserPayload)
+
         .then((response) => {
           console.log("User created successfully:", response.data);
           newUser = response.data;

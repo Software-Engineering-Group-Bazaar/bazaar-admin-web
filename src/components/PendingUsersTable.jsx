@@ -19,7 +19,9 @@ import ApproveUserButton from "./ApproveUserButton";
 import DeleteUserButton from "./DeleteUserButton";
 import axios from 'axios';
 
+
 var baseURL = import.meta.env.VITE_API_BASE_URL
+
 
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   maxHeight: 840,
@@ -139,6 +141,8 @@ const PendingUsersTable = ({
               </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.roles ? user.roles[0] : "?"}</TableCell>
+
+
               <TableCell align="center">
                 <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                   <ApproveUserButton
@@ -158,7 +162,9 @@ const PendingUsersTable = ({
                         };
                       
                         axios
+
                           .post(`${baseURL}/api/Admin/users/approve`, Payload)
+
                           .then((response) => {
                             console.log("User approved successfully:", response.data);
                             // optionally redirect or clear form inputs
@@ -173,6 +179,24 @@ const PendingUsersTable = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(user.id);
+                      const token = localStorage.getItem("token");
+                      
+                        if (token) {
+                          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                        }
+                      
+                        const Payload = {
+                          userId:user.id
+                        };
+                      axios
+                      .delete(`http://localhost:5054/api/Admin/users/${user.id}`)
+                      .then((response) => {
+                        console.log("User deleted successfully:", response.data);
+                        // optionally redirect or clear form inputs
+                      })
+                      .catch((error) => {
+                        console.error("Error deleting user:", error);
+                      });
                     }}
                   />
                 </Box>

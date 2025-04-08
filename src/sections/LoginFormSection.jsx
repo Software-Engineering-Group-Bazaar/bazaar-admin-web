@@ -20,6 +20,8 @@ import {api} from '../utils/apiroutes'
 
 
 
+
+
 const LoginFormSection = () => {
   var baseURL = import.meta.env.VITE_API_BASE_URL
   const [email, setEmail] = useState('');
@@ -40,10 +42,12 @@ const LoginFormSection = () => {
         email: email,
         password: password,
       };
+
       console.log(baseURL)
       console.log(import.meta.env);
       axios
         .post(`${baseURL}/api/Auth/login`, loginPayload)
+
         .then((response) => {
           const token = response.data.token;
   
