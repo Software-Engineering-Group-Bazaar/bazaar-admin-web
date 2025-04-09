@@ -9,6 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 import { validateEmail } from "../utils/validation";
 import { useState } from "react";
+import Alert from '@mui/material/Alert';
 // import apiClientInstance from '../api/apiClientInstance'; // Import configured client
 // import { AdminApi, TestAuthApi } from '../api/api/AdminApi';
 import { loginUser } from "../utils/login";
@@ -27,7 +28,7 @@ const LoginFormSection = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { isValid, error } = validateEmail(email);
-
+  const [alertMessage, setAlertMessage] = useState('');
   const navigate = useNavigate();
 
   const handleLogIn = () => {
@@ -42,7 +43,8 @@ const LoginFormSection = () => {
         email: email,
         password: password,
       };
-
+      //setError('');
+      setAlertMessage('');
       console.log(baseURL)
       console.log(import.meta.env);
       axios
@@ -59,7 +61,9 @@ const LoginFormSection = () => {
   
           navigate("/users");
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+        setAlertMessage('Prijava neuspješna!');
+        console.log(err)});
     }
 
   return (
@@ -74,7 +78,11 @@ const LoginFormSection = () => {
       <CustomTextField label="Password" type="password" sx={{ mb: 2 }}  value={password} onChange={p => setPassword(p.target.value)}/>
       <Box textAlign="right" mb={2}></Box>
       <CustomButton fullWidth onClick={handleSubmit}>LOGIN</CustomButton>
-     
+      {alertMessage && (
+      <Alert severity="error" sx={{ mt: 2 }}>
+      {alertMessage}
+  </Alert>
+)}
     </Box>
   );
 };
