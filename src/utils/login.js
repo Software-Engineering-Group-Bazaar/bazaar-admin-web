@@ -1,4 +1,4 @@
-// src/services/authService.js
+/*// src/services/authService.js
 import apiClientInstance from '../api/apiClientInstance';
 // *** IMPORTANT: Use the correct API class name based on your HAR log ***
 import  TestAuthApi  from '../api/api/TestAuthApi'; // <<< Make sure this matches your generated file name
@@ -38,4 +38,4 @@ export const loginUser = async (username, password) => {
        reject({ message: err.message || 'An unexpected error occurred.', status: null });
     }
   });
-};
+};*/

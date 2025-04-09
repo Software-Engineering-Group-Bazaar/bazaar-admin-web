@@ -11,7 +11,7 @@ import { validateEmail } from "../utils/validation";
 import { useState } from "react";
 // import apiClientInstance from '../api/apiClientInstance'; // Import configured client
 // import { AdminApi, TestAuthApi } from '../api/api/AdminApi';
-import { loginUser } from "../utils/login";
+import { apiLoginUserAsync } from "../api/api.js";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import {api} from '../utils/apiroutes'
@@ -31,7 +31,7 @@ const LoginFormSection = () => {
   const navigate = useNavigate();
 
   const handleLogIn = () => {
-    const status = loginUser(email, password);
+    const status = apiLoginUserAsync(email, password);
     if (status !== false) navigate('/users');
   }
 
