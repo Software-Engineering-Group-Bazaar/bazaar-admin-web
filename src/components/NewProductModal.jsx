@@ -1,168 +1,295 @@
-import React, { useState } from "react";
-import { Modal, Box, TextField, Button, Typography, Grid } from "@mui/material";
-import style from "./NewProductModalStyle"
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  MenuItem,
+  useTheme,
+} from "@mui/material";
+import ImageUploader from "@components/ImageUploader";
+import SuccessMessage from "@components/SuccessMessage";
+import { HiOutlineCube } from "react-icons/hi";
+import style from "./NewProductModalStyle";
+import { apiCreateProductAsync, apiGetProductCategoriesAsync } from "@api/api";
 
+const weightUnits = ["kg", "g", "lbs"];
+const volumeUnits = ["L", "ml", "oz"];
 
+const AddProductModal = ({ open, onClose }) => {
+  const theme = useTheme();
 
-const AddProductModal = ({ open, onClose, onSubmit }) => {
+  const [productCategories, setProductCategories] = useState([]);
   const [formData, setFormData] = useState({
-                                             name: "",
-                                             price: "",
-                                             weight: "",
-                                             volume: "",
-                                             photos: [],
+    name: "",
+    price: "",
+    weight: "",
+    weightunit: "kg",
+    volume: "",
+    volumeunit: "L",
+    productcategoryid: "",
+    photos: [],
   });
 
+  const [successModal, setSuccessModal] = useState({
+    open: false,
+    isSuccess: true,
+    message: "",
+  });
 
+  useEffect(() => {
+    if (open) {
+      apiGetProductCategoriesAsync().then(setProductCategories);
+    }
+  }, [open]);
 
+  useEffect(() => {
+    if (successModal.open) {
+      const timer = setTimeout(() => {
+        setSuccessModal((prev) => ({ ...prev, open: false }));
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successModal.open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    const productData = {
-      ...formData,
-    };
-    onSubmit(productData);
-    onClose();
+  const handlePhotosChange = (files) => {
+    setFormData((prev) => ({ ...prev, photos: files }));
   };
 
+  const handleSubmit = async () => {
+    try {
+      const response = await apiCreateProductAsync(formData);
+      if (response?.success) {
+        setSuccessModal({
+          open: true,
+          isSuccess: true,
+          message: "Product has been successfully assigned to the store.",
+        });
+      } else {
+        throw new Error("API returned failure.");
+      }
+    } catch (err) {
+      setSuccessModal({
+        open: true,
+        isSuccess: false,
+        message: "Failed to assign product to the store.",
+      });
+    } finally {
+      onClose();
+    }
+  };
 
-
-  
   return (
-    <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        {}
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h4" sx={{ fontWeight: 700, color: "#4a0404" }}>
+    <>
+      <Modal open={open} onClose={onClose}>
+        <Box
+          sx={{
+            ...style,
+            maxWidth: "600px",
+            bgcolor: "#fff",
+            borderRadius: "20px",
+            p: 4,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+          }}
+        >
+          <HiOutlineCube
+            style={{
+              fontSize: "58px",
+              color: "#00bcd4",
+              margin: "0 auto 10px auto",
+              display: "block",
+            }}
+          />
+
+          <Typography
+            variant="h4"
+            fontWeight={700}
+            color="#4a0404"
+            mb={3}
+            textAlign="center"
+          >
             Add New Product
           </Typography>
-          <Button
-            variant="outlined"
-            component="label"
-            sx={{
-              borderRadius: "50%",
-              padding: "10px 15px",
-              height: "40px",
-              textTransform: "none",
-             color:"#4a0404",
-             borderColor:"#4a0404",
-              backgroundColor: "#f0f0f0",
-              "&:hover": {
-                backgroundColor: "#e0e0e0",
-              },
-            }}
-          >
-            Upload
-            <input
-              type="file"
-              hidden
-              multiple
-              accept="image/*"
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  photos: [...e.target.files],
-                }))
-              }
+
+          {/* Image Upload */}
+          <ImageUploader
+            files={formData.photos}
+            setFiles={handlePhotosChange}
+          />
+
+          {/* Form */}
+          <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+            <TextField
+              label="Product Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              fullWidth
+              variant="outlined"
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: "#fafafa" },
+              }}
             />
-          </Button>
+
+            <TextField
+              label="Price"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              type="number"
+              fullWidth
+              variant="outlined"
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: "#fafafa" },
+              }}
+            />
+
+            {/* Weight + Unit */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ flex: 2 }}>
+                <TextField
+                  label="Weight"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleChange}
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  InputProps={{
+                    sx: {
+                      borderRadius: 2,
+                      backgroundColor: "#fafafa",
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  select
+                  label="Unit"
+                  name="weightunit"
+                  value={formData.weightunit}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  sx={{ backgroundColor: "#fafafa", borderRadius: 2 }}
+                >
+                  {weightUnits.map((unit) => (
+                    <MenuItem key={unit} value={unit}>
+                      {unit}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </Box>
+
+            {/* Volume + Unit */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ flex: 2 }}>
+                <TextField
+                  label="Volume"
+                  name="volume"
+                  value={formData.volume}
+                  onChange={handleChange}
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  InputProps={{
+                    sx: {
+                      borderRadius: 2,
+                      backgroundColor: "#fafafa",
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  select
+                  label="Unit"
+                  name="volumeunit"
+                  value={formData.volumeunit}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  sx={{ backgroundColor: "#fafafa", borderRadius: 2 }}
+                >
+                  {volumeUnits.map((unit) => (
+                    <MenuItem key={unit} value={unit}>
+                      {unit}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </Box>
+
+            {/* Category */}
+            <TextField
+              select
+              label="Category"
+              name="productcategoryid"
+              value={formData.productcategoryid}
+              onChange={handleChange}
+              fullWidth
+              variant="outlined"
+              sx={{ backgroundColor: "#fafafa", borderRadius: 2 }}
+            >
+              {productCategories.map((cat) => (
+                <MenuItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+
+          {/* Buttons */}
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            gap={2}
+            mt={4}
+            sx={{ pt: 2 }}
+          >
+            <Button
+              variant="text"
+              onClick={onClose}
+              sx={{ color: "#4a0404", fontWeight: 600, fontSize: "0.95rem" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              sx={{
+                backgroundColor: "#4a0404",
+                fontWeight: 600,
+                px: 4,
+                borderRadius: 2,
+                boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                "&:hover": { backgroundColor: "#3a0202" },
+              }}
+            >
+              Submit
+            </Button>
+          </Box>
         </Box>
+      </Modal>
 
-        {}
-        {formData.photos.length > 0 && (
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            {formData.photos.length} file(s) selected
-          </Typography>
-        )}
-
-        {}
-        <TextField
-          label="Product Name"
-          fullWidth
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          margin="normal"
-        />
-
-        <TextField
-          label="Price"
-          fullWidth
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          margin="normal"
-          type="number"
-        />
-
-        <TextField
-          label="Weight (kg)"
-          fullWidth
-          name="weight"
-          value={formData.weight}
-          onChange={handleChange}
-          margin="normal"
-          type="number"
-        />
-
-        <TextField
-          label="Volume (L)"
-          fullWidth
-          name="volume"
-          value={formData.volume}
-          onChange={handleChange}
-          margin="normal"
-          type="number"
-        />
-
-        {}
-        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-          <Button variant="text" onClick={onClose} sx={{color : "#4a0404"}}>
-            Cancel
-          </Button>
-          <Button variant="contained" onClick={handleSubmit} sx={{backgroundColor:'#4a0404'}}>
-            Submit
-          </Button>
-        </Box>
-      </Box>
-    </Modal>
-  );
-};
-
-
-
-
-
-// Mock roditeljske komponente, dok se ne uradi drugi issue
-const MockParentComponent = () => {
-  const [openModal, setOpenModal] = useState(false);
-
-  const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => setOpenModal(false);
-
-  const handleSubmit = (productData) => {
-    console.log("Submitted Product:", productData);
-  };
-
-  return (
-    <div>
-      <Button variant="contained" onClick={handleOpenModal}>
-        Add Product
-      </Button>
-
-      {}
-      <AddProductModal
-        open={openModal}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmit}
+      {/* Success or Error Feedback */}
+      <SuccessMessage
+        open={successModal.open}
+        onClose={() => setSuccessModal((prev) => ({ ...prev, open: false }))}
+        isSuccess={successModal.isSuccess}
+        message={successModal.message}
       />
-    </div>
+    </>
   );
 };
 
-
-export default MockParentComponent;
+export default AddProductModal;
