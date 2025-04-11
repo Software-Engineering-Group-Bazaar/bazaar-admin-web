@@ -3,14 +3,14 @@ import UserManagementHeader from "@sections/UserManagementHeader";
 import UserManagementPagination from "@components/UserManagementPagination";
 import UserManagementSection from "@sections/UserManagementSection";
 import UserDetailsModal from "@components/UserDetailsModal";
-import { Box } from "@mui/material";
+import { Box, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import AddUserModal from "@components/AddUserModal";
 
 import {
   apiFetchApprovedUsersAsync,
   apiDeleteUserAsync,
   apiCreateUserAsync,
-} from "../api/api.js"; 
+} from "../api/api.js";
 
 const UsersManagements = () => {
   const usersPerPage = 8;
@@ -18,6 +18,8 @@ const UsersManagements = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState(""); 
+  const [availabilityFilter, setAvailabilityFilter] = useState(""); 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -36,11 +38,20 @@ const UsersManagements = () => {
     fetchData();
   }, []);
 
-  const filteredUsers = allUsers.filter(
-    (user) =>
+  const filteredUsers = allUsers.filter((user) => {
+    const matchesSearch =
       user.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesRole =
+      roleFilter === "" || user.role?.toLowerCase() === roleFilter.toLowerCase();
+
+    const matchesAvailability =
+      availabilityFilter === "" ||
+      user.availability?.toLowerCase() === availabilityFilter.toLowerCase();
+
+    return matchesSearch && matchesRole && matchesAvailability;
+  });
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / usersPerPage));
   const indexOfLastUser = currentPage * usersPerPage;
@@ -113,6 +124,33 @@ const UsersManagements = () => {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
         />
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <FormControl sx={{ minWidth: 160 }}>
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              label="Role"
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="buyer">Buyer</MenuItem>
+              <MenuItem value="seller">Seller</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl sx={{ minWidth: 160 }}>
+            <InputLabel>Availability</InputLabel>
+            <Select
+              value={availabilityFilter}
+              onChange={(e) => setAvailabilityFilter(e.target.value)}
+              label="Availability"
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="Online">Online</MenuItem>
+              <MenuItem value="Offline">Offline</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
         <UserManagementSection
           allUsers={currentUsers}

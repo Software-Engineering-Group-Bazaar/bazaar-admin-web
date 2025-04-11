@@ -3,31 +3,50 @@
 import { fetchAdminUsers }  from "../utils/users";
 
 let users = [
-  { id: 1, userName: "John Doe", email: "john.doe@example.com", isApproved: true },
+  { id: 1, userName: "John Doe", 
+    email: "john.doe@example.com", 
+    role: "Seller",
+    availability: "Online",
+    lastActive: "Now",
+    isApproved: true,
+
+  },
   {
     id: 2,
     userName: "Jane Smith",
     email: "jane.smith@example.com",
+    role: "Buyer",
+    availability: "Online",
+    lastActive: "Now",
     isApproved: true,
   },
   {
     id: 3,
     userName: "Alice Johnson",
     email: "alice.johnson@example.com",
+    role: "Seller",
+    availability: "Online",
+    lastActive: "Now",
     isApproved: true,
   },
   {
     id: 4,
     userName: "Bob Brown",
     email: "bob.brown@example.com",
-    isApproved: true,
+    role: "Buyer",
+    availability: "Online",
+    lastActive: "2024-04-09, 14:30:00",
+    isApproved: true
   },
   { id: 5, userName: "John Doe", email: "john.doe@example.com", isApproved: true },
   {
     id: 6,
     userName: "Jane Smith",
     email: "jane.smith@example.com",
-    isApproved: true,
+    role: "Buyer",
+    availability: "Online",
+    lastActive: "2024-04-09, 14:30:00",
+    isApproved: true
   },
   {
     id: 7,

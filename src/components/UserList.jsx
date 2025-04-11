@@ -112,6 +112,11 @@ export default function UserList({
               </TableSortLabel>
             </TableCell>
 
+            
+            <TableCell>Role</TableCell>
+            <TableCell>Availability</TableCell>
+            <TableCell>Last Active</TableCell>
+
             <TableCell>
               <TableSortLabel
                 active={orderBy === "status"}
@@ -151,6 +156,12 @@ export default function UserList({
               </TableCell>
               <TableCell sx={{ fontWeight: 500 }}>{user.userName}</TableCell>
               <TableCell>{user.email}</TableCell>
+
+              <TableCell>{user.role}</TableCell>
+              <TableCell>{user.availability}</TableCell>
+
+              <TableCell>{user.lastActive}</TableCell>
+
               <TableCell>
                 <StatusChip status={getStatus(user)} />
               </TableCell>
