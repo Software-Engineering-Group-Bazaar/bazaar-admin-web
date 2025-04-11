@@ -3,7 +3,6 @@ import { Box } from "@mui/material";
 import CategoriesHeader from "../sections/CategoriesHeader.jsx";
 import CategoryCard from "../components/CategoryCard.jsx";
 import UserManagementPagination from "../components/UserManagementPagination.jsx";
-import { apiGetAllCategoriesAsync } from "../api/api.js";
 import AddCategoryModal from "../components/AddCategoryModal"; 
 
 const CategoriesPage = () => {

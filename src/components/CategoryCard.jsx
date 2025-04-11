@@ -3,7 +3,6 @@ import { Box, Typography, IconButton, Avatar, Menu, MenuItem } from "@mui/materi
 import CategoryIcon from "@mui/icons-material/Category";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import { FiEdit2 } from "react-icons/fi";
-import { apiUpdateCategoryStatusAsync } from "../api/api.js";
 import CategoryEditModal from "./CategoryEditModal"; 
 
 const CategoryCard = ({ category, onUpdateCategory }) => {

@@ -82,6 +82,19 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/categories"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <CategoriesPage />
+              </ThemeProvider>
+             </Layout>
+          </ProtectedRoute>
+         }
+       />
+        <Route
           path="/"
           element={
             <Navigate to={isAuthenticated() ? "/users" : "/login"} replace />
