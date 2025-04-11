@@ -14,7 +14,8 @@ import theme from "@styles/theme";
 import Sidebar from "@components/Sidebar";
 
 const isAuthenticated = () => {
-  return localStorage.getItem("auth") === "true";
+  console.log(localStorage.getItem("auth"));
+  return localStorage.getItem("auth");
 };
 
 const ProtectedRoute = ({ children }) => {

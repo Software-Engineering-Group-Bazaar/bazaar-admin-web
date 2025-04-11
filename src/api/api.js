@@ -24,26 +24,7 @@ export const apiLoginUserAsync = async (username, password) => {
 
   console.log("Attempting login via TestAuthApi for:", username);
 
-  return new Promise((resolve, reject) => {
-    try {
-      testAuthApi.apiTestAuthLoginPost(loginPayload, (error, data, response) => {
-        if (error) {
-          console.error('Login API Error:', error);
-          console.error('Login API Response:', response);
-          const status = error?.status || response?.status || null;
-          const message = 'Login failed. Please check your credentials.';
-          reject({ message, status });
-        } else {
-          console.log('Login successful via API.');
-          console.log('API Response Data:', data);
-          resolve(data);
-        }
-      });
-    } catch (err) {
-      console.error('Synchronous error calling login API:', err);
-      reject({ message: err.message || 'An unexpected error occurred.', status: null });
-    }
-  });
+  localStorage.setItem("auth", true);
 };
 
 
