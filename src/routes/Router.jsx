@@ -13,6 +13,7 @@ import StoresPage from "@pages/StoresPage";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "@styles/theme";
 import Sidebar from "@components/Sidebar";
+import CategoriesPage from "@pages/CategoriesPage"
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem("auth"));

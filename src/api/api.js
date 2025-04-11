@@ -1,21 +1,13 @@
-
 //import axios from "axios";
-import apiClientInstance from './apiClientInstance';
-import TestAuthApi from './api/TestAuthApi';
-import LoginDTO from './model/LoginDTO';
-import users from "../data/users"
+import apiClientInstance from "./apiClientInstance";
+import TestAuthApi from "./api/TestAuthApi";
+import LoginDTO from "./model/LoginDTO";
+import users from "../data/users";
 import pendingUsers from "../data/pendingUsers.js";
-
-
-
-
 
 // ----------------------
 // AUTH - Prijava korisnika
 // ----------------------
-
-
-
 
 export const apiLoginUserAsync = async (username, password) => {
   const testAuthApi = new TestAuthApi(apiClientInstance);
@@ -28,20 +20,9 @@ export const apiLoginUserAsync = async (username, password) => {
   localStorage.setItem("auth", true);
 };
 
-
-
-
-
-
-
 // ----------------------
 // PENDING USERS - Neodobreni korisnici
 // ----------------------
-
-
-
-
-
 
 export const apiFetchPendingUsersAsync = async () => {
   try {
@@ -52,8 +33,6 @@ export const apiFetchPendingUsersAsync = async () => {
     throw error;
   }
 };
-
-
 
 export const apiApproveUserAsync = async (userId) => {
   try {
@@ -75,16 +54,9 @@ export const apiApproveUserAsync = async (userId) => {
   }
 };
 
-
-
-
-
 // ----------------------
 // USER MANAGEMENT
 // ----------------------
-
-
-
 
 export const apiFetchApprovedUsersAsync = async () => {
   try {
@@ -96,12 +68,14 @@ export const apiFetchApprovedUsersAsync = async () => {
   }
 };
 
-
-
 export const apiCreateUserAsync = async (newUserPayload) => {
   try {
     // dodaj novog korisnika u niz "users"
-    const newUser = { ...newUserPayload, id: users.length + 1, isApproved: false };
+    const newUser = {
+      ...newUserPayload,
+      id: users.length + 1,
+      isApproved: false,
+    };
     //users.push(newUser);
     pendingUsers.push(newUser); // korisnik će biti u pendingUsers dok ga ne odobri admin, onda se prebacuje u users
     return newUser;
@@ -127,13 +101,6 @@ export const apiDeleteUserAsync = async (userId) => {
     throw error;
   }
 };
-
-
-
-
-
-
-
 
 /*
 
@@ -216,11 +183,15 @@ export const apiCreateProductAsync = async (newProduct) => {
 
 // Get product categories
 export const apiGetProductCategoriesAsync = async () => {
-    //izbrisi kad ne bude trebalo
+  //izbrisi kad ne bude trebalo
   const mockCategories = [
-    { id: "1", name: "Beverages" },
-    { id: "2", name: "Snacks" },
-    { id: "3", name: "Cleaning" },
+    { id: "1", type: "product", name: "Beverages" },
+    { id: "2", type: "store", name: "Snacks" },
+    { id: "3", type: "product", name: "Cleaning" },
+    { id: "4", type: "store", name: "Beverages" },
+    { id: "5", type: "product", name: "Snacks" },
+    { id: "6", type: "store", name: "Cleaning" },
+    
   ];
   return new Promise((resolve) =>
     setTimeout(() => resolve(mockCategories), 500)
@@ -239,9 +210,7 @@ export const apiGetStoreByIdAsync = async (storeId) => {
     products: [],
   };
 
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(mockStore), 500)
-  );
+  return new Promise((resolve) => setTimeout(() => resolve(mockStore), 500));
 };
 
 //update store status (online/offline)
@@ -257,33 +226,149 @@ export const apiUpdateStoreStatusAsync = async (storeId, isOnline) => {
 export const apiGetAllStoresAsync = async () => {
   //izbrisati poslije
   const mockStores = [
-    { id: 1, name: "Nova Market", description: "Brza i kvalitetna dostava proizvoda." },
-    { id: 2, name: "Tech World", description: "Elektronika i gadgeti." },
-    { id: 3, name: "BioShop", description: "Prirodna kozmetika i hrana." },
-    { id: 4, name: "Fashion Spot", description: "Savremena garderoba." },
-    { id: 5, name: "Office Plus", description: "Kancelarijski materijal i oprema." },
-    { id: 6, name: "Auto Centar", description: "Dijelovi i oprema za automobile." },
-    { id: 7, name: "Pet Planet", description: "Hrana i oprema za kućne ljubimce." },
-    { id: 8, name: "Green Garden", description: "Sve za vašu baštu." },
-    { id: 9, name: "Kids Toys", description: "Igračke i oprema za djecu." },
-    { id: 10, name: "Mega Market", description: "Vaš svakodnevni supermarket." },
-    { id: 11, name: "Green Garden", description: "Sve za vašu baštu." },
-    { id: 12, name: "Kids Toys", description: "Igračke i oprema za djecu." },
-    { id: 13, name: "Mega Market", description: "Vaš svakodnevni supermarket." },
-    { id: 14, name: "Green Garden", description: "Sve za vašu baštu." },
-    { id: 15, name: "Kids Toys", description: "Igračke i oprema za djecu." },
-    { id: 16, name: "Mega Market", description: "Vaš svakodnevni supermarket." },
-    { id: 17, name: "Green Garden", description: "Sve za vašu baštu." },
-    { id: 18, name: "Kids Toys", description: "Igračke i oprema za djecu." },
-    { id: 19, name: "Mega Market", description: "Vaš svakodnevni supermarket." }
+    {
+      id: 1,
+      name: "Nova Market",
+      description: "Brza i kvalitetna dostava proizvoda.",
+      address: "Sarajevo",
+    },
+    {
+      id: 2,
+      name: "Tech World",
+      description: "Elektronika i gadgeti.",
+      address: "Mostar",
+    },
+    {
+      id: 3,
+      name: "BioShop",
+      description: "Prirodna kozmetika i hrana.",
+      address: "Banja Luka",
+    },
+    {
+      id: 4,
+      name: "Fashion Spot",
+      description: "Savremena garderoba.",
+      address: "Tuzla",
+    },
+    {
+      id: 5,
+      name: "Office Plus",
+      description: "Kancelarijski materijal i oprema.",
+      address: "Sarajevo",
+    },
+    {
+      id: 6,
+      name: "Auto Centar",
+      description: "Dijelovi i oprema za automobile.",
+      address: "Zenica",
+    },
+    {
+      id: 7,
+      name: "Pet Planet",
+      description: "Hrana i oprema za kućne ljubimce.",
+      address: "Mostar",
+    },
+    {
+      id: 8,
+      name: "Green Garden",
+      description: "Sve za vašu baštu.",
+      address: "Sarajevo",
+    },
+    {
+      id: 9,
+      name: "Kids Toys",
+      description: "Igračke i oprema za djecu.",
+      address: "Sarajevo",
+    },
+    {
+      id: 10,
+      name: "Mega Market",
+      description: "Vaš svakodnevni supermarket.",
+      address: "Banja Luka",
+    },
+    {
+      id: 11,
+      name: "Green Garden",
+      description: "Sve za vašu baštu.",
+      address: "Sarajevo",
+    },
+    {
+      id: 12,
+      name: "Kids Toys",
+      description: "Igračke i oprema za djecu.",
+      address: "Mostar",
+    },
+    {
+      id: 13,
+      name: "Mega Market",
+      description: "Vaš svakodnevni supermarket.",
+      address: "Zenica",
+    },
+    {
+      id: 14,
+      name: "Green Garden",
+      description: "Sve za vašu baštu.",
+      address: "Sarajevo",
+    },
+    {
+      id: 15,
+      name: "Kids Toys",
+      description: "Igračke i oprema za djecu.",
+      address: "Tuzla",
+    },
+    {
+      id: 16,
+      name: "Mega Market",
+      description: "Vaš svakodnevni supermarket.",
+      address: "Banja Luka",
+    },
+    {
+      id: 17,
+      name: "Green Garden",
+      description: "Sve za vašu baštu.",
+      address: "Sarajevo",
+    },
+    {
+      id: 18,
+      name: "Kids Toys",
+      description: "Igračke i oprema za djecu.",
+      address: "Mostar",
+    },
+    {
+      id: 19,
+      name: "Mega Market",
+      description: "Vaš svakodnevni supermarket.",
+      address: "Tuzla",
+    },
   ];
+
   return new Promise((resolve) => setTimeout(() => resolve(mockStores), 500));
 };
 
+export const apiDeleteCategoryAsync = async (categoryId) => {
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ success: true, deletedId: categoryId }), 500)
+  );
+};
 
+export const apiAddCategoryAsync = async (newCategory) => {
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ success: true, data: newCategory }), 500)
+  );
+};
 
+export const apiUpdateCategoryAsync = async (updatedCategory) => {
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ success: true, data: updatedCategory }), 500)
+  );
+};
 
-
-
-
+export const apiAddStoreAsync = async (newStore) => {
+  return new Promise((resolve) =>
+    setTimeout(
+      () => resolve({ success: true, data: { ...newStore, id: Date.now() } }),
+      800
+    )
+  );
+};
 
