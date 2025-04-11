@@ -4,14 +4,13 @@ import UserManagementPagination from "@components/UserManagementPagination";
 import UserManagementSection from "@sections/UserManagementSection";
 import UserDetailsModal from "@components/UserDetailsModal";
 import { Box } from "@mui/material";
-import { getUsers, deleteUser } from "@data/users";
-import AddUserModal from "@components/AddUserModal"; 
-import axios from 'axios';
+import AddUserModal from "@components/AddUserModal";
 
-
-
-var baseURL = import.meta.env.VITE_API_BASE_URL
-
+import {
+  apiFetchApprovedUsersAsync,
+  apiDeleteUserAsync,
+  apiCreateUserAsync,
+} from "../api/api.js"; 
 
 const UsersManagements = () => {
   const usersPerPage = 8;
@@ -20,37 +19,22 @@ const UsersManagements = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [addModalOpen, setAddModalOpen] = useState(false);
-
-
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-
-  // Učitavanje korisnika
 
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
-
-   
-    setIsLoading(false);
-    
-      const token = localStorage.getItem("token");
-    
-      if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      try {
+        const users = await apiFetchApprovedUsersAsync();
+        setAllUsers(users);
+      } catch (err) {
+        console.error("Greška pri dohvaćanju korisnika:", err);
       }
-    
-
-      const users =  await axios.get(`${baseURL}/api/Admin/users`);
-        setAllUsers(users["data"].filter(u => u.isApproved && u.roles[0]!="Admin"));
-
-        console.log(users["data"]);
-
+      setIsLoading(false);
     }
     fetchData();
-  }, []); 
-
-  
+  }, []);
 
   const filteredUsers = allUsers.filter(
     (user) =>
@@ -58,72 +42,37 @@ const UsersManagements = () => {
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredUsers.length / usersPerPage)
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / usersPerPage));
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-
-
-  const handleDelete = (userId) => {
-  
-    const token = localStorage.getItem("token");
-  
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-  
-    axios
-
-      .delete(`${baseURL}/api/Admin/user/${userId}`)
-
-      .then((response) => {
-        console.log(`User with ID ${userId} deleted successfully.`);
-        // optionally refresh user list or update UI
-      })
-      .catch((error) => {
-        console.error(`Failed to delete user ${userId}:`, error);
-      });
-      setAllUsers(allUsers.filter(u => u.id != userId));
+  const handleDelete = async (userId) => {
+    try {
+      await apiDeleteUserAsync(userId);
+      console.log(`User with ID ${userId} deleted successfully.`);
+      setAllUsers(allUsers.filter((u) => u.id !== userId));
       if (currentPage > 1 && currentUsers.length === 1) {
         setCurrentPage(currentPage - 1);
       }
-  }
-
-  const handleAddUser = () => {
-    setAddModalOpen(true);
+    } catch (error) {
+      console.error(`Failed to delete user ${userId}:`, error);
+    }
   };
 
-  const handleSaveUser = (newUser) => {
-    
-      const token = localStorage.getItem("token");
-    
-      if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      }
-    
-      const newUserPayload = {
-        email: newUser.email,         // make sure you have `email` in your component state
-        password: newUser.password,   // same for `password`
-        userName: newUser.userName            // optionally include other fields like `role`, etc.
-      };
-      axios
+  const handleAddUser = () => setAddModalOpen(true);
 
-        .post(`${baseURL}}/api/Admin/users/create`, newUserPayload)
-
-        .then((response) => {
-          console.log("User created successfully:", response.data);
-          newUser = response.data;
-          setAllUsers((prev) => [...prev, newUser]);
-          // optionally redirect or clear form inputs
-        })
-        .catch((error) => {
-          console.error("Error creating user:", error);
-        });
-    
+  const handleSaveUser = async (newUser) => {
+    try {
+      const createdUser = await apiCreateUserAsync({
+        email: newUser.email,
+        password: newUser.password,
+        userName: newUser.userName,
+      });
+      setAllUsers((prev) => [...prev, createdUser]);
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
   };
 
   const handlePageChange = (newPage) => {
@@ -134,7 +83,6 @@ const UsersManagements = () => {
 
   const handleViewUser = (userId) => {
     const user = allUsers.find((u) => u.id === userId);
-    console.log("Korisnik koji se šalje u modal:", user);
     setSelectedUser(user);
     setModalOpen(true);
   };
@@ -160,14 +108,12 @@ const UsersManagements = () => {
           px: 2,
         }}
       >
-        {/* HEADER sa search inputom */}
         <UserManagementHeader
           onAddUser={handleAddUser}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
         />
 
-        {/* TABELA */}
         <UserManagementSection
           allUsers={currentUsers}
           currentPage={currentPage}
@@ -176,14 +122,12 @@ const UsersManagements = () => {
           onView={handleViewUser}
         />
 
-        {/* PAGINACIJA */}
         <UserManagementPagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
         />
 
-        {/* MODAL */}
         <UserDetailsModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}

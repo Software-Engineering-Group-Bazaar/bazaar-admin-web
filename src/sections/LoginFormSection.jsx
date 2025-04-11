@@ -11,7 +11,7 @@ import { validateEmail } from "../utils/validation";
 import { useState } from "react";
 // import apiClientInstance from '../api/apiClientInstance'; // Import configured client
 // import { AdminApi, TestAuthApi } from '../api/api/AdminApi';
-import { loginUser } from "../utils/login";
+import { apiLoginUserAsync } from "../api/api.js";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import {api} from '../utils/apiroutes'
@@ -31,35 +31,36 @@ const LoginFormSection = () => {
   const navigate = useNavigate();
 
   const handleLogIn = () => {
-    const status = loginUser(email, password);
+    const status = apiLoginUserAsync(email, password);
     if (status !== false) navigate('/users');
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
       event.preventDefault();
   
-      const loginPayload = {
-        email: email,
-        password: password,
-      };
+      // const loginPayload = {
+      //   email: email,
+      //   password: password,
+      // };
 
-      console.log(baseURL)
-      console.log(import.meta.env);
-      axios
-        .post(`${baseURL}/api/Auth/login`, loginPayload)
+      // console.log(baseURL)
+      // console.log(import.meta.env);
+      // axios
+      //   .post(`${baseURL}/api/Auth/login`, loginPayload)
 
-        .then((response) => {
-          const token = response.data.token;
+      //   .then((response) => {
+      //     const token = response.data.token;
   
-          localStorage.setItem("token", token);
-          localStorage.setItem("auth", true);  
-          if (token) {
-            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-          }
+      //     localStorage.setItem("token", token);
+      //     localStorage.setItem("auth", true);  
+      //     if (token) {
+      //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      //     }
   
-          navigate("/users");
-        })
-        .catch((err) => console.log(err));
+      //     navigate("/users");
+      //   })
+      //   .catch((err) => console.log(err));
+      apiLoginUserAsync(email, password).then(()=>{console.log("logged in")});
     }
 
   return (

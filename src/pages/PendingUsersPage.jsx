@@ -7,6 +7,8 @@ import UserDetailsModal from "@components/UserDetailsModal";
 import { Box } from "@mui/material";
 import { PendingUsersContext } from "@context/PendingUsersContext";
 import axios from 'axios';
+import { apiApproveUserAsync } from "@api/api";
+import { apiDeleteUserAsync } from "@api/api";
 
 
 var baseURL = import.meta.env.VITE_API_BASE_URL
@@ -37,19 +39,14 @@ const PendingUsers = () => {
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-  const handleApprove = (id) => {
-    
-      const token = localStorage.getItem("token");
-    
-      if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      }
-    
-
-      axios.post(`${baseURL}/api/Admin/users/approve`, {userId: id}).
-      then(d => console.log(d)).catch((err) => console.log(err));
-      deleteUser(id);
-
+  const handleApprove = async (id) => {
+    try {
+      await apiApproveUserAsync(id);
+      deleteUser(id); 
+      console.log(`User with ID ${id} approved successfully.`);
+    } catch (error) {
+      console.error("Greška pri odobravanju korisnika:", error);
+    }
   };
 
   const handleDelete = (id) => {
@@ -57,23 +54,16 @@ const PendingUsers = () => {
     setConfirmOpen(true);
   };
 
-  const confirmDelete = () => { 
-    
-    console.log(PendingUsersContext);
+  const confirmDelete = async () => {
     setConfirmOpen(false);
     setUserToDelete(null);
-    const token = localStorage.getItem("token");
-    
-
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    try {
+      await apiDeleteUserAsync(userToDelete);
+      deleteUser(userToDelete);
+      console.log(`User with ID ${userToDelete} deleted successfully.`);
+    } catch (error) {
+      console.error("Greška pri brisanju korisnika:", error);
     }
-    
-    axios.delete(`${baseURL}/api/Admin/user/${userToDelete}`).
-    then(d => console.log(d)).catch((err) => console.log(err));
-    //setPendingUsers((prev) => prev.filter((u) => u.id !== userToDelete));
-    deleteUser(userToDelete);
-
   };
 
   const cancelDelete = () => {

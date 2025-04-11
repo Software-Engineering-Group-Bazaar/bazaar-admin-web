@@ -18,6 +18,7 @@ import { styled } from "@mui/material/styles";
 import ApproveUserButton from "./ApproveUserButton";
 import DeleteUserButton from "./DeleteUserButton";
 import axios from 'axios';
+import { apiApproveUserAsync, apiDeleteUserAsync } from "../api/api";
 
 
 var baseURL = import.meta.env.VITE_API_BASE_URL
@@ -146,57 +147,59 @@ const PendingUsersTable = ({
               <TableCell align="center">
                 <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                   <ApproveUserButton
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.preventDefault();
                       onApprove(user.id);
 
+                      await apiApproveUserAsync(user.id);
+                        // const token = localStorage.getItem("token");
                       
-                        const token = localStorage.getItem("token");
+                        // if (token) {
+                        //   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                        // }
                       
-                        if (token) {
-                          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-                        }
+                        // const Payload = {
+                        //   userId:user.id
+                        // };
                       
-                        const Payload = {
-                          userId:user.id
-                        };
-                      
-                        axios
+                        // axios
 
-                          .post(`${baseURL}/api/Admin/users/approve`, Payload)
+                        //   .post(`${baseURL}/api/Admin/users/approve`, Payload)
 
-                          .then((response) => {
-                            console.log("User approved successfully:", response.data);
-                            // optionally redirect or clear form inputs
-                          })
-                          .catch((error) => {
-                            console.error("Error approving user:", error);
-                          });
+                        //   .then((response) => {
+                        //     console.log("User approved successfully:", response.data);
+                        //     // optionally redirect or clear form inputs
+                        //   })
+                        //   .catch((error) => {
+                        //     console.error("Error approving user:", error);
+                        //   });
                       }
                     }
                   />
                   <DeleteUserButton
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
                       onDelete(user.id);
-                      const token = localStorage.getItem("token");
+                      await apiDeleteUserAsync(user.id)
+
+                      // const token = localStorage.getItem("token");
                       
-                        if (token) {
-                          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-                        }
+                      //   if (token) {
+                      //     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                      //   }
                       
-                        const Payload = {
-                          userId:user.id
-                        };
-                      axios
-                      .delete(`http://localhost:5054/api/Admin/users/${user.id}`)
-                      .then((response) => {
-                        console.log("User deleted successfully:", response.data);
-                        // optionally redirect or clear form inputs
-                      })
-                      .catch((error) => {
-                        console.error("Error deleting user:", error);
-                      });
+                      //   const Payload = {
+                      //     userId:user.id
+                      //   };
+                      // axios
+                      // .delete(`http://localhost:5054/api/Admin/users/${user.id}`)
+                      // .then((response) => {
+                      //   console.log("User deleted successfully:", response.data);
+                      //   // optionally redirect or clear form inputs
+                      // })
+                      // .catch((error) => {
+                      //   console.error("Error deleting user:", error);
+                      // });
                     }}
                   />
                 </Box>

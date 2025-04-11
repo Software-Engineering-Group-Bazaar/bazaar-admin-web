@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -58,6 +59,7 @@ const AddProductModal = ({ open, onClose }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   const handlePhotosChange = (files) => {
     setFormData((prev) => ({ ...prev, photos: files }));
@@ -293,3 +295,4 @@ const AddProductModal = ({ open, onClose }) => {
 };
 
 export default AddProductModal;
+
