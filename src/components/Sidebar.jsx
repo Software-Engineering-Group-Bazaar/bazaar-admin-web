@@ -41,6 +41,12 @@ const Sidebar = () => {
       path: "/stores",
       badge: null,
     },
+    {
+      icon: <FiShoppingBag />,
+      label: "Categories",
+      path: "/categories",
+      badge: null,
+    },
   ];
   const [isDark, setIsDark] = useState(false);
   const toggleTheme = () => setIsDark(!isDark);
