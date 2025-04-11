@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePendingUsers } from "@context/PendingUsersContext";
 import LogoutIcon from '@mui/icons-material/Logout';
+import { FiShoppingBag } from "react-icons/fi";
 
 
 const Sidebar = () => {
@@ -33,6 +34,12 @@ const Sidebar = () => {
       label: "Requests",
       path: "/requests",
       badge: pendingUsers.length,
+    },
+    {
+      icon: <FiShoppingBag />,
+      label: "Stores",
+      path: "/stores",
+      badge: null,
     },
   ];
   const [isDark, setIsDark] = useState(false);

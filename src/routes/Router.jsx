@@ -9,6 +9,7 @@ import LoginPage from "@pages/LoginPage";
 import UsersManagement from "@pages/UsersManagement";
 import PendingUsersPage from "@pages/PendingUsersPage";
 import { ThemeProvider } from "@mui/material/styles";
+import StoresPage from "@pages/StoresPage";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "@styles/theme";
 import Sidebar from "@components/Sidebar";
@@ -63,6 +64,19 @@ const AppRoutes = () => {
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <PendingUsersPage />
+                </ThemeProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stores"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <StoresPage />
                 </ThemeProvider>
               </Layout>
             </ProtectedRoute>
