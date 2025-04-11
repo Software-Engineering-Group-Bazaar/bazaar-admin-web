@@ -12,8 +12,16 @@ import {
   Typography,
   Chip,
   Box,
+  IconButton,
+  TextField,
+  Select,
+  MenuItem,
+  Tooltip,
 } from "@mui/material";
 import DeleteUserButton from "./DeleteUserButton";
+import { FiEdit2 } from "react-icons/fi";
+import { FaUser, FaUserSlash } from "react-icons/fa";
+import { MdDone } from "react-icons/md";
 
 const getStatus = (user) => {
   if (user.isApproved === true) return "Approved";
@@ -43,6 +51,25 @@ const StatusChip = ({ status }) => {
   );
 };
 
+const AvailabilityChip = ({ value }) => {
+  const isOnline = value.toLowerCase() === "online";
+  return (
+    <Chip
+      label={isOnline ? "Online" : "Offline"}
+      size="small"
+      sx={{
+        backgroundColor: isOnline ? "#e8f5e9" : "#ffebee",
+        color: isOnline ? "#388e3c" : "#d32f2f",
+        fontWeight: 500,
+        fontSize: "0.75rem",
+        borderRadius: "16px",
+        height: "24px",
+        textTransform: "capitalize",
+      }}
+    />
+  );
+};
+
 export default function UserList({
   users,
   onDelete,
@@ -53,11 +80,28 @@ export default function UserList({
 }) {
   const [orderBy, setOrderBy] = useState("name");
   const [order, setOrder] = useState("asc");
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [editedUser, setEditedUser] = useState({});
 
   const handleSort = (field) => {
     const isAsc = orderBy === field && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(field);
+  };
+
+  const handleEditClick = (user) => {
+    setEditingUserId(user.id);
+    setEditedUser({ ...user });
+  };
+
+  const handleSaveEdit = () => {
+    onEdit(editedUser);
+    setEditingUserId(null);
+  };
+
+  const handleFieldChange = (e) => {
+    const { name, value } = e.target;
+    setEditedUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const sortUsers = [...users].sort((a, b) => {
@@ -80,7 +124,7 @@ export default function UserList({
     <TableContainer
       component={Paper}
       sx={{
-        marginTop: 2,
+        mt: 2,
         maxHeight: "calc(100vh - 220px)",
         overflowY: "auto",
         borderRadius: 2,
@@ -91,17 +135,15 @@ export default function UserList({
           <TableRow sx={{ backgroundColor: "#fafafa" }}>
             <TableCell>#</TableCell>
             <TableCell>Pic</TableCell>
-
             <TableCell>
               <TableSortLabel
-                active={orderBy === "Username"}
+                active={orderBy === "userName"}
                 direction={order}
-                onClick={() => handleSort("Username")}
+                onClick={() => handleSort("userName")}
               >
                 Username
               </TableSortLabel>
             </TableCell>
-
             <TableCell>
               <TableSortLabel
                 active={orderBy === "email"}
@@ -111,12 +153,33 @@ export default function UserList({
                 Email
               </TableSortLabel>
             </TableCell>
-
-            
-            <TableCell>Role</TableCell>
-            <TableCell>Availability</TableCell>
-            <TableCell>Last Active</TableCell>
-
+            <TableCell>
+              <TableSortLabel
+                active={orderBy === "role"}
+                direction={order}
+                onClick={() => handleSort("role")}
+              >
+                Role
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderBy === "availability"}
+                direction={order}
+                onClick={() => handleSort("availability")}
+              >
+                Availability
+              </TableSortLabel>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={orderBy === "lastActive"}
+                direction={order}
+                onClick={() => handleSort("lastActive")}
+              >
+                Last Active
+              </TableSortLabel>
+            </TableCell>
             <TableCell>
               <TableSortLabel
                 active={orderBy === "status"}
@@ -126,55 +189,152 @@ export default function UserList({
                 Status
               </TableSortLabel>
             </TableCell>
-
             <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
-          {sortUsers.map((user, index) => (
-            <TableRow
-              key={user.id}
-              sx={{
-                height: 72,
-                cursor: "pointer",
-                "&:hover": {
-                  backgroundColor: "#f9f9f9",
-                },
-              }}
-              onClick={() => onView(user.id)}
-            >
-              <TableCell>
-                {(currentPage - 1) * usersPerPage + index + 1}
-              </TableCell>
-              <TableCell>
-                <Avatar
-                  alt={user.userName}
-                  src={user.imageUrl}
-                  sx={{ width: 40, height: 40 }}
-                />
-              </TableCell>
-              <TableCell sx={{ fontWeight: 500 }}>{user.userName}</TableCell>
-              <TableCell>{user.email}</TableCell>
+          {sortUsers.map((user, index) => {
+            const isEditing = editingUserId === user.id;
+            return (
+              <TableRow
+                key={user.id}
+                sx={{ height: 72, "&:hover": { backgroundColor: "#f9f9f9" } }}
+              >
+                <TableCell>
+                  {(currentPage - 1) * usersPerPage + index + 1}
+                </TableCell>
+                <TableCell>
+                  <Avatar
+                    alt={user.userName}
+                    src={user.imageUrl}
+                    sx={{ width: 40, height: 40 }}
+                  />
+                </TableCell>
 
-              <TableCell>{user.role}</TableCell>
-              <TableCell>{user.availability}</TableCell>
+                <TableCell>
+                  {isEditing ? (
+                    <TextField
+                      name="userName"
+                      variant="standard"
+                      value={editedUser.userName}
+                      onChange={handleFieldChange}
+                    />
+                  ) : (
+                    user.userName
+                  )}
+                </TableCell>
 
-              <TableCell>{user.lastActive}</TableCell>
+                <TableCell>
+                  {isEditing ? (
+                    <TextField
+                      name="email"
+                      variant="standard"
+                      value={editedUser.email}
+                      onChange={handleFieldChange}
+                    />
+                  ) : (
+                    user.email
+                  )}
+                </TableCell>
 
-              <TableCell>
-                <StatusChip status={getStatus(user)} />
-              </TableCell>
-              <TableCell align="right">
-                <DeleteUserButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(user.id);
-                  }}
-                />
-              </TableCell>
-            </TableRow>
-          ))}
+                <TableCell>
+                  {isEditing ? (
+                    <Select
+                      name="role"
+                      value={editedUser.role}
+                      onChange={handleFieldChange}
+                      variant="standard"
+                    >
+                      <MenuItem value="Buyer">Buyer</MenuItem>
+                      <MenuItem value="Seller">Seller</MenuItem>
+                    </Select>
+                  ) : (
+                    user.role
+                  )}
+                </TableCell>
+
+                <TableCell>
+                  {isEditing ? (
+                    <Select
+                      name="availability"
+                      value={editedUser.availability}
+                      onChange={handleFieldChange}
+                      variant="standard"
+                    >
+                      <MenuItem value="Online">Online</MenuItem>
+                      <MenuItem value="Offline">Offline</MenuItem>
+                    </Select>
+                  ) : (
+                    <AvailabilityChip value={user.availability} />
+                  )}
+                </TableCell>
+
+                <TableCell>{user.lastActive}</TableCell>
+                <TableCell>
+                  <StatusChip status={getStatus(user)} />
+                </TableCell>
+
+                <TableCell align="right">
+                  <Box
+                    sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
+                  >
+                    <Tooltip title="Toggle Status">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit({
+                            ...user,
+                            availability:
+                              user.availability === "Online"
+                                ? "Offline"
+                                : "Online",
+                            toggleAvailabilityOnly: true,
+                          });
+                        }}
+                      >
+                        {user.availability === "Online" ? (
+                          <FaUser size={16} color="#4caf50" />
+                        ) : (
+                          <FaUserSlash size={16} color="#f44336" />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title={isEditing ? "Save" : "Edit"}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isEditing) {
+                            handleSaveEdit();
+                          } else {
+                            handleEditClick(user);
+                          }
+                        }}
+                      >
+                        {isEditing ? (
+                          <MdDone size={18} color="#4caf50" />
+                        ) : (
+                          <FiEdit2 size={16} />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Delete">
+                      <DeleteUserButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(user.id);
+                        }}
+                      />
+                    </Tooltip>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

@@ -98,6 +98,15 @@ const UsersManagements = () => {
     setModalOpen(true);
   };
 
+  const handleEditUser = (updatedUser) => {
+    setAllUsers((prevUsers) =>
+      prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+    );
+
+    // (opcionalno)
+    // await apiUpdateUserAsync(updatedUser);
+  };
+
   if (isLoading) return <Box>Loading...</Box>;
 
   return (
@@ -124,33 +133,6 @@ const UsersManagements = () => {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
         />
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-          <FormControl sx={{ minWidth: 160 }}>
-            <InputLabel>Role</InputLabel>
-            <Select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              label="Role"
-            >
-              <MenuItem value="">All</MenuItem>
-              <MenuItem value="buyer">Buyer</MenuItem>
-              <MenuItem value="seller">Seller</MenuItem>
-            </Select>
-          </FormControl>
-
-          <FormControl sx={{ minWidth: 160 }}>
-            <InputLabel>Availability</InputLabel>
-            <Select
-              value={availabilityFilter}
-              onChange={(e) => setAvailabilityFilter(e.target.value)}
-              label="Availability"
-            >
-              <MenuItem value="">All</MenuItem>
-              <MenuItem value="Online">Online</MenuItem>
-              <MenuItem value="Offline">Offline</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
 
         <UserManagementSection
           allUsers={currentUsers}
@@ -158,6 +140,8 @@ const UsersManagements = () => {
           usersPerPage={usersPerPage}
           onDelete={handleDelete}
           onView={handleViewUser}
+          onEdit={handleEditUser}
+          setAllUsers={setAllUsers} 
         />
 
         <UserManagementPagination
