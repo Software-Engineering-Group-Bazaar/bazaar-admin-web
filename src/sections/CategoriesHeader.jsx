@@ -59,10 +59,10 @@ const CategoriesHeader = ({ searchTerm, setSearchTerm, onAddCategory }) => {
             textTransform: "none",
             fontWeight: 600,
             borderRadius: 2,
-            backgroundColor: "#34a853",
-            color: "#fff",
+            backgroundColor: "#fbbc05",
+            color: "#000",
             "&:hover": {
-              backgroundColor: "#2b8c45",
+              backgroundColor: "#e6a800",
             },
           }}
         >

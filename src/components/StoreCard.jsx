@@ -13,6 +13,7 @@ import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import { FiEdit2 } from "react-icons/fi";
 import { apiUpdateStoreStatusAsync } from "@api/api";
 import AddProductModal from "@components/NewProductModal";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 const StoreCard = ({ store }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -99,45 +100,56 @@ const StoreCard = ({ store }) => {
           </MenuItem>
         </Menu>
 
-        {/* Header */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Avatar sx={{ bgcolor: "#6A1B9A" }}>
+        {/* Header i opis */}
+        <Box sx={{ display: "flex", gap: 1.5 }}>
+          {/* Ikonica lijevo */}
+          <Avatar
+            sx={{
+              bgcolor: "#6A1B9A",
+              width: 40,
+              height: 40,
+              mt: 0.2,
+            }}
+          >
             <StoreIcon />
           </Avatar>
+
+          {/* Ime i adresa */}
           <Box sx={{ flexGrow: 1 }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.5,
-                "&:hover .edit-icon": { opacity: 1 },
-              }}
-            >
-              <Typography variant="h6" fontWeight="bold">
-                {store.name}
-              </Typography>
-              <IconButton
-                size="small"
-                className="edit-icon"
-                sx={{ opacity: 0, transition: "0.2s" }}
-              >
-                <FiEdit2 size={16} />
-              </IconButton>
-            </Box>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {store.description}
+            <Typography variant="h6" fontWeight="bold" sx={{ lineHeight: 1 }}>
+              {store.name}
             </Typography>
+
+            {/* Adresa */}
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 0.1, mt: 0.5 }}
+            >
+              <LocationOnIcon sx={{ fontSize: 14, color: "#607d8b" }} />
+              <Typography
+                variant="body2"
+                sx={{ fontSize: "0.75rem", color: "#607d8b", lineHeight: 1.2 }}
+              >
+                {store.address}
+              </Typography>
+            </Box>
           </Box>
         </Box>
+
+        {/* Opis ispod cijelom širinom */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            mt: 1,
+            fontSize: "0.85rem",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {store.description}
+        </Typography>
 
         {/* Add Product Button */}
         <Box sx={{ mt: "auto" }}>

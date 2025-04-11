@@ -1,78 +1,185 @@
 import React, { useState } from "react";
-import { Box, Typography, IconButton, Avatar, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Avatar,
+  Chip,
+  TextField,
+} from "@mui/material";
 import CategoryIcon from "@mui/icons-material/Category";
-import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import { FiEdit2 } from "react-icons/fi";
-import CategoryEditModal from "./CategoryEditModal"; 
+import { FiEdit2, FiTrash } from "react-icons/fi";
+import ConfirmDeleteModal from "@components/ConfirmDeleteModal";
 
-const CategoryCard = ({ category, onUpdateCategory }) => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [isActive, setIsActive] = useState(category.isActive);
-  const [updating, setUpdating] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
+const CategoryCard = ({ category, onUpdateCategory, onDeleteCategory }) => {
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(category.name);
 
-  const open = Boolean(anchorEl);
+  const handleEditToggle = () => setIsEditing(true);
 
-  const handleStatusClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (editedName.trim() !== "" && editedName !== category.name) {
+      onUpdateCategory({ ...category, name: editedName });
+    }
   };
 
-  const handleStatusChange = async (newStatus) => {
-    setUpdating(true);
-    await apiUpdateCategoryStatusAsync(category.id, newStatus);
-    setIsActive(newStatus);
-    setUpdating(false);
-    setAnchorEl(null);
+  const handleDelete = () => {
+    setOpenDeleteModal(true);
   };
 
-  const handleEditClick = () => {
-    setOpenEditModal(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setOpenEditModal(false);
-  };
-
-  const handleUpdateCategory = (updatedCategory) => {
-    onUpdateCategory(updatedCategory);
+  const confirmDelete = () => {
+    onDeleteCategory(category.id);
+    setOpenDeleteModal(false);
   };
 
   return (
     <>
-      <Box sx={{ width: 270, p: 2.5, borderRadius: 3, boxShadow: "0 4px 10px rgba(0,0,0,0.08)", backgroundColor: "#fff", position: "relative", display: "flex", flexDirection: "column", minHeight: 160 }}>
-        <IconButton onClick={handleStatusClick} sx={{ position: "absolute", top: 12, right: 12, p: 0 }} disabled={updating}>
-          <FiberManualRecordIcon sx={{ color: isActive ? "#4caf50" : "#f44336", fontSize: 16 }} />
+      <Box
+        sx={{
+          width: 220,
+          p: 2,
+          borderRadius: 3,
+          boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+          backgroundColor: "#fff",
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 140,
+        }}
+      >
+        {/* Delete Icon */}
+        <IconButton
+          onClick={handleDelete}
+          sx={{ position: "absolute", top: 14, right: 10 }}
+        >
+          <FiTrash size={16} color="#f44336" />
         </IconButton>
 
-        <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)} anchorOrigin={{ vertical: "top", horizontal: "right" }} transformOrigin={{ vertical: "top", horizontal: "left" }} PaperProps={{ sx: { mt: 1, borderRadius: 2, boxShadow: "0 4px 10px rgba(0,0,0,0.12)" } }}>
-          <MenuItem onClick={() => handleStatusChange(true)}>
-            <FiberManualRecordIcon sx={{ color: "#4caf50", fontSize: 14, mr: 1 }} /> Active
-          </MenuItem>
-          <MenuItem onClick={() => handleStatusChange(false)}>
-            <FiberManualRecordIcon sx={{ color: "#f44336", fontSize: 14, mr: 1 }} /> Inactive
-          </MenuItem>
-        </Menu>
-
+        {/* Header */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Avatar sx={{ bgcolor: "#1976d2" }}>
+          <Avatar
+            sx={{ bgcolor: category.type === "store" ? "#1976d2" : "#ffb300" }}
+          >
             <CategoryIcon />
           </Avatar>
           <Box sx={{ flexGrow: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, "&:hover .edit-icon": { opacity: 1 } }}>
-              <Typography variant="h6" fontWeight="bold">{category.name}</Typography>
-              <IconButton size="small" className="edit-icon" sx={{ opacity: 0, transition: "0.2s" }} onClick={handleEditClick}>
-                <FiEdit2 size={16} />
-              </IconButton>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                "&:hover .edit-icon": { opacity: 1 },
+              }}
+            >
+              {isEditing ? (
+                <TextField
+                  variant="standard"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onBlur={handleBlur}
+                  autoFocus
+                  InputProps={{
+                    disableUnderline: true,
+                    sx: {
+                      padding: 0,
+                      fontSize: "1rem",
+                      fontWeight: "bold",
+                      borderBottom: "2px solid #1976d2",
+                      width: `${editedName.length + 1}ch`,
+                      transition: "border 0.2s",
+                    },
+                  }}
+                />
+              ) : (
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  fontSize={16}
+                  sx={{
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {category.name}
+                  <IconButton
+                    size="small"
+                    className="edit-icon"
+                    sx={{
+                      opacity: 0,
+                      padding: "2px",
+                      transition: "opacity 0.2s",
+                    }}
+                    onClick={handleEditToggle}
+                  >
+                    <FiEdit2 size={16} />
+                  </IconButton>
+                </Typography>
+              )}
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-              {category.description}
-            </Typography>
+
+            {/* Label */}
+            <Chip
+              label={category.type === "store" ? "Store" : "Product"}
+              size="small"
+              sx={{
+                mt: 0.5,
+                bgcolor: category.type === "store" ? "#1976d2" : "#ffb300",
+                color: "#fff",
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                textTransform: "uppercase",
+              }}
+            />
           </Box>
+        </Box>
+
+        {/* Decorative wave */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            width: "100%",
+            overflow: "hidden",
+            lineHeight: 0,
+            borderBottomLeftRadius: 12,
+            borderBottomRightRadius: 12,
+          }}
+        >
+          <svg
+            viewBox="0 0 500 80"
+            preserveAspectRatio="none"
+            style={{
+              height: 50,
+              width: "100%",
+              display: "block",
+            }}
+          >
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#1976d2" />
+                <stop offset="100%" stopColor="#ffb300" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0,40 C150,80 350,0 500,40 L500,80 L0,80 Z"
+              fill="url(#gradient)"
+            />
+          </svg>
         </Box>
       </Box>
 
-      {}
-      <CategoryEditModal open={openEditModal} onClose={handleCloseEditModal} category={category} onUpdateCategory={handleUpdateCategory} />
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        open={openDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        onConfirm={confirmDelete}
+        categoryName={category.name}
+      />
     </>
   );
 };

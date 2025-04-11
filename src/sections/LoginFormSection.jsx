@@ -13,55 +13,51 @@ import { useState } from "react";
 // import { AdminApi, TestAuthApi } from '../api/api/AdminApi';
 import { apiLoginUserAsync } from "../api/api.js";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
-import {api} from '../utils/apiroutes'
-
-
-
-
-
-
+import axios from "axios";
+import { api } from "../utils/apiroutes";
 
 const LoginFormSection = () => {
-  var baseURL = import.meta.env.VITE_API_BASE_URL
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  var baseURL = import.meta.env.VITE_API_BASE_URL;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { isValid, error } = validateEmail(email);
 
   const navigate = useNavigate();
 
   const handleLogIn = () => {
     const status = apiLoginUserAsync(email, password);
-    if (status !== false) navigate('/users');
-  }
+    if (status !== false) navigate("/users");
+  };
 
   async function handleSubmit(event) {
-      event.preventDefault();
-  
-      // const loginPayload = {
-      //   email: email,
-      //   password: password,
-      // };
+    event.preventDefault();
 
-      // console.log(baseURL)
-      // console.log(import.meta.env);
-      // axios
-      //   .post(`${baseURL}/api/Auth/login`, loginPayload)
+    // const loginPayload = {
+    //   email: email,
+    //   password: password,
+    // };
 
-      //   .then((response) => {
-      //     const token = response.data.token;
-  
-      //     localStorage.setItem("token", token);
-      //     localStorage.setItem("auth", true);  
-      //     if (token) {
-      //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      //     }
-  
-      //     navigate("/users");
-      //   })
-      //   .catch((err) => console.log(err));
-      apiLoginUserAsync(email, password).then(()=>{console.log("logged in")});
-    }
+    // console.log(baseURL)
+    // console.log(import.meta.env);
+    // axios
+    //   .post(`${baseURL}/api/Auth/login`, loginPayload)
+
+    //   .then((response) => {
+    //     const token = response.data.token;
+
+    //     localStorage.setItem("token", token);
+    //     localStorage.setItem("auth", true);
+    //     if (token) {
+    //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    //     }
+
+    //     navigate("/users");
+    //   })
+    //   .catch((err) => console.log(err));
+    apiLoginUserAsync(email, password).then(() => {
+      console.log("logged in");
+    });
+  }
 
   return (
     <Box sx={formContainer}>
@@ -71,11 +67,25 @@ const LoginFormSection = () => {
       <Typography variant="body1" color="text.secondary" mb={3}>
         Login to continue
       </Typography>
-      <CustomTextField label="Email" sx={{ mb: 2 }} value={email} onChange={(e) => setEmail(e.target.value)} error={email.length > 0 && !isValid} helperText={email.length > 0 && error}/>
-      <CustomTextField label="Password" type="password" sx={{ mb: 2 }}  value={password} onChange={p => setPassword(p.target.value)}/>
+      <CustomTextField
+        label="Email"
+        sx={{ mb: 2 }}
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        error={email.length > 0 && !isValid}
+        helperText={email.length > 0 && error}
+      />
+      <CustomTextField
+        label="Password"
+        type="password"
+        sx={{ mb: 2 }}
+        value={password}
+        onChange={(p) => setPassword(p.target.value)}
+      />
       <Box textAlign="right" mb={2}></Box>
-      <CustomButton fullWidth onClick={handleSubmit}>LOGIN</CustomButton>
-     
+      <CustomButton fullWidth onClick={handleSubmit}>
+        LOGIN
+      </CustomButton>
     </Box>
   );
 };

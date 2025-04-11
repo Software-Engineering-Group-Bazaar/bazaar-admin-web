@@ -3,11 +3,13 @@ import { Box } from "@mui/material";
 import StoresHeader from "@sections/StoresHeader";
 import StoreCard from "@components/StoreCard";
 import UserManagementPagination from "@components/UserManagementPagination";
-import { apiGetAllStoresAsync } from "@api/api";
+import { apiGetAllStoresAsync, apiAddStoreAsync } from "@api/api";
+import AddStoreModal from "@components/AddStoreModal";
 
 const StoresPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [openModal, setOpenModal] = useState(false);
   const storesPerPage = 16;
 
   const [allStores, setAllStores] = useState([]);
@@ -20,6 +22,12 @@ const StoresPage = () => {
     fetchStores();
   }, []);
 
+  const handleAddStore = async (newStoreData) => {
+    const response = await apiAddStoreAsync(newStoreData);
+    if (response?.success) {
+      setAllStores((prev) => [...prev, response.data]);
+    }
+  };
 
   const filteredStores = allStores.filter(
     (store) =>
@@ -46,7 +54,11 @@ const StoresPage = () => {
           px: 2,
         }}
       >
-        <StoresHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <StoresHeader
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          onAddStore={() => setOpenModal(true)}
+        />
 
         {/* Grid layout */}
         <Box
@@ -70,6 +82,11 @@ const StoresPage = () => {
           />
         </Box>
       </Box>
+      <AddStoreModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        onAddStore={handleAddStore}
+      />
     </Box>
   );
 };
