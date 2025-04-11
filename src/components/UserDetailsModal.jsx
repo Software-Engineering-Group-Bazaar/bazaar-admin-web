@@ -91,7 +91,7 @@ const UserDetailsModal = ({ open, onClose, user, readOnly = false }) => {
           </Typography>
 
 
-          {/* {!readOnly && (
+          { !readOnly && (
             <>
               <Button
                 variant="outlined"
@@ -116,7 +116,7 @@ const UserDetailsModal = ({ open, onClose, user, readOnly = false }) => {
                 </Box>
               )}
             </>
-          )} */}
+          )} 
         </Box>
       </DialogContent>
     </Dialog>
