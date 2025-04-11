@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Alert from '@mui/material/Alert';
 import {
   Box,
   Typography,
@@ -22,7 +23,7 @@ const UserCreateSection = () => {
 
   const [errors, setErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-
+  const [alertMessage, setAlertMessage] = useState('');
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Name is required';
@@ -38,11 +39,15 @@ const UserCreateSection = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: '' });
+    setAlertMessage('');
   };
 
   const handleSubmit = () => {
-    if (!validate()) return;
-
+    if (!validate()) {
+      // Show the pop-up message if validation fails
+      setAlertMessage("Nevažeći unos!");
+      return; // return after showing the message
+    }
     //temporary
     console.log('User created:', formData); 
     setSnackbarOpen(true);
@@ -118,6 +123,11 @@ const UserCreateSection = () => {
           User created successfully!
         </Alert>
       </Snackbar>
+            {alertMessage && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+            {alertMessage}
+        </Alert>
+      )}
     </Box>
   );
 };
