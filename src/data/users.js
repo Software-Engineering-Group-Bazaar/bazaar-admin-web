@@ -108,3 +108,6 @@ export function searchUsers(searchTerm) {
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 }
+
+
+export default users;
