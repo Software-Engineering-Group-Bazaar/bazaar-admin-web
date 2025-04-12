@@ -372,3 +372,17 @@ export const apiAddStoreAsync = async (newStore) => {
   );
 };
 
+// Mock ažuriranje korisnika
+export const apiUpdateUserAsync = async (updatedUser) => {
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ success: true, updatedUser }), 500)
+  );
+};
+
+// Mock promjena statusa korisnika (Online/Offline)
+export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
+  const newStatus = currentStatus === "Online" ? "Offline" : "Online";
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ success: true, availability: newStatus }), 10000)
+  );
+};
