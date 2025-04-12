@@ -3,6 +3,7 @@ import apiClientInstance from "./apiClientInstance";
 import TestAuthApi from "./api/TestAuthApi";
 import LoginDTO from "./model/LoginDTO";
 import users from "../data/users";
+import products from "../data/products";
 import pendingUsers from "../data/pendingUsers.js";
 
 // ----------------------
@@ -176,6 +177,11 @@ export const apiDeleteUserAsync = async (userId) => {
 // Create a new product
 export const apiCreateProductAsync = async (newProduct) => {
   console.log("Mock API - Creating Product:", newProduct);
+  products.push(newProduct);
+  console.log(products[0].storeid);
+  console.log(products[0].name);
+  console.log(products[0].price);
+  console.log(products[0].weight);
   return new Promise((resolve) =>
     setTimeout(() => resolve({ success: true, data: newProduct }), 1000)
   );

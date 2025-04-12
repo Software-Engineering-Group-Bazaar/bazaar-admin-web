@@ -18,7 +18,7 @@ import { apiCreateProductAsync, apiGetProductCategoriesAsync } from "@api/api";
 const weightUnits = ["kg", "g", "lbs"];
 const volumeUnits = ["L", "ml", "oz"];
 
-const AddProductModal = ({ open, onClose }) => {
+const AddProductModal = ({ open, onClose, storeID }) => {
   const theme = useTheme();
 
   const [productCategories, setProductCategories] = useState([]);
@@ -30,6 +30,7 @@ const AddProductModal = ({ open, onClose }) => {
     volume: "",
     volumeunit: "L",
     productcategoryid: "",
+    storeid: storeID,
     photos: [],
   });
 
