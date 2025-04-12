@@ -40,6 +40,7 @@ export const apiLoginUserAsync = async (username, password) => {
       email: username,
       email: username,
       password: password,
+      app: 'Admin',
     });
     const token = ret.data.token;
     localStorage.setItem('auth', true);
