@@ -18,18 +18,19 @@ const AddUserModal = ({ open, onClose, onCreate }) => {
     userName: "",
     email: "",
     password: "",
+    roles: []
   });
 
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [e.target.name === "roles" ? "roles" : e.target.name]:typeof value === 'string' ? value.split(',') : e.target.value,
     }));
   };
 
   const handleSubmit = () => {
     onCreate(formData);
-    setFormData({ userName: "", email: "", password: "" });
+    setFormData({ userName: "", email: "", password: "", roles: []});
     onClose();
   };
 
@@ -62,19 +63,20 @@ const AddUserModal = ({ open, onClose, onCreate }) => {
           onChange={handleChange}
           fullWidth
         />
-        {/* <FormControl fullWidth>
+        { <FormControl fullWidth>
           <InputLabel>Role</InputLabel>
           <Select
-            name="role"
-            value={formData.role}
+            name="roles"
+            value={formData.roles}
             onChange={handleChange}
             label="Role"
+            multiple
           >
-            <MenuItem value="buyer">Buyer</MenuItem>
-            <MenuItem value="seller">Seller</MenuItem>
-            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="Buyer">Buyer</MenuItem>
+            <MenuItem value="Seller">Seller</MenuItem>
+            <MenuItem value="Admin">Admin</MenuItem>
           </Select>
-        </FormControl> */}
+        </FormControl> }
       </DialogContent>
       <DialogActions sx={{ pr: 3, pb: 2 }}>
         <Button onClick={onClose} color="inherit">

@@ -9,13 +9,17 @@ let users = [
     availability: "Online",
     lastActive: "Now",
     isApproved: true,
-
+    roles:[
+      "Buyer"
+    ]
   },
   {
     id: 2,
     userName: "Jane Smith",
     email: "jane.smith@example.com",
-    role: "Buyer",
+    roles: [
+      "Buyer"
+    ],
     availability: "Online",
     lastActive: "Now",
     isApproved: true,
@@ -24,7 +28,9 @@ let users = [
     id: 3,
     userName: "Alice Johnson",
     email: "alice.johnson@example.com",
-    role: "Seller",
+    roles:[
+      "Buyer"
+    ],
     availability: "Online",
     lastActive: "Now",
     isApproved: true,
@@ -33,76 +39,128 @@ let users = [
     id: 4,
     userName: "Bob Brown",
     email: "bob.brown@example.com",
-    role: "Buyer",
+    roles:[
+      "Seller"
+    ],
     availability: "Online",
     lastActive: "2024-04-09, 14:30:00",
     isApproved: true
   },
-  { id: 5, userName: "John Doe", email: "john.doe@example.com", isApproved: true },
+  { id: 5,
+    userName: "John Doe",
+    email: "john.doe@example.com",
+    isApproved: true,
+    roles:[
+      "Seller"
+    ]
+  },
   {
     id: 6,
     userName: "Jane Smith",
     email: "jane.smith@example.com",
-    role: "Buyer",
+    roles:[
+      "Buyer"
+    ],
     availability: "Online",
     lastActive: "2024-04-09, 14:30:00",
-    isApproved: true
+    isApproved: true,
   },
   {
     id: 7,
     userName: "Alice Johnson",
     email: "alice.johnson@example.com",
     isApproved: true,
+    roles:[
+      "Buyer"
+    ]
   },
   {
     id: 8,
     userName: "Bob Brown",
     email: "bob.brown@example.com",
     isApproved: true,
+    roles:[
+      "Buyer"
+    ]
   },
-  { id: 9, userName: "John Doe", email: "john.doe@example.com", isApproved: true },
+  { id: 9,
+    userName: "John Doe",
+    email: "john.doe@example.com",
+    isApproved: true,
+    roles:[
+      "Seller"
+    ]
+  },
   {
     id: 10,
     userName: "Jane Smith",
     email: "jane.smith@example.com",
     isApproved: true,
+    roles:[
+      "Buyer"
+    ]
   },
   {
     id: 11,
     userName: "Alice Johnson",
     email: "alice.johnson@example.com",
     isApproved: true,
+    roles:[
+      "Seller"
+    ]
   },
   {
     id: 12,
     userName: "Bob Brown",
     email: "bob.brown@example.com",
     isApproved: true,
+    roles:[
+      "Seller"
+    ]
   },
-  { id: 13, userName: "John Doe", email: "john.doe@example.com", isApproved: true },
+  { id: 13,
+    userName: "John Doe",
+    email: "john.doe@example.com",
+    isApproved: true,
+    roles:[
+      "Buyer"
+    ]
+  },
   {
     id: 14,
     userName: "Jane Smith",
     email: "jane.smith@example.com",
     isApproved: true,
+    roles:[
+      "Buyer"
+    ]
   },
   {
     id: 15,
     userName: "Alice Johnson",
     email: "alice.johnson@example.com",
     isApproved: true,
+    roles:[
+      "Buyer"
+    ]
   },
   {
     id: 16,
     userName: "Bob Brown",
     email: "bob.brown@example.com",
     isApproved: true,
+    roles:[
+      "Buyer"
+    ]
   },
   {
     id: 16,
     userName: "Bob Brown",
     email: "bob.brown@example.com",
     isApproved: true,
+    roles:[
+      "Buyer"
+    ]
   },
 ];
 

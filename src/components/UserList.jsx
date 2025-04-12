@@ -157,7 +157,7 @@ export default function UserList({
               <TableCell sx={{ fontWeight: 500 }}>{user.userName}</TableCell>
               <TableCell>{user.email}</TableCell>
 
-              <TableCell>{user.role}</TableCell>
+              <TableCell>{user.roles[0]}</TableCell>
               <TableCell>{user.availability}</TableCell>
 
               <TableCell>{user.lastActive}</TableCell>

@@ -44,7 +44,7 @@ const UsersManagements = () => {
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesRole =
-      roleFilter === "" || user.role?.toLowerCase() === roleFilter.toLowerCase();
+      roleFilter === "" || user.roles?.toLowerCase() === roleFilter.toLowerCase();
 
     const matchesAvailability =
       availabilityFilter === "" ||
@@ -79,6 +79,7 @@ const UsersManagements = () => {
         email: newUser.email,
         password: newUser.password,
         userName: newUser.userName,
+        roles: newUser.roles
       });
       setAllUsers((prev) => [...prev, createdUser]);
     } catch (error) {
