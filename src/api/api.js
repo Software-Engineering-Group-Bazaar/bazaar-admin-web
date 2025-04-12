@@ -25,26 +25,36 @@ const apiSetAuthHeader = () => {
 // AUTH - Prijava korisnika
 // ----------------------
 
-export const apiLoginUserAsync = async (username, password) => {
+export const apiLoginUserAsync = async (email, password) => {
   if (API_FLAG == API_ENV_DEV) {
     const testAuthApi = new TestAuthApi(apiClientInstance);
     const loginPayload = new LoginDTO();
-    loginPayload.username = username;
+    loginPayload.email = email;
     loginPayload.password = password;
 
-    console.log('Attempting login via TestAuthApi for:', username);
+    console.log('Attempting login via TestAuthApi for:', email);
 
     localStorage.setItem('auth', true);
   } else {
-    const ret = await axios.post(`${baseApiUrl}/api/Auth/login`, {
-      email: username,
-      email: username,
-      password: password,
-      app: 'Admin',
-    });
-    const token = ret.data.token;
-    localStorage.setItem('auth', true);
-    localStorage.setItem('token', token);
+      const loginPayload = {
+      Email: email,
+      Password: password,
+      App: 'admin'
+     };
+     console.log(loginPayload.Email);
+     console.log(loginPayload.Password);
+    await axios.post(`${baseApiUrl}/api/Auth/login`, loginPayload)
+    .then((response) => {
+      console.log(response.data.Token);
+      const token = response.data.Token;
+
+         localStorage.setItem("token", token);
+         localStorage.setItem("auth", true);
+         if (token) {
+           axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+         }
+         navigate("/users");
+    }).catch((err) => console.log(err));
   }
 };
 
@@ -111,7 +121,7 @@ export const apiFetchApprovedUsersAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
     try {
       // dohvati users iz niza koji su odobreni
-      return users.filter((user) => user.isApproved);
+      return users.filter((user) => user.isApproved === true);
     } catch (error) {
       console.error('Greška pri dohvaćanju odobrenih korisnika:', error);
       throw error;
@@ -134,6 +144,7 @@ export const apiCreateUserAsync = async (newUserPayload) => {
       };
       //users.push(newUser);
       pendingUsers.push(newUser); // korisnik će biti u pendingUsers dok ga ne odobri admin, onda se prebacuje u users
+      console.log("radi dovdje");
       return newUser;
     } catch (error) {
       console.error('Greška pri kreiranju korisnika:', error);
