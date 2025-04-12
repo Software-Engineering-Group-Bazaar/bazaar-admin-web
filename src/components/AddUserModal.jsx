@@ -74,7 +74,6 @@ const AddUserModal = ({ open, onClose, onCreate }) => {
           >
             <MenuItem value="Buyer">Buyer</MenuItem>
             <MenuItem value="Seller">Seller</MenuItem>
-            <MenuItem value="Admin">Admin</MenuItem>
           </Select>
         </FormControl> }
       </DialogContent>
