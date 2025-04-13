@@ -16,14 +16,16 @@ const ImageUploader = ({ onFilesSelected }) => {
 
   const onDrop = useCallback(
     (acceptedFiles) => {
-      const newFiles = acceptedFiles.map((file) => ({
-        file,
-        name: file.name,
-        size: file.size,
-        status: file.size > MAX_SIZE_MB * 1024 * 1024 ? "error" : "success",
-      }));
-      setFiles((prev) => [...prev, ...newFiles]);
-      onFilesSelected(acceptedFiles);
+      setFiles((prev) => [
+  ...prev,
+  ...acceptedFiles.map((file) => ({
+    name: file.name,
+    size: file.size,
+    status: file.size > MAX_SIZE_MB * 1024 * 1024 ? "error" : "success",
+  })),
+]);
+
+onFilesSelected(acceptedFiles);
     },
     [onFilesSelected]
   );

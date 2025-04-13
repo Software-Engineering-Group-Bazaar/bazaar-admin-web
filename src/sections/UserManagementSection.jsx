@@ -40,16 +40,16 @@ export default function UserManagementSection({
 
         const response = await apiToggleUserAvailabilityAsync(
           updatedUser.id,
-          updatedUser.availability
+          updatedUser.isActive
         );
 
-        if (response.success) {
-          onEdit({ ...updatedUser, availability: response.availability });
+        if (response.statusText==="OK") {
+          onEdit({ ...updatedUser, isActive: response.isActive });
         }
       } else {
         const response = await apiUpdateUserAsync(updatedUser);
-        if (response.success) {
-          onEdit(response.updatedUser);
+        if (response.status!==400) {
+          onEdit(response.data);
         }
       }
     } catch (err) {

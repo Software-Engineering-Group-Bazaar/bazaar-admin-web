@@ -16,17 +16,25 @@ const StoresPage = () => {
 
   useEffect(() => {
     const fetchStores = async () => {
-      const data = await apiGetAllStoresAsync();
-      setAllStores(data);
-    };
+    const data = await apiGetAllStoresAsync();
+    console.log(data)
+    const mapped = data.map((store) => ({
+      ...store,
+      categoryId: store.categoryId || store.category?.id || 0, 
+    }));
+    setAllStores(mapped);
+};
+
     fetchStores();
   }, []);
 
   const handleAddStore = async (newStoreData) => {
     const response = await apiAddStoreAsync(newStoreData);
+    console.log(response)
     if (response?.success) {
-      setAllStores((prev) => [...prev, response.data]);
-    }
+      const data = await apiGetAllStoresAsync();
+      setAllStores(data);
+   }
   };
 
   const filteredStores = allStores.filter(

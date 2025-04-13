@@ -18,20 +18,21 @@ import { apiCreateProductAsync, apiGetProductCategoriesAsync } from "@api/api";
 const weightUnits = ["kg", "g", "lbs"];
 const volumeUnits = ["L", "ml", "oz"];
 
-const AddProductModal = ({ open, onClose }) => {
+const AddProductModal = ({ open, onClose, storeID }) => {
   const theme = useTheme();
 
   const [productCategories, setProductCategories] = useState([]);
   const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    weight: "",
-    weightunit: "kg",
-    volume: "",
-    volumeunit: "L",
-    productcategoryid: "",
-    photos: [],
-  });
+  name: "",
+  price: "",
+  weight: "",
+  weightunit: "kg",
+  volume: "",
+  volumeunit: "L",
+  productcategoryname: "", 
+  photos: [],
+});
+
 
   const [successModal, setSuccessModal] = useState({
     open: false,
@@ -56,37 +57,78 @@ const AddProductModal = ({ open, onClose }) => {
   }, [successModal.open]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
+
+  if (name === "productcategoryid") {
+    const selectedCategory = productCategories.find(
+      (cat) => cat.name === value
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      productcategoryid: selectedCategory ? selectedCategory.id : 0,
+    }));
+  } else {
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }
+};
+
 
 
   const handlePhotosChange = (files) => {
-    setFormData((prev) => ({ ...prev, photos: files }));
-  };
+  setFormData((prev) => ({ ...prev, photos: files }));
+};
+
 
   const handleSubmit = async () => {
-    try {
-      const response = await apiCreateProductAsync(formData);
-      if (response?.success) {
-        setSuccessModal({
-          open: true,
-          isSuccess: true,
-          message: "Product has been successfully assigned to the store.",
-        });
-      } else {
-        throw new Error("API returned failure.");
-      }
-    } catch (err) {
+  const selectedCategory = productCategories.find(
+    (cat) => cat.name === formData.productcategoryname
+  );
+
+  if (!selectedCategory) {
+    alert("Please select a valid product category.");
+    return;
+  }
+
+  // 📌 Kreiraj pravi objekat
+  const productData = {
+    name: formData.name,
+    price: formData.price,
+    weight: formData.weight,
+    weightunit: formData.weightunit,
+    volume: formData.volume,
+    volumeunit: formData.volumeunit,
+    productcategoryid: selectedCategory.id, // ← ✅ SIGURAN ID
+    storeId: storeID,
+    photos: formData.photos,
+  };
+
+  console.log("📦 Final productData being sent:", productData);
+
+  try {
+    const response = await apiCreateProductAsync(productData);
+    if (response?.success) {
       setSuccessModal({
         open: true,
-        isSuccess: false,
-        message: "Failed to assign product to the store.",
+        isSuccess: true,
+        message: "Product has been successfully assigned to the store.",
       });
-    } finally {
-      onClose();
+    } else {
+      throw new Error("API returned failure.");
     }
-  };
+  } catch (err) {
+    console.error("Product creation failed:", err);
+    setSuccessModal({
+      open: true,
+      isSuccess: false,
+      message: "Failed to assign product to the store.",
+    });
+  } finally {
+    onClose();
+  }
+};
+
+
 
   return (
     <>
@@ -121,10 +163,7 @@ const AddProductModal = ({ open, onClose }) => {
           </Typography>
 
           {/* Image Upload */}
-          <ImageUploader
-            files={formData.photos}
-            setFiles={handlePhotosChange}
-          />
+          <ImageUploader onFilesSelected={handlePhotosChange} />
 
           {/* Form */}
           <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -231,19 +270,19 @@ const AddProductModal = ({ open, onClose }) => {
               </Box>
             </Box>
 
-            {/* Category */}
             <TextField
               select
               label="Category"
-              name="productcategoryid"
-              value={formData.productcategoryid}
+              name="productcategoryname"
+              value={formData.productcategoryname}
               onChange={handleChange}
+              required
               fullWidth
               variant="outlined"
               sx={{ backgroundColor: "#fafafa", borderRadius: 2 }}
             >
               {productCategories.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
+                <MenuItem key={cat.id} value={cat.name}>
                   {cat.name}
                 </MenuItem>
               ))}

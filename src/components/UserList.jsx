@@ -51,15 +51,15 @@ const StatusChip = ({ status }) => {
   );
 };
 
-const AvailabilityChip = ({ value }) => {
-  const isOnline = value.toLowerCase() === "online";
+const ActiveChip = ({ value }) => {
+  const isActive = value === true;
   return (
     <Chip
-      label={isOnline ? "Online" : "Offline"}
+      label={isActive ? "Online" : "Offline"}
       size="small"
       sx={{
-        backgroundColor: isOnline ? "#e8f5e9" : "#ffebee",
-        color: isOnline ? "#388e3c" : "#d32f2f",
+        backgroundColor: isActive ? "#e8f5e9" : "#ffebee",
+        color: isActive ? "#388e3c" : "#d32f2f",
         fontWeight: 500,
         fontSize: "0.75rem",
         borderRadius: "16px",
@@ -164,9 +164,9 @@ export default function UserList({
             </TableCell>
             <TableCell>
               <TableSortLabel
-                active={orderBy === "availability"}
+                active={orderBy === "isActive"}
                 direction={order}
-                onClick={() => handleSort("availability")}
+                onClick={() => handleSort("isActive")}
               >
                 Availability
               </TableSortLabel>
@@ -250,23 +250,28 @@ export default function UserList({
                       <MenuItem value="Seller">Seller</MenuItem>
                     </Select>
                   ) : (
-                    user.role
+                    user.roles[0]
                   )}
                 </TableCell>
 
                 <TableCell>
                   {isEditing ? (
                     <Select
-                      name="availability"
-                      value={editedUser.availability}
-                      onChange={handleFieldChange}
+                      name="isActive"
+                      value={editedUser.isActive}
+                      onChange={(e) =>
+                        setEditedUser((prev) => ({
+                          ...prev,
+                          isActive: e.target.value === "true",
+                        }))
+                      }
                       variant="standard"
                     >
-                      <MenuItem value="Online">Online</MenuItem>
-                      <MenuItem value="Offline">Offline</MenuItem>
+                      <MenuItem value="true">Online</MenuItem>
+                      <MenuItem value="false">Offline</MenuItem>
                     </Select>
                   ) : (
-                    <AvailabilityChip value={user.availability} />
+                    <ActiveChip value={user.isActive} />
                   )}
                 </TableCell>
 
@@ -286,22 +291,18 @@ export default function UserList({
                           e.stopPropagation();
                           onEdit({
                             ...user,
-                            availability:
-                              user.availability === "Online"
-                                ? "Offline"
-                                : "Online",
-                            toggleAvailabilityOnly: true,
+                            isActive: !user.isActive,
+                            toggleActiveOnly: true, // da backend zna
                           });
                         }}
                       >
-                        {user.availability === "Online" ? (
+                        {user.isActive ? (
                           <FaUser size={16} color="#4caf50" />
                         ) : (
                           <FaUserSlash size={16} color="#f44336" />
                         )}
                       </IconButton>
                     </Tooltip>
-
                     <Tooltip title={isEditing ? "Save" : "Edit"}>
                       <IconButton
                         size="small"

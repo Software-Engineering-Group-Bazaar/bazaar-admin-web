@@ -55,7 +55,7 @@ const LoginFormSection = () => {
     //   })
     //   .catch((err) => console.log(err));
     apiLoginUserAsync(email, password).then(() => {
-      console.log("logged in");
+      navigate("/users");
     });
   }
 

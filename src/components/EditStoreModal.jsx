@@ -1,149 +1,166 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Box, TextField, Button, MenuItem, Select, InputLabel, FormControl, Typography } from "@mui/material";
-import axios from "axios";
+import {
+  Modal,
+  Box,
+  TextField,
+  Button,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Typography,
+  Avatar,
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import { apiGetStoreCategoriesAsync, apiUpdateStoreAsync } from "@api/api";
 
-
-import editIcon from "../assets/images/edit-icon.png"; 
-
-const StoreEditModal = ({ open, onClose, store }) => {
+const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
   const [storeName, setStoreName] = useState("");
-  const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Ako je modal otvoren, inicijaliziraj stanje sa podacima prodavnice
+  // Load categories when modal opens
+  useEffect(() => {
+    if (open) {
+      apiGetStoreCategoriesAsync().then(setCategories);
+    }
+  }, [open]);
+
+  // Populate fields with store data
   useEffect(() => {
     if (store) {
-      setStoreName(store.name);
-      setCategory(store.category);
-      setDescription(store.description);
-      setAddress(store.address);
+      setStoreName(store.name || "");
+      setCategoryId(store.categoryId || "");
+      setDescription(store.description || "");
+      setAddress(store.address || "");
     }
-  }, [open, store]); 
+  }, [store]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const updatedStore = {
+    const updatedData = {
+      id: store.id,
       name: storeName,
-      category: category,
-      description: description,
-      address: address,
+      address,
+      categoryId,
+      description,
+      isActive: store.isOnline ?? true,
     };
 
-    try {
-      const response = await axios.put(`/api/stores/${store.id}`, updatedStore); // Ažuriraj prodavnicu, dodati u api.js
-      alert("Prodavnica je uspješno ažurirana!");
-      onClose();  // Zatvori modal nakon uspješnog ažuriranja
-    } catch (error) {
-      console.error("Greška pri ažuriranju prodavnice:", error);
-    } finally {
-      setLoading(false);
+    const response = await apiUpdateStoreAsync(updatedData);
+
+    if (response?.status === 200 || response?.success) {
+      onStoreUpdated?.(updatedData); // Notify parent if needed
+      onClose();
     }
+
+    setLoading(false);
   };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box
         sx={{
-          width: 450,
-          margin: "auto",
-          backgroundColor: "white",
-          padding: 3,
+          width: 460,
+          mx: "auto",
+          mt: "8%",
+          bgcolor: "#fff",
           borderRadius: 3,
-          mt: 5,
-          boxShadow: 3,
-          border: "2px solid #B03A2E", 
+          p: 4,
+          boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+          outline: "none",
         }}
       >
-        
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <img src={editIcon} alt="Edit Icon" style={{ width: "50px", height: "50px" }} />
+          <Avatar sx={{ bgcolor: "#B03A2E", width: 56, height: 56 }}>
+            <EditIcon sx={{ color: "#fff", fontSize: 28 }} />
+          </Avatar>
         </Box>
 
-        <Typography variant="h5" sx={{ color: "#B03A2E", textAlign: "center", mb: 3 }}>Edit Store</Typography>
+        <Typography variant="h5" align="center" mb={3} fontWeight={600} color="#B03A2E">
+          Edit Store
+        </Typography>
 
         <form onSubmit={handleSubmit}>
           <TextField
             label="Store Name"
             fullWidth
-            margin="normal"
             value={storeName}
             onChange={(e) => setStoreName(e.target.value)}
+            margin="normal"
+            required
+          />
+
+          <FormControl
+            fullWidth
+            margin="normal"
             required
             sx={{
-              '& .MuiInputLabel-root': { color: "#B03A2E" },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': { borderColor: "#B03A2E" },
-                '&:hover fieldset': { borderColor: "#B03A2E" },
-                '&.Mui-focused fieldset': { borderColor: "#B03A2E" },
+              
+            }}
+          >
+          <InputLabel id="category-label">Category</InputLabel>
+          <Select
+            labelId="category-label"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            label="Category"
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  mt: 1,
+                  borderRadius: 2,
+                },
               },
             }}
-          />
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="category-label" sx={{ color: "#B03A2E" }}>Category</InputLabel>
-            <Select
-              labelId="category-label"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-              sx={{
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: "#B03A2E" },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: "#B03A2E" },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: "#B03A2E" },
-              }}
-            >
+          >
+            {categories.map((cat) => (
+              <MenuItem key={cat.id} value={cat.id}>
+                {cat.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
 
-            {/*potrebno zamijeniti mockovane kategorije*/}
-              <MenuItem value="Electronics">Elektronika</MenuItem>
-              <MenuItem value="Clothing">Odjeća</MenuItem>
-              <MenuItem value="Food">Hrana</MenuItem>
-
-
-
-
-            </Select>
-          </FormControl>
           <TextField
             label="Description"
             fullWidth
-            margin="normal"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            margin="normal"
             required
-            sx={{
-              '& .MuiInputLabel-root': { color: "#B03A2E" },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': { borderColor: "#B03A2E" },
-                '&:hover fieldset': { borderColor: "#B03A2E" },
-                '&.Mui-focused fieldset': { borderColor: "#B03A2E" },
-              },
-            }}
           />
+
           <TextField
             label="Address"
             fullWidth
-            margin="normal"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
+            margin="normal"
             required
-            sx={{
-              '& .MuiInputLabel-root': { color: "#B03A2E" },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': { borderColor: "#B03A2E" },
-                '&:hover fieldset': { borderColor: "#B03A2E" },
-                '&.Mui-focused fieldset': { borderColor: "#B03A2E" },
-              },
-            }}
           />
-          <Box sx={{ mt: 2 }}>
-            <Button type="submit" variant="contained" color="primary" fullWidth disabled={loading} sx={{ backgroundColor: "#B03A2E", '&:hover': { backgroundColor: "#922B21" } }}>
-              {loading ? "Updating..." : "Update"}
-            </Button>
-          </Box>
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{
+              mt: 3,
+              backgroundColor: "#B03A2E",
+              textTransform: "none",
+              fontWeight: 600,
+              "&:hover": { backgroundColor: "#922B21" },
+            }}
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Update Store"}
+          </Button>
         </form>
       </Box>
     </Modal>

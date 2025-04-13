@@ -151,7 +151,7 @@ const PendingUsersTable = ({
                       e.preventDefault();
                       onApprove(user.id);
 
-                      await apiApproveUserAsync(user.id);
+                      //await apiApproveUserAsync(user.id);
                         // const token = localStorage.getItem("token");
                       
                         // if (token) {

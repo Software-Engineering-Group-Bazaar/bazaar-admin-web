@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -10,16 +10,36 @@ import {
 } from "@mui/material";
 import StoreIcon from "@mui/icons-material/Store";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import { FiEdit2 } from "react-icons/fi";
-import { apiUpdateStoreStatusAsync } from "@api/api";
+import { FiEdit2, FiTrash } from "react-icons/fi";
+import { apiUpdateStoreAsync, apiDeleteStoreAsync, apiGetStoreCategoriesAsync } from "@api/api";
 import AddProductModal from "@components/NewProductModal";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import EditStoreModal from "@components/EditStoreModal";
+import ConfirmDeleteStoreModal from "@components/ConfirmDeleteStoreModal";
+
 
 const StoreCard = ({ store }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [isOnline, setIsOnline] = useState(store.isOnline);
+  const [isOnline, setIsOnline] = useState(store.isActive);
   const [updating, setUpdating] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const data = await apiGetStoreCategoriesAsync();
+      setCategories(data);
+    } catch (err) {
+      console.error("Greška pri dohvaćanju kategorija:", err);
+    }
+  };
+
+  fetchCategories();
+}, []);
+
 
   const open = Boolean(anchorEl);
 
@@ -27,13 +47,49 @@ const StoreCard = ({ store }) => {
     setAnchorEl(event.currentTarget);
   };
 
+  const handleUpdateStore = async (updatedStore) => {
+  //const response = await apiUpdateStoreAsync(updatedStore);
+  if (response?.success) {
+    // osvježi podatke ili javi parentu da ažurira store listu
+  }
+};
+
   const handleStatusChange = async (newStatus) => {
-    setUpdating(true);
-    await apiUpdateStoreStatusAsync(store.id, newStatus);
-    setIsOnline(newStatus);
+  setUpdating(true);
+
+  // Nađi categoryId na osnovu categoryName
+  const matchedCategory = categories.find(
+    (cat) => cat.name === store.categoryName
+  );
+
+  if (!matchedCategory) {
+    console.error("Category not found for:", store.categoryName);
     setUpdating(false);
     setAnchorEl(null);
+    return;
+  }
+
+  const updatedStore = {
+    id: store.id,
+    name: store.name,
+    address: store.address,
+    description: store.description,
+    categoryId: matchedCategory.id, // pravi ID sada
+    isActive: newStatus,
   };
+
+  try {
+    const response = await apiUpdateStoreAsync(updatedStore);
+    if (response?.status === 200 || response?.success) {
+      setIsOnline(newStatus);
+    }
+  } catch (err) {
+    console.error("Greška pri ažuriranju statusa:", err);
+  }
+
+  setUpdating(false);
+  setAnchorEl(null);
+};
 
   const handleOpenModal = () => {
     setOpenModal(true);
@@ -59,18 +115,35 @@ const StoreCard = ({ store }) => {
         }}
       >
         {/* Online/Offline Status Dot */}
-        <IconButton
-          onClick={handleStatusClick}
-          sx={{ position: "absolute", top: 12, right: 12, p: 0 }}
-          disabled={updating}
-        >
-          <FiberManualRecordIcon
+        {/* Status + Delete dugmad gore desno */}
+        <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 0.5 }}>
+          {/* Diskretna Delete ikona */}
+          <IconButton
+            onClick={() => setOpenDeleteModal(true)}
             sx={{
-              color: isOnline ? "#4caf50" : "#f44336",
-              fontSize: 16,
+              p: 0.5,
+              color: "#999",
+              "&:hover": { color: "#f44336" },
             }}
-          />
-        </IconButton>
+          >
+            <FiTrash size={14} />
+          </IconButton>
+
+          {/* Status */}
+          <IconButton
+            onClick={handleStatusClick}
+            sx={{ p: 0.5 }}
+            disabled={updating}
+          >
+            <FiberManualRecordIcon
+              sx={{
+                color: isOnline ? "#4caf50" : "#f44336",
+                fontSize: 14,
+              }}
+            />
+          </IconButton>
+        </Box>
+
 
         <Menu
           anchorEl={anchorEl}
@@ -116,9 +189,33 @@ const StoreCard = ({ store }) => {
 
           {/* Ime i adresa */}
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ lineHeight: 1 }}>
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              sx={{
+                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 1,
+                position: "relative",
+                "&:hover .edit-icon": { opacity: 1 },
+              }}
+            >
               {store.name}
+              <IconButton
+                className="edit-icon"
+                size="small"
+                sx={{
+                  p: 0,
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                }}
+                onClick={() => setOpenEditModal(true)}
+              >
+                <FiEdit2 size={16} />
+              </IconButton>
             </Typography>
+
 
             {/* Adresa */}
             <Box
@@ -176,6 +273,25 @@ const StoreCard = ({ store }) => {
         open={openModal}
         onClose={handleCloseModal}
         storeID={store.id}
+      />
+
+      <EditStoreModal
+        open={openEditModal}
+        onClose={() => setOpenEditModal(false)}
+        store={store}
+        onSave={handleUpdateStore}
+      />
+
+      <ConfirmDeleteStoreModal
+        open={openDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        storeName={store.name}
+        onConfirm={async () => {
+          const res = await apiDeleteStoreAsync(store.id);
+          if (res.success) {
+            window.location.reload(); 
+          }
+        }}
       />
     </>
   );

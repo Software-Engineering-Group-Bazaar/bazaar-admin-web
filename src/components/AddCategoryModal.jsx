@@ -13,23 +13,23 @@ import {
 } from "@mui/material";
 import CategoryIcon from "@mui/icons-material/Category";
 
-const AddCategoryModal = ({ open, onClose, onAddCategory }) => {
+const AddCategoryModal = ({ open, onClose, onAddCategory, selectedType }) => {
   const [categoryName, setCategoryName] = useState("");
   const [categoryType, setCategoryType] = useState("product");
 
   const handleSubmit = () => {
-    if (categoryName.trim()) {
-      const newCategory = {
-        id: Date.now(),
-        name: categoryName.trim(),
-        type: categoryType,
-      };
-      onAddCategory(newCategory);
-      setCategoryName("");
-      setCategoryType("product");
-      onClose();
-    }
-  };
+    console.log(selectedType);
+  if (categoryName.trim()) {
+    const newCategory = {
+      id: Date.now(),
+      name: categoryName.trim(),
+      type: categoryType, 
+    };
+    onAddCategory(newCategory);
+    setCategoryName("");
+    onClose();
+  }
+};
 
   return (
     <Modal open={open} onClose={onClose}>

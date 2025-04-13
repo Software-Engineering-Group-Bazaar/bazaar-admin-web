@@ -55,7 +55,6 @@ export const apiLoginUserAsync = async (username, password) => {
 export const apiFetchPendingUsersAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
     try {
-      // Pretpostavljamo da se "pendingUsers" dohvaća iz lokalnog niza
       return pendingUsers;
     } catch (error) {
       console.error('Greška pri dohvaćanju korisnika:', error);
@@ -97,7 +96,7 @@ export const apiApproveUserAsync = async (userId) => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
-    return axios.post(`${baseApiUrl}/api/Admin/approve`, {
+    return axios.post(`${baseApiUrl}/api/Admin/users/approve`, {
       userId: userId,
     });
   }
@@ -133,7 +132,7 @@ export const apiCreateUserAsync = async (newUserPayload) => {
         isApproved: false,
       };
       //users.push(newUser);
-      pendingUsers.push(newUser); // korisnik će biti u pendingUsers dok ga ne odobri admin, onda se prebacuje u users
+      pendingUsers.push(newUser); 
       return newUser;
     } catch (error) {
       console.error('Greška pri kreiranju korisnika:', error);
@@ -243,56 +242,49 @@ export const apiDeleteUserAsync = async (userId) => {
   }
 };*/
 
-// Create a new product
-export const apiCreateProductAsync = async (newProduct) => {
-  if (API_ENV_DEV == API_FLAG) {
-    console.log('Mock API - Creating Product:', newProduct);
-    return new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true, data: newProduct }), 1000)
-    );
-  } else {
-    apiSetAuthHeader();
-    const formData = new FormData();
-    return axios.post(
+
+export const apiCreateProductAsync = async (formData) => {
+  try {
+    console.log(formData)
+    const response = await axios.post(
       `${baseApiUrl}/api/Admin/products/create`,
+      formData,
       {
-        ProductCategoryId: newProduct.productcategoryid,
-        Name: newProduct.name,
-        RetailPrice: newProduct.price,
-        WholesalePrice: newProduct.price,
-        Weight: newProduct.weight,
-        WeightUnit: newProduct.weightunit,
-        Volume: newProduct.volume,
-        VolumeUnit: newProduct.volumeunit,
-        StoreId: newProduct.storeid,
-        Files: newProduct.photos,
-      },
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
+    return response?.data;
+  } catch (error) {
+    console.error("Product creation failed:", error);
+    return { success: false };
   }
 };
 
-// Get product categories
+
+
+
 export const apiGetProductCategoriesAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
-    //izbrisi kad ne bude trebalo
-    const mockCategories = [
-      { id: '1', type: 'product', name: 'Beverages' },
-      { id: '2', type: 'store', name: 'Snacks' },
-      { id: '3', type: 'product', name: 'Cleaning' },
-      { id: '4', type: 'store', name: 'Beverages' },
-      { id: '5', type: 'product', name: 'Snacks' },
-      { id: '6', type: 'store', name: 'Cleaning' },
-    ];
-    return new Promise((resolve) =>
-      setTimeout(() => resolve(mockCategories), 500)
-    );
+    return mockCategories.filter((cat) => cat.type === 'product');
   } else {
     apiSetAuthHeader();
-    categories = await axios.get(`${baseApiUrl}/api/Admin/categories`);
-    return categories.data;
+    const res = await axios.get(`${baseApiUrl}/api/Admin/categories`);
+    return res.data;
   }
 };
+
+export const apiGetStoreCategoriesAsync = async () => {
+  if (API_ENV_DEV == API_FLAG) {
+    return mockCategories.filter((cat) => cat.type === 'store');
+  } else {
+    apiSetAuthHeader();
+    const res = await axios.get(`${baseApiUrl}/api/Admin/store/categories`);
+    return res.data;
+  }
+};
+
 
 // Get store details
 export const apiGetStoreByIdAsync = async (storeId) => {
@@ -315,26 +307,27 @@ export const apiGetStoreByIdAsync = async (storeId) => {
   }
 };
 
-//update store status (online/offline)
-export const apiUpdateStoreStatusAsync = async (storeId, isOnline) => {
-  if (API_ENV_DEV == API_FLAG) {
-    console.log('Mock API - Updating store status:', { storeId, isOnline });
-
+export const apiUpdateStoreAsync = async (store) => {
+  if (API_ENV_DEV === API_FLAG) {
     return new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true, isOnline }), 500)
+      setTimeout(() => resolve({ success: true, data: store }), 500)
     );
   } else {
     apiSetAuthHeader();
-    return axios.put(`${baseApiUrl}/api/Admin/store/${storeId}`, {
-      name: null,
-      categoryId: null,
-      address: null,
-      id: storeId,
-      isActive: isOnline,
-      description: null,
+    return axios.put(`${baseApiUrl}/api/Admin/store/${store.id}`, {
+      id: store.id,
+      name: store.name,
+      address: store.address,
+      categoryId: store.categoryId,
+      description: store.description,
+      isActive: store.isActive,
     });
   }
 };
+
+
+
+
 
 // Get all stores
 export const apiGetAllStoresAsync = async () => {
@@ -465,8 +458,21 @@ export const apiGetAllStoresAsync = async () => {
   }
 };
 
-export const apiDeleteCategoryAsync = async (categoryId) => {
-  if (API_ENV_DEV == API_FLAG) {
+// DELETE product category
+export const apiDeleteProductCategoryAsync = async (categoryId) => {
+  if (API_ENV_DEV === API_FLAG) {
+    return new Promise((resolve) =>
+      setTimeout(() => resolve({ success: true, deletedId: categoryId }), 500)
+    );
+  } else {
+    apiSetAuthHeader();
+    return axios.delete(`${baseApiUrl}/api/Admin/categories/${categoryId}`);
+  }
+};
+
+// DELETE store category
+export const apiDeleteStoreCategoryAsync = async (categoryId) => {
+  if (API_ENV_DEV === API_FLAG) {
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, deletedId: categoryId }), 500)
     );
@@ -476,37 +482,74 @@ export const apiDeleteCategoryAsync = async (categoryId) => {
   }
 };
 
-export const apiAddCategoryAsync = async (newCategory) => {
-  if (API_ENV_DEV == API_FLAG) {
+
+export const apiAddProductCategoryAsync = async (name) => {
+  if (API_ENV_DEV === API_FLAG) {
     return new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true, data: newCategory }), 500)
+      setTimeout(() => resolve({ success: true, data: { id: Date.now(), name } }), 500)
     );
   } else {
     apiSetAuthHeader();
-    return axios.post(`${baseApiUrl}/api/Admin/store/categories/create`, {
-      name: newCategory,
-    });
+    try {
+      const res = await axios.post(`${baseApiUrl}/api/Admin/categories`, { name });
+      return { success: true, data: res.data };
+    } catch (err) {
+      console.error("Error creating product category:", err);
+      return { success: false };
+    }
   }
 };
 
-export const apiUpdateCategoryAsync = async (updatedCategory) => {
-  if (API_ENV_DEV == API_FLAG) {
+export const apiAddStoreCategoryAsync = async (name) => {
+  if (API_ENV_DEV === API_FLAG) {
     return new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true, data: updatedCategory }), 500)
+      setTimeout(() => resolve({ success: true, data: { id: Date.now(), name } }), 500)
     );
   } else {
     apiSetAuthHeader();
-    return axios.put(
-      `${baseApiUrl}/api/Admin/store/category/${updatedCategory.id}`,
-      {
-        name: updatedCategory.name,
-      }
-    );
+    try {
+      const res = await axios.post(`${baseApiUrl}/api/Admin/store/categories/create`, { name });
+      return { success: true, data: res.data };
+    } catch (err) {
+      console.error("Error creating store category:", err);
+      return { success: false };
+    }
   }
 };
+
+
+
+export const apiUpdateProductCategoryAsync = async (updatedCategory) => {
+  apiSetAuthHeader();
+  try {
+    const response = await axios.put(
+      `${baseApiUrl}/api/Admin/categories/${updatedCategory.id}`,
+      { name: updatedCategory.name }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error updating product category:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const apiUpdateStoreCategoryAsync = async (updatedCategory) => {
+  apiSetAuthHeader();
+  try {
+    const response = await axios.put(
+      `${baseApiUrl}/api/Admin/store/category/${updatedCategory.id}`,
+      { name: updatedCategory.name }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error updating store category:", error);
+    return { success: false, message: error.message };
+  }
+};
+
 
 export const apiAddStoreAsync = async (newStore) => {
-  if (API_ENV_DEV) {
+  if (API_ENV_DEV === API_FLAG) {
     return new Promise((resolve) =>
       setTimeout(
         () => resolve({ success: true, data: { ...newStore, id: Date.now() } }),
@@ -515,14 +558,40 @@ export const apiAddStoreAsync = async (newStore) => {
     );
   } else {
     apiSetAuthHeader();
-    return axios(`${baseApiUrl}/api/Admin/store/create`, {
-      name: newStore.name,
-      categoryId: newStore.categoryId,
-      address: newStore.address,
-      description: newStore.description,
-    });
+    try {
+      const response = await axios.post(`${baseApiUrl}/api/Admin/store/create`, {
+        name: newStore.name,
+        categoryId: newStore.categoryid,
+        address: newStore.address,
+        description: newStore.description,
+      });
+      console.log(response)
+      return response;
+    } catch (error) {
+      console.error("Greška pri kreiranju prodavnice:", error);
+      return { success: false };
+    }
   }
 };
+
+
+export const apiDeleteStoreAsync = async (storeId) => {
+  if (API_ENV_DEV === API_FLAG) {
+    return new Promise((resolve) =>
+      setTimeout(() => resolve({ success: true, deletedId: storeId }), 500)
+    );
+  } else {
+    apiSetAuthHeader();
+    try {
+      const res = await axios.delete(`${baseApiUrl}/api/Admin/store/${storeId}`);
+      return { success: res.status === 204 };
+    } catch (error) {
+      console.error("Greška pri brisanju prodavnice:", error);
+      return { success: false };
+    }
+  }
+};
+
 
 // Mock ažuriranje korisnika
 export const apiUpdateUserAsync = async (updatedUser) => {
@@ -531,14 +600,22 @@ export const apiUpdateUserAsync = async (updatedUser) => {
       setTimeout(() => resolve({ success: true, updatedUser }), 500)
     );
   } else {
-    console.log('NOPE izbaciti ovo');
+    apiSetAuthHeader();
+    return axios.put(`${baseApiUrl}/api/Admin/users/update`, {
+      userName: updatedUser.email,
+      id: updatedUser.id,
+      role: updatedUser.roles[0],
+      isActive: updatedUser.isActive,
+      isApproved: updatedUser.isApproved,
+      email: updatedUser.email,
+    });
   }
 };
 
 // Mock promjena statusa korisnika (Online/Offline)
 export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
   if (API_ENV_DEV == API_FLAG) {
-    const newStatus = currentStatus === 'Online' ? 'Offline' : 'Online';
+    const newStatus = currentStatus === 'Online' ? 'false' : 'true';
     return new Promise((resolve) =>
       setTimeout(
         () => resolve({ success: true, availability: newStatus }),
@@ -547,7 +624,7 @@ export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
     );
   } else {
     apiSetAuthHeader();
-    return axios.post(`${baseApiUrl}/api/Admin/activate`, {
+    return axios.post(`${baseApiUrl}/api/Admin/users/activate`, {
       userId: userId,
       activationStatus: currentStatus,
     });

@@ -3,7 +3,7 @@ import UserManagementHeader from "@sections/UserManagementHeader";
 import UserManagementPagination from "@components/UserManagementPagination";
 import UserManagementSection from "@sections/UserManagementSection";
 import UserDetailsModal from "@components/UserDetailsModal";
-import { Box, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { Box } from "@mui/material";
 import AddUserModal from "@components/AddUserModal";
 
 import {
@@ -80,7 +80,7 @@ const UsersManagements = () => {
         password: newUser.password,
         userName: newUser.userName,
       });
-      setAllUsers((prev) => [...prev, createdUser]);
+      setAllUsers((prev) => [...prev, createdUser.data]);
     } catch (error) {
       console.error("Error creating user:", error);
     }
@@ -102,9 +102,6 @@ const UsersManagements = () => {
     setAllUsers((prevUsers) =>
       prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
     );
-
-    // (opcionalno)
-    // await apiUpdateUserAsync(updatedUser);
   };
 
   if (isLoading) return <Box>Loading...</Box>;
