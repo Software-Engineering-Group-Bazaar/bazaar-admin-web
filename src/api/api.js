@@ -118,7 +118,12 @@ export const apiFetchApprovedUsersAsync = async () => {
   } else {
     apiSetAuthHeader();
     const users = await axios.get(`${baseApiUrl}/api/Admin/users`);
-    return users.data.filter((u) => u.isApproved);
+    return users.data
+      .filter((u) => u.isApproved)
+      .filter(
+        (u) =>
+          (u.roles && u.roles != 'Admin') || (u.roles && u.roles[0] != 'Admin')
+      );
   }
 };
 
