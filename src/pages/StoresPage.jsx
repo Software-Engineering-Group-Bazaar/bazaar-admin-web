@@ -16,8 +16,10 @@ const StoresPage = () => {
 
   useEffect(() => {
     const fetchStores = async () => {
+      try{
       const data = await apiGetAllStoresAsync();
       setAllStores(data);
+      }catch(err){console.log(err);}
     };
     fetchStores();
   }, []);

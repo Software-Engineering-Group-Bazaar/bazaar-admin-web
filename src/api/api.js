@@ -4,6 +4,7 @@ import TestAuthApi from './api/TestAuthApi';
 import LoginDTO from './model/LoginDTO';
 import users from '../data/users';
 import pendingUsers from '../data/pendingUsers.js';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -15,7 +16,7 @@ console.log('api ', baseApiUrl);
 
 const apiSetAuthHeader = () => {
   const token = localStorage.getItem('token');
-
+  
   if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
@@ -36,6 +37,7 @@ export const apiLoginUserAsync = async (email, password) => {
 
     localStorage.setItem('auth', true);
   } else {
+    try{const navigate = useNavigate();
       const loginPayload = {
       Email: email,
       Password: password,
@@ -53,8 +55,11 @@ export const apiLoginUserAsync = async (email, password) => {
          if (token) {
            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
          }
-         navigate("/users");
-    }).catch((err) => console.log(err));
+         return true;
+    })} catch(err){
+      console.error("Login error:", err);
+      return false;
+    };
   }
 };
 
@@ -153,10 +158,10 @@ export const apiCreateUserAsync = async (newUserPayload) => {
   } else {
     apiSetAuthHeader();
     return axios.post(`${baseApiUrl}/api/Admin/users/create`, {
-      userName: newUserPayload.userName,
-      email: newUserPayload.email,
-      password: newUserPayload.password,
-      role: newUserPayload.role,
+      UserName: newUserPayload.userName,
+      Email: newUserPayload.email,
+      Password: newUserPayload.password,
+      Role: newUserPayload.role,
     });
   }
 };
@@ -337,12 +342,12 @@ export const apiUpdateStoreStatusAsync = async (storeId, isOnline) => {
   } else {
     apiSetAuthHeader();
     return axios.put(`${baseApiUrl}/api/Admin/store/${storeId}`, {
-      name: null,
-      categoryId: null,
-      address: null,
-      id: storeId,
+      Name: null,
+      CategoryId: null,
+      Address: null,
+      Id: storeId,
       isActive: isOnline,
-      description: null,
+      Description: null,
     });
   }
 };
@@ -471,7 +476,12 @@ export const apiGetAllStoresAsync = async () => {
     return new Promise((resolve) => setTimeout(() => resolve(mockStores), 500));
   } else {
     apiSetAuthHeader();
-    const stores = await axios.get(`${baseApiUrl}/api/Admin/stores`);
+    const stores=[]
+    try{
+      stores = await axios.get(`${baseApiUrl}/api/Admin/stores`);
+    }catch(error){
+      console.log(error)
+    }
     return stores.data;
   }
 };
@@ -495,7 +505,7 @@ export const apiAddCategoryAsync = async (newCategory) => {
   } else {
     apiSetAuthHeader();
     return axios.post(`${baseApiUrl}/api/Admin/store/categories/create`, {
-      name: newCategory,
+      Name: newCategory,
     });
   }
 };
@@ -510,7 +520,7 @@ export const apiUpdateCategoryAsync = async (updatedCategory) => {
     return axios.put(
       `${baseApiUrl}/api/Admin/store/category/${updatedCategory.id}`,
       {
-        name: updatedCategory.name,
+        Name: updatedCategory.name,
       }
     );
   }
@@ -527,10 +537,10 @@ export const apiAddStoreAsync = async (newStore) => {
   } else {
     apiSetAuthHeader();
     return axios(`${baseApiUrl}/api/Admin/store/create`, {
-      name: newStore.name,
-      categoryId: newStore.categoryId,
-      address: newStore.address,
-      description: newStore.description,
+      Name: newStore.name,
+      CategoryId: newStore.categoryId,
+      Address: newStore.address,
+      Description: newStore.description,
     });
   }
 };
