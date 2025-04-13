@@ -48,7 +48,7 @@ export const apiLoginUserAsync = async (email, password) => {
     await axios.post(`${baseApiUrl}/api/Auth/login`, loginPayload)
     .then((response) => {
       console.log(response.data.Token);
-      const token = response.data.Token;
+      const token = response.data.token;
 
          localStorage.setItem("token", token);
          localStorage.setItem("auth", true);
