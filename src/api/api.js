@@ -132,7 +132,7 @@ export const apiCreateUserAsync = async (newUserPayload) => {
         isApproved: false,
       };
       //users.push(newUser);
-      pendingUsers.push(newUser); 
+      pendingUsers.push(newUser);
       return newUser;
     } catch (error) {
       console.error('Greška pri kreiranju korisnika:', error);
@@ -242,28 +242,71 @@ export const apiDeleteUserAsync = async (userId) => {
   }
 };*/
 
+// {
+//   "name": "aa",
+//   "price": "1",
+//   "weight": "1",
+//   "weightunit": "kg",
+//   "volume": "1",
+//   "volumeunit": "L",
+//   "productcategoryid": 1,
+//   "storeId": 2,
+//   "photos": [
+//     {
+//       "path": "./maca.jpg",
+//       "relativePath": "./maca.jpg"
+//     }
+//   ]
+// }
 
-export const apiCreateProductAsync = async (formData) => {
-  try {
-    console.log(formData)
-    const response = await axios.post(
-      `${baseApiUrl}/api/Admin/products/create`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+export const apiCreateProductAsync = async (productData) => {
+  if (API_ENV_DEV !== API_FLAG) {
+    try {
+      // Create a FormData object
+      const formData = new FormData();
+
+      // --- FIX HERE ---
+      // Append product data fields, ensuring valid defaults for numbers
+      // Use ?? 0 to default null/undefined numeric values to 0 before converting to string.
+      // Adjust the default (e.g., to null or omit if API allows) based on API requirements.
+      formData.append('RetailPrice', String(productData.price ?? 0));
+      formData.append(
+        'ProductCategoryId',
+        String(productData.productcategoryid)
+      ); // Assuming this is always provided
+      formData.append('WholesalePrice', String(productData.price ?? 0));
+      formData.append('Name', productData.name);
+      formData.append('Weight', String(productData.weight ?? 0));
+      formData.append('Volume', String(productData.volume ?? 0));
+      formData.append('WeightUnit', productData.weightunit ?? ''); // Default to empty string if optional
+      formData.append('StoreId', String(productData.storeId)); // Assuming this is always provided
+      formData.append('VolumeUnit', productData.volumeunit ?? ''); // Default to empty string if optional
+      const imageFiles = productData.photos;
+      // Append each file in the array (Ensure this loop is correct if multiple files are expected)
+      if (imageFiles && imageFiles.length > 0) {
+        imageFiles.forEach((file) => {
+          if (file instanceof File) {
+            formData.append('Files', file, file.name); // Use the same key 'Files'
+          }
+        });
       }
-    );
-    return response?.data;
-  } catch (error) {
-    console.error("Product creation failed:", error);
-    return { success: false };
+      console.log(formData);
+      const response = await axios.post(
+        `${baseApiUrl}/api/Admin/products/create`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return { success: true };
+    } catch (error) {
+      console.error('Product creation failed:', error);
+      return { success: false };
+    }
   }
 };
-
-
-
 
 export const apiGetProductCategoriesAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
@@ -284,7 +327,6 @@ export const apiGetStoreCategoriesAsync = async () => {
     return res.data;
   }
 };
-
 
 // Get store details
 export const apiGetStoreByIdAsync = async (storeId) => {
@@ -324,10 +366,6 @@ export const apiUpdateStoreAsync = async (store) => {
     });
   }
 };
-
-
-
-
 
 // Get all stores
 export const apiGetAllStoresAsync = async () => {
@@ -482,19 +520,23 @@ export const apiDeleteStoreCategoryAsync = async (categoryId) => {
   }
 };
 
-
 export const apiAddProductCategoryAsync = async (name) => {
   if (API_ENV_DEV === API_FLAG) {
     return new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true, data: { id: Date.now(), name } }), 500)
+      setTimeout(
+        () => resolve({ success: true, data: { id: Date.now(), name } }),
+        500
+      )
     );
   } else {
     apiSetAuthHeader();
     try {
-      const res = await axios.post(`${baseApiUrl}/api/Admin/categories`, { name });
+      const res = await axios.post(`${baseApiUrl}/api/Admin/categories`, {
+        name,
+      });
       return { success: true, data: res.data };
     } catch (err) {
-      console.error("Error creating product category:", err);
+      console.error('Error creating product category:', err);
       return { success: false };
     }
   }
@@ -503,21 +545,25 @@ export const apiAddProductCategoryAsync = async (name) => {
 export const apiAddStoreCategoryAsync = async (name) => {
   if (API_ENV_DEV === API_FLAG) {
     return new Promise((resolve) =>
-      setTimeout(() => resolve({ success: true, data: { id: Date.now(), name } }), 500)
+      setTimeout(
+        () => resolve({ success: true, data: { id: Date.now(), name } }),
+        500
+      )
     );
   } else {
     apiSetAuthHeader();
     try {
-      const res = await axios.post(`${baseApiUrl}/api/Admin/store/categories/create`, { name });
+      const res = await axios.post(
+        `${baseApiUrl}/api/Admin/store/categories/create`,
+        { name }
+      );
       return { success: true, data: res.data };
     } catch (err) {
-      console.error("Error creating store category:", err);
+      console.error('Error creating store category:', err);
       return { success: false };
     }
   }
 };
-
-
 
 export const apiUpdateProductCategoryAsync = async (updatedCategory) => {
   apiSetAuthHeader();
@@ -528,7 +574,7 @@ export const apiUpdateProductCategoryAsync = async (updatedCategory) => {
     );
     return { success: true, data: response.data };
   } catch (error) {
-    console.error("Error updating product category:", error);
+    console.error('Error updating product category:', error);
     return { success: false, message: error.message };
   }
 };
@@ -542,11 +588,10 @@ export const apiUpdateStoreCategoryAsync = async (updatedCategory) => {
     );
     return { success: true, data: response.data };
   } catch (error) {
-    console.error("Error updating store category:", error);
+    console.error('Error updating store category:', error);
     return { success: false, message: error.message };
   }
 };
-
 
 export const apiAddStoreAsync = async (newStore) => {
   if (API_ENV_DEV === API_FLAG) {
@@ -559,21 +604,23 @@ export const apiAddStoreAsync = async (newStore) => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.post(`${baseApiUrl}/api/Admin/store/create`, {
-        name: newStore.name,
-        categoryId: newStore.categoryid,
-        address: newStore.address,
-        description: newStore.description,
-      });
-      console.log(response)
+      const response = await axios.post(
+        `${baseApiUrl}/api/Admin/store/create`,
+        {
+          name: newStore.name,
+          categoryId: newStore.categoryid,
+          address: newStore.address,
+          description: newStore.description,
+        }
+      );
+      console.log(response);
       return response;
     } catch (error) {
-      console.error("Greška pri kreiranju prodavnice:", error);
+      console.error('Greška pri kreiranju prodavnice:', error);
       return { success: false };
     }
   }
 };
-
 
 export const apiDeleteStoreAsync = async (storeId) => {
   if (API_ENV_DEV === API_FLAG) {
@@ -583,15 +630,16 @@ export const apiDeleteStoreAsync = async (storeId) => {
   } else {
     apiSetAuthHeader();
     try {
-      const res = await axios.delete(`${baseApiUrl}/api/Admin/store/${storeId}`);
+      const res = await axios.delete(
+        `${baseApiUrl}/api/Admin/store/${storeId}`
+      );
       return { success: res.status === 204 };
     } catch (error) {
-      console.error("Greška pri brisanju prodavnice:", error);
+      console.error('Greška pri brisanju prodavnice:', error);
       return { success: false };
     }
   }
 };
-
 
 // Mock ažuriranje korisnika
 export const apiUpdateUserAsync = async (updatedUser) => {
