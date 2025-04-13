@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -17,23 +17,23 @@ import {
   Select,
   MenuItem,
   Tooltip,
-} from "@mui/material";
-import DeleteUserButton from "./DeleteUserButton";
-import { FiEdit2 } from "react-icons/fi";
-import { FaUser, FaUserSlash } from "react-icons/fa";
-import { MdDone } from "react-icons/md";
+} from '@mui/material';
+import DeleteUserButton from './DeleteUserButton';
+import { FiEdit2 } from 'react-icons/fi';
+import { FaUser, FaUserSlash } from 'react-icons/fa';
+import { MdDone } from 'react-icons/md';
 
 const getStatus = (user) => {
-  if (user.isApproved === true) return "Approved";
-  if (user.isApproved === false) return "Rejected";
-  return "Pending";
+  if (user.isApproved === true) return 'Approved';
+  if (user.isApproved === false) return 'Rejected';
+  return 'Pending';
 };
 
 const StatusChip = ({ status }) => {
-  let color = "#800000";
-  let bg = "#e6f7ff";
-  if (status === "Approved") bg = "#e6f7ed";
-  if (status === "Rejected") bg = "#ffe6e6";
+  let color = '#800000';
+  let bg = '#e6f7ff';
+  if (status === 'Approved') bg = '#e6f7ed';
+  if (status === 'Rejected') bg = '#ffe6e6';
 
   return (
     <Chip
@@ -42,29 +42,29 @@ const StatusChip = ({ status }) => {
         backgroundColor: bg,
         color,
         fontWeight: 500,
-        borderRadius: "16px",
-        fontSize: "0.75rem",
-        height: "24px",
+        borderRadius: '16px',
+        fontSize: '0.75rem',
+        height: '24px',
       }}
-      size="small"
+      size='small'
     />
   );
 };
 
-const AvailabilityChip = ({ value }) => {
-  const isOnline = value.toLowerCase() === "online";
+const ActiveChip = ({ value }) => {
+  const isActive = value === true;
   return (
     <Chip
-      label={isOnline ? "Online" : "Offline"}
-      size="small"
+      label={isActive ? 'Online' : 'Offline'}
+      size='small'
       sx={{
-        backgroundColor: isOnline ? "#e8f5e9" : "#ffebee",
-        color: isOnline ? "#388e3c" : "#d32f2f",
+        backgroundColor: isActive ? '#e8f5e9' : '#ffebee',
+        color: isActive ? '#388e3c' : '#d32f2f',
         fontWeight: 500,
-        fontSize: "0.75rem",
-        borderRadius: "16px",
-        height: "24px",
-        textTransform: "capitalize",
+        fontSize: '0.75rem',
+        borderRadius: '16px',
+        height: '24px',
+        textTransform: 'capitalize',
       }}
     />
   );
@@ -78,14 +78,14 @@ export default function UserList({
   currentPage,
   usersPerPage,
 }) {
-  const [orderBy, setOrderBy] = useState("name");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState('name');
+  const [order, setOrder] = useState('asc');
   const [editingUserId, setEditingUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
 
   const handleSort = (field) => {
-    const isAsc = orderBy === field && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === field && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(field);
   };
 
@@ -105,19 +105,19 @@ export default function UserList({
   };
 
   const sortUsers = [...users].sort((a, b) => {
-    const valA = orderBy === "status" ? getStatus(a) : a[orderBy];
-    const valB = orderBy === "status" ? getStatus(b) : b[orderBy];
+    const valA = orderBy === 'status' ? getStatus(a) : a[orderBy];
+    const valB = orderBy === 'status' ? getStatus(b) : b[orderBy];
 
     if (!valA) return 1;
     if (!valB) return -1;
 
-    if (typeof valA === "string") {
-      return order === "asc"
+    if (typeof valA === 'string') {
+      return order === 'asc'
         ? valA.localeCompare(valB)
         : valB.localeCompare(valA);
     }
 
-    return order === "asc" ? valA - valB : valB - valA;
+    return order === 'asc' ? valA - valB : valB - valA;
   });
 
   return (
@@ -125,53 +125,53 @@ export default function UserList({
       component={Paper}
       sx={{
         mt: 2,
-        maxHeight: "calc(100vh - 220px)",
-        overflowY: "auto",
+        maxHeight: 'calc(100vh - 220px)',
+        overflowY: 'auto',
         borderRadius: 2,
       }}
     >
       <Table stickyHeader>
         <TableHead>
-          <TableRow sx={{ backgroundColor: "#fafafa" }}>
+          <TableRow sx={{ backgroundColor: '#fafafa' }}>
             <TableCell>#</TableCell>
             <TableCell>Pic</TableCell>
             <TableCell>
               <TableSortLabel
-                active={orderBy === "userName"}
+                active={orderBy === 'userName'}
                 direction={order}
-                onClick={() => handleSort("userName")}
+                onClick={() => handleSort('userName')}
               >
                 Username
               </TableSortLabel>
             </TableCell>
             <TableCell>
               <TableSortLabel
-                active={orderBy === "email"}
+                active={orderBy === 'email'}
                 direction={order}
-                onClick={() => handleSort("email")}
+                onClick={() => handleSort('email')}
               >
                 Email
               </TableSortLabel>
             </TableCell>
             <TableCell>
               <TableSortLabel
-                active={orderBy === "role"}
+                active={orderBy === 'role'}
                 direction={order}
-                onClick={() => handleSort("role")}
+                onClick={() => handleSort('role')}
               >
                 Role
               </TableSortLabel>
             </TableCell>
             <TableCell>
               <TableSortLabel
-                active={orderBy === "availability"}
+                active={orderBy === 'isActive'}
                 direction={order}
-                onClick={() => handleSort("availability")}
+                onClick={() => handleSort('isActive')}
               >
-                Availability
+                Active
               </TableSortLabel>
             </TableCell>
-            <TableCell>
+            {/* <TableCell>
               <TableSortLabel
                 active={orderBy === "lastActive"}
                 direction={order}
@@ -179,17 +179,17 @@ export default function UserList({
               >
                 Last Active
               </TableSortLabel>
-            </TableCell>
-            <TableCell>
+            </TableCell> */}
+            {/* <TableCell>
               <TableSortLabel
-                active={orderBy === "status"}
+                active={orderBy === 'status'}
                 direction={order}
-                onClick={() => handleSort("status")}
+                onClick={() => handleSort('status')}
               >
                 Status
               </TableSortLabel>
-            </TableCell>
-            <TableCell align="right">Actions</TableCell>
+            </TableCell> */}
+            <TableCell align='right'>Actions</TableCell>
           </TableRow>
         </TableHead>
 
@@ -199,7 +199,7 @@ export default function UserList({
             return (
               <TableRow
                 key={user.id}
-                sx={{ height: 72, "&:hover": { backgroundColor: "#f9f9f9" } }}
+                sx={{ height: 72, '&:hover': { backgroundColor: '#f9f9f9' } }}
               >
                 <TableCell>
                   {(currentPage - 1) * usersPerPage + index + 1}
@@ -215,8 +215,8 @@ export default function UserList({
                 <TableCell>
                   {isEditing ? (
                     <TextField
-                      name="userName"
-                      variant="standard"
+                      name='userName'
+                      variant='standard'
                       value={editedUser.userName}
                       onChange={handleFieldChange}
                     />
@@ -228,8 +228,8 @@ export default function UserList({
                 <TableCell>
                   {isEditing ? (
                     <TextField
-                      name="email"
-                      variant="standard"
+                      name='email'
+                      variant='standard'
                       value={editedUser.email}
                       onChange={handleFieldChange}
                     />
@@ -241,70 +241,71 @@ export default function UserList({
                 <TableCell>
                   {isEditing ? (
                     <Select
-                      name="role"
+                      name='role'
                       value={editedUser.role}
                       onChange={handleFieldChange}
-                      variant="standard"
+                      variant='standard'
                     >
-                      <MenuItem value="Buyer">Buyer</MenuItem>
-                      <MenuItem value="Seller">Seller</MenuItem>
+                      <MenuItem value='Buyer'>Buyer</MenuItem>
+                      <MenuItem value='Seller'>Seller</MenuItem>
                     </Select>
                   ) : (
-                    user.role
+                    user.roles[0]
                   )}
                 </TableCell>
 
                 <TableCell>
                   {isEditing ? (
                     <Select
-                      name="availability"
-                      value={editedUser.availability}
-                      onChange={handleFieldChange}
-                      variant="standard"
+                      name='isActive'
+                      value={!editedUser.isActive}
+                      onChange={(e) =>
+                        setEditedUser((prev) => ({
+                          ...prev,
+                          isActive: e.target.value === 'true',
+                        }))
+                      }
+                      variant='standard'
                     >
-                      <MenuItem value="Online">Online</MenuItem>
-                      <MenuItem value="Offline">Offline</MenuItem>
+                      <MenuItem value='true'>Online</MenuItem>
+                      <MenuItem value='false'>Offline</MenuItem>
                     </Select>
                   ) : (
-                    <AvailabilityChip value={user.availability} />
+                    <ActiveChip value={user.isActive} />
                   )}
                 </TableCell>
 
-                <TableCell>{user.lastActive}</TableCell>
+                {/* <TableCell>{user.lastActive}</TableCell>
                 <TableCell>
                   <StatusChip status={getStatus(user)} />
-                </TableCell>
+                </TableCell> */}
 
-                <TableCell align="right">
+                <TableCell align='right'>
                   <Box
-                    sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
+                    sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}
                   >
-                    <Tooltip title="Toggle Status">
+                    <Tooltip title='Toggle Status'>
                       <IconButton
-                        size="small"
+                        size='small'
                         onClick={(e) => {
                           e.stopPropagation();
                           onEdit({
                             ...user,
-                            availability:
-                              user.availability === "Online"
-                                ? "Offline"
-                                : "Online",
-                            toggleAvailabilityOnly: true,
+                            isActive: !user.isActive,
+                            toggleActiveOnly: true, // da backend zna
                           });
                         }}
                       >
-                        {user.availability === "Online" ? (
-                          <FaUser size={16} color="#4caf50" />
+                        {user.isActive ? (
+                          <FaUser size={16} color='#4caf50' />
                         ) : (
-                          <FaUserSlash size={16} color="#f44336" />
+                          <FaUserSlash size={16} color='#f44336' />
                         )}
                       </IconButton>
                     </Tooltip>
-
-                    <Tooltip title={isEditing ? "Save" : "Edit"}>
+                    <Tooltip title={isEditing ? 'Save' : 'Edit'}>
                       <IconButton
-                        size="small"
+                        size='small'
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isEditing) {
@@ -315,14 +316,14 @@ export default function UserList({
                         }}
                       >
                         {isEditing ? (
-                          <MdDone size={18} color="#4caf50" />
+                          <MdDone size={18} color='#4caf50' />
                         ) : (
                           <FiEdit2 size={16} />
                         )}
                       </IconButton>
                     </Tooltip>
 
-                    <Tooltip title="Delete">
+                    <Tooltip title='Delete'>
                       <DeleteUserButton
                         onClick={(e) => {
                           e.stopPropagation();

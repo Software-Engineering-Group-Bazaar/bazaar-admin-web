@@ -6,7 +6,6 @@ import ConfirmDialog from "@components/ConfirmDialog";
 import UserDetailsModal from "@components/UserDetailsModal";
 import { Box } from "@mui/material";
 import { PendingUsersContext } from "@context/PendingUsersContext";
-import axios from 'axios';
 import { apiApproveUserAsync } from "@api/api";
 import { apiDeleteUserAsync } from "@api/api";
 
@@ -41,8 +40,8 @@ const PendingUsers = () => {
 
   const handleApprove = async (id) => {
     try {
-      await apiApproveUserAsync(id);
       deleteUser(id); 
+      await apiApproveUserAsync(id);
       console.log(`User with ID ${id} approved successfully.`);
     } catch (error) {
       console.error("Greška pri odobravanju korisnika:", error);

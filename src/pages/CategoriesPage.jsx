@@ -6,9 +6,13 @@ import UserManagementPagination from "../components/UserManagementPagination.jsx
 import AddCategoryModal from "../components/AddCategoryModal";
 import {
   apiGetProductCategoriesAsync,
-  apiDeleteCategoryAsync,
-  apiAddCategoryAsync,
-  apiUpdateCategoryAsync,
+  apiGetStoreCategoriesAsync,
+  apiDeleteProductCategoryAsync,
+  apiDeleteStoreCategoryAsync,
+  apiAddProductCategoryAsync,
+  apiAddStoreCategoryAsync,
+  apiUpdateProductCategoryAsync,
+  apiUpdateStoreCategoryAsync,
 } from "@api/api.js";
 import CategoryTabs from "@components/CategoryTabs";
 
@@ -21,12 +25,22 @@ const CategoriesPage = () => {
   const categoriesPerPage = 20;
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await apiGetProductCategoriesAsync();
-      setAllCategories(data);
-    };
-    fetchCategories();
-  }, []);
+  const fetchCategories = async () => {
+    const data =
+      selectedType === "product"
+        ? await apiGetProductCategoriesAsync()
+        : await apiGetStoreCategoriesAsync();
+
+    const enriched = data.map((cat) => ({ ...cat, type: selectedType }));
+
+    console.log(enriched)
+
+    setAllCategories(enriched);
+  };
+
+  fetchCategories();
+}, [selectedType]);
+
 
   const handleOpenModal = () => {
     setOpenModal(true);
@@ -37,37 +51,53 @@ const CategoriesPage = () => {
   };
 
  const handleAddCategory = async (newCategory) => {
-   const response = await apiAddCategoryAsync(newCategory);
-   if (response?.success) {
-     setAllCategories((prev) => [...prev, response.data]);
-   }
- };
+  let response;
+  console.log(newCategory.type)
+  if (newCategory.type === "product") {
+    response = await apiAddProductCategoryAsync(newCategory.name);
+  } else {
+    response = await apiAddStoreCategoryAsync(newCategory.name);
+  }
+
+  if (response?.success) {
+    if (newCategory.type === selectedType) {
+      setAllCategories((prev) => [...prev, response.data]);
+    }
+  }
+};
+
 
   const handleUpdateCategory = async (updatedCategory) => {
-    const response = await apiUpdateCategoryAsync(updatedCategory);
-    if (response?.success) {
-      setAllCategories((prevCategories) =>
-        prevCategories.map((category) =>
-          category.id === updatedCategory.id ? updatedCategory : category
-        )
-      );
-    }
-  };
+  const response = selectedType === "product"
+    ? await apiUpdateProductCategoryAsync(updatedCategory)
+    : await apiUpdateStoreCategoryAsync(updatedCategory);
+
+  if (response?.success) {
+    setAllCategories((prevCategories) =>
+      prevCategories.map((category) =>
+        category.id === updatedCategory.id ? updatedCategory : category
+      )
+    );
+  }
+};
+
 
   const handleDeleteCategory = async (categoryId) => {
-    const response = await apiDeleteCategoryAsync(categoryId);
-    if (response?.success) {
-      setAllCategories((prev) =>
-        prev.filter((category) => category.id !== categoryId)
-      );
-    }
-  };
+  let response;
+  if (selectedType === "product") {
+    response = await apiDeleteProductCategoryAsync(categoryId);
+  } else {
+    response = await apiDeleteStoreCategoryAsync(categoryId);
+  }
 
-  const filteredCategories = allCategories
-    .filter((category) => category.type === selectedType)
-    .filter((category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  if (response?.success || response?.status === 204) {
+    setAllCategories((prev) => prev.filter((cat) => cat.id !== categoryId));
+  }
+};
+
+  const filteredCategories = allCategories.filter((category) =>
+  category.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   const totalPages = Math.ceil(filteredCategories.length / categoriesPerPage);
   const indexOfLastCategory = currentPage * categoriesPerPage;
@@ -128,6 +158,7 @@ const CategoriesPage = () => {
         open={openModal}
         onClose={handleCloseModal}
         onAddCategory={handleAddCategory}
+        selectedType={selectedType}
       />
     </Box>
   );

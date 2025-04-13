@@ -11,7 +11,7 @@ import {
   Radio,
 } from "@mui/material";
 import StoreMallDirectoryIcon from "@mui/icons-material/StoreMallDirectory";
-import { apiGetProductCategoriesAsync } from "@api/api";
+import { apiGetStoreCategoriesAsync } from "@api/api";
 
 const AddStoreModal = ({ open, onClose, onAddStore }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +26,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
 
   useEffect(() => {
     if (open) {
-      apiGetProductCategoriesAsync().then(setCategories);
+      apiGetStoreCategoriesAsync().then(setCategories);
     }
   }, [open]);
 
@@ -39,6 +39,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
   };
 
   const handleSubmit = () => {
+      console.log("submit called", formData);
     onAddStore(formData);
     onClose();
   };
@@ -110,7 +111,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
           fullWidth
           value={formData.categoryid}
           onChange={handleChange}
-          sx={{ mb: 2 }}
+          sx={{ mb: 4 }}
           SelectProps={{ sx: { backgroundColor: "#f9f9f9", borderRadius: 2 } }}
         >
           {categories.map((cat) => (
@@ -119,17 +120,6 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
             </MenuItem>
           ))}
         </TextField>
-
-        <RadioGroup
-          row
-          name="isActive"
-          value={formData.isActive.toString()}
-          onChange={handleChange}
-          sx={{ mb: 2 }}
-        >
-          <FormControlLabel value="true" control={<Radio />} label="Online" />
-          <FormControlLabel value="false" control={<Radio />} label="Offline" />
-        </RadioGroup>
 
         <Box display="flex" justifyContent="flex-end" gap={2}>
           <Button
