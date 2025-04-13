@@ -37,7 +37,7 @@ export const apiLoginUserAsync = async (email, password) => {
 
     localStorage.setItem('auth', true);
   } else {
-    try{const navigate = useNavigate();
+    try{
       const loginPayload = {
       Email: email,
       Password: password,
