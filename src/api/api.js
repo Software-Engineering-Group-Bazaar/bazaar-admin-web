@@ -497,6 +497,7 @@ export const apiGetAllStoresAsync = async () => {
   } else {
     apiSetAuthHeader();
     const stores = await axios.get(`${baseApiUrl}/api/Admin/stores`);
+    console.log(stores);
     return stores.data;
   }
 };
@@ -562,7 +563,7 @@ export const apiAddStoreCategoryAsync = async (name) => {
         `${baseApiUrl}/api/Admin/store/categories/create`,
         { name }
       );
-      return { success: true, data: res.data };
+      return { success: res.status < 400, data: res.data };
     } catch (err) {
       console.error('Error creating store category:', err);
       return { success: false };

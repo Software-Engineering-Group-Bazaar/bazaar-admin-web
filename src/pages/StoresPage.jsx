@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { Box } from "@mui/material";
-import StoresHeader from "@sections/StoresHeader";
-import StoreCard from "@components/StoreCard";
-import UserManagementPagination from "@components/UserManagementPagination";
-import { apiGetAllStoresAsync, apiAddStoreAsync } from "@api/api";
-import AddStoreModal from "@components/AddStoreModal";
+import React, { useState, useEffect } from 'react';
+import { Box } from '@mui/material';
+import StoresHeader from '@sections/StoresHeader';
+import StoreCard from '@components/StoreCard';
+import UserManagementPagination from '@components/UserManagementPagination';
+import { apiGetAllStoresAsync, apiAddStoreAsync } from '@api/api';
+import AddStoreModal from '@components/AddStoreModal';
 
 const StoresPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [openModal, setOpenModal] = useState(false);
   const storesPerPage = 16;
 
@@ -16,25 +16,26 @@ const StoresPage = () => {
 
   useEffect(() => {
     const fetchStores = async () => {
-    const data = await apiGetAllStoresAsync();
-    console.log(data)
-    const mapped = data.map((store) => ({
-      ...store,
-      categoryId: store.categoryId || store.category?.id || 0, 
-    }));
-    setAllStores(mapped);
-};
+      const data = await apiGetAllStoresAsync();
+      console.log(data);
+      const mapped = data.map((store) => ({
+        ...store,
+        categoryId: store.categoryId || store.category?.id || 0,
+      }));
+      setAllStores(mapped);
+    };
 
     fetchStores();
   }, []);
 
   const handleAddStore = async (newStoreData) => {
+    console.log('data', newStoreData);
     const response = await apiAddStoreAsync(newStoreData);
-    console.log(response)
-    if (response?.success) {
+    console.log(response);
+    if (response.status < 400) {
       const data = await apiGetAllStoresAsync();
       setAllStores(data);
-   }
+    }
   };
 
   const filteredStores = allStores.filter(
@@ -52,12 +53,12 @@ const StoresPage = () => {
   );
 
   return (
-    <Box sx={{ width: "100%", backgroundColor: "#fefefe", minHeight: "100vh" }}>
+    <Box sx={{ width: '100%', backgroundColor: '#fefefe', minHeight: '100vh' }}>
       <Box
         sx={{
-          width: "100%",
-          maxWidth: "1400px",
-          marginLeft: "260px",
+          width: '100%',
+          maxWidth: '1400px',
+          marginLeft: '260px',
           pt: 2,
           px: 2,
         }}
@@ -71,8 +72,8 @@ const StoresPage = () => {
         {/* Grid layout */}
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             gap: 1.5,
             mt: 3,
           }}

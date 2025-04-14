@@ -73,6 +73,7 @@ const AddProductModal = ({ open, onClose, storeID }) => {
 
   const handlePhotosChange = (files) => {
     console.log(files);
+    console.log(formData.photos);
     setFormData((prev) => ({ ...prev, photos: files }));
   };
 
