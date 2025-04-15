@@ -1,0 +1,117 @@
+const stores = [
+    {
+      id: 1,
+      name: 'Nova Market',
+      description: 'Brza i kvalitetna dostava proizvoda.',
+      address: 'Sarajevo',
+    },
+    {
+      id: 2,
+      name: 'Tech World',
+      description: 'Elektronika i gadgeti.',
+      address: 'Mostar',
+    },
+    {
+      id: 3,
+      name: 'BioShop',
+      description: 'Prirodna kozmetika i hrana.',
+      address: 'Banja Luka',
+    },
+    {
+      id: 4,
+      name: 'Fashion Spot',
+      description: 'Savremena garderoba.',
+      address: 'Tuzla',
+    },
+    {
+      id: 5,
+      name: 'Office Plus',
+      description: 'Kancelarijski materijal i oprema.',
+      address: 'Sarajevo',
+    },
+    {
+      id: 6,
+      name: 'Auto Centar',
+      description: 'Dijelovi i oprema za automobile.',
+      address: 'Zenica',
+    },
+    {
+      id: 7,
+      name: 'Pet Planet',
+      description: 'Hrana i oprema za kućne ljubimce.',
+      address: 'Mostar',
+    },
+    {
+      id: 8,
+      name: 'Green Garden',
+      description: 'Sve za vašu baštu.',
+      address: 'Sarajevo',
+    },
+    {
+      id: 9,
+      name: 'Kids Toys',
+      description: 'Igračke i oprema za djecu.',
+      address: 'Sarajevo',
+    },
+    {
+      id: 10,
+      name: 'Mega Market',
+      description: 'Vaš svakodnevni supermarket.',
+      address: 'Banja Luka',
+    },
+    {
+      id: 11,
+      name: 'Green Garden',
+      description: 'Sve za vašu baštu.',
+      address: 'Sarajevo',
+    },
+    {
+      id: 12,
+      name: 'Kids Toys',
+      description: 'Igračke i oprema za djecu.',
+      address: 'Mostar',
+    },
+    {
+      id: 13,
+      name: 'Mega Market',
+      description: 'Vaš svakodnevni supermarket.',
+      address: 'Zenica',
+    },
+    {
+      id: 14,
+      name: 'Green Garden',
+      description: 'Sve za vašu baštu.',
+      address: 'Sarajevo',
+    },
+    {
+      id: 15,
+      name: 'Kids Toys',
+      description: 'Igračke i oprema za djecu.',
+      address: 'Tuzla',
+    },
+    {
+      id: 16,
+      name: 'Mega Market',
+      description: 'Vaš svakodnevni supermarket.',
+      address: 'Banja Luka',
+    },
+    {
+      id: 17,
+      name: 'Green Garden',
+      description: 'Sve za vašu baštu.',
+      address: 'Sarajevo',
+    },
+    {
+      id: 18,
+      name: 'Kids Toys',
+      description: 'Igračke i oprema za djecu.',
+      address: 'Mostar',
+    },
+    {
+      id: 19,
+      name: 'Mega Market',
+      description: 'Vaš svakodnevni supermarket.',
+      address: 'Tuzla',
+    },
+  ];
+  export default stores;
