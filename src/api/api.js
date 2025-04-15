@@ -5,6 +5,7 @@ import LoginDTO from './model/LoginDTO';
 import users from '../data/users';
 import stores from '../data/stores';
 import categories from '../data/categories';
+import products from '../data/products';
 import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
 
