@@ -270,7 +270,37 @@ export const apiDeleteUserAsync = async (userId) => {
 // }
 
 export const apiCreateProductAsync = async (productData) => {
-  if (API_ENV_DEV !== API_FLAG) {
+  if(API_ENV_DEV == API_FLAG){
+    try {
+      const formData = new FormData();
+      formData.append('RetailPrice', String(productData.price ?? 0));
+      formData.append(
+        'ProductCategoryId',
+        String(productData.productcategoryid)
+      );
+      formData.append('WholesalePrice', String(productData.price ?? 0));
+      formData.append('Name', productData.name);
+      formData.append('Weight', String(productData.weight ?? 0));
+      formData.append('Volume', String(productData.volume ?? 0));
+      formData.append('WeightUnit', productData.weightunit ?? ''); 
+      formData.append('StoreId', String(productData.storeId)); 
+      formData.append('VolumeUnit', productData.volumeunit ?? ''); 
+      const imageFiles = productData.photos;
+      if (imageFiles && imageFiles.length > 0) {
+        imageFiles.forEach((file) => {
+          if (file instanceof File) {
+            formData.append('Files', file, file.name);
+          }
+        });
+      }
+      products.push(formData);
+      return { success: true };
+    } catch (error) {
+      console.error('Product creation failed:', error);
+      return { success: false };
+    }
+  }
+  else {
     try {
       // Create a FormData object
       const formData = new FormData();
