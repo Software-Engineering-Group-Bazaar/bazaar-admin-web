@@ -4,6 +4,7 @@ import TestAuthApi from './api/TestAuthApi';
 import LoginDTO from './model/LoginDTO';
 import users from '../data/users';
 import stores from '../data/stores';
+import categories from '../data/categories';
 import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
 
@@ -133,13 +134,16 @@ export const apiCreateUserAsync = async (newUserPayload) => {
     try {
       // dodaj novog korisnika u niz "users"
       const newUser = {
-        ...newUserPayload,
+        email: newUserPayload.email,
+        userName: newUserPayload.userName,
+        password: newUserPayload.password,
         id: users.length + 1,
         isApproved: false,
+        roles:[newUserPayload.role]
       };
       //users.push(newUser);
       pendingUsers.push(newUser);
-      return newUser;
+      return {data: newUser};
     } catch (error) {
       console.error('Greška pri kreiranju korisnika:', error);
       throw error;
@@ -316,7 +320,7 @@ export const apiCreateProductAsync = async (productData) => {
 
 export const apiGetProductCategoriesAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
-    return mockCategories.filter((cat) => cat.type === 'product');
+    return categories.filter((cat) => cat.type === 'product');
   } else {
     apiSetAuthHeader();
     const res = await axios.get(`${baseApiUrl}/api/Admin/categories`);
@@ -326,7 +330,7 @@ export const apiGetProductCategoriesAsync = async () => {
 
 export const apiGetStoreCategoriesAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
-    return mockCategories.filter((cat) => cat.type === 'store');
+    return categories.filter((cat) => cat.type === 'store');
   } else {
     apiSetAuthHeader();
     const res = await axios.get(`${baseApiUrl}/api/Admin/store/categories`);
@@ -347,7 +351,7 @@ export const apiGetStoreByIdAsync = async (storeId) => {
       products: [],
     };
 
-    return new Promise((resolve) => setTimeout(() => resolve(mockStore), 500));
+    return stores.filter((trgovina) => trgovina.id === storeId);
   } else {
     apiSetAuthHeader();
     const store = await axios.get(`${baseApiUrl}/api/Admin/stores/${storeId}`);
@@ -357,6 +361,10 @@ export const apiGetStoreByIdAsync = async (storeId) => {
 
 export const apiUpdateStoreAsync = async (store) => {
   if (API_ENV_DEV === API_FLAG) {
+    const index = stores.indexOf((st) => store.name==st.name)
+    stores[index]={
+      ...store
+    }
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, data: store }), 500)
     );
@@ -377,7 +385,8 @@ export const apiUpdateStoreAsync = async (store) => {
 export const apiGetAllStoresAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
     //izbrisati poslije
-    return new Promise((resolve) => setTimeout(() => resolve(stores), 500));
+    return stores
+    //return new Promise((resolve) => setTimeout(() => resolve({stores}), 500));
   } else {
     apiSetAuthHeader();
     const stores = await axios.get(`${baseApiUrl}/api/Admin/stores`);
@@ -389,6 +398,12 @@ export const apiGetAllStoresAsync = async () => {
 // DELETE product category
 export const apiDeleteProductCategoryAsync = async (categoryId) => {
   if (API_ENV_DEV === API_FLAG) {
+    const rez = categories.filter((cat) => cat.id == categoryId);
+    const index = categories.indexOf(rez);
+    if(index>-1){
+      categories.splice(index,1);
+      console.log("deleted");
+    }
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, deletedId: categoryId }), 500)
     );
@@ -401,6 +416,12 @@ export const apiDeleteProductCategoryAsync = async (categoryId) => {
 // DELETE store category
 export const apiDeleteStoreCategoryAsync = async (categoryId) => {
   if (API_ENV_DEV === API_FLAG) {
+    const rez = categories.filter((cat) => cat.id == categoryId);
+    const index = categories.indexOf(rez);
+    if(index>-1){
+      categories.splice(index,1);
+      console.log("deleted");
+    }
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, deletedId: categoryId }), 500)
     );
@@ -412,12 +433,24 @@ export const apiDeleteStoreCategoryAsync = async (categoryId) => {
 
 export const apiAddProductCategoryAsync = async (name) => {
   if (API_ENV_DEV === API_FLAG) {
-    return new Promise((resolve) =>
-      setTimeout(
-        () => resolve({ success: true, data: { id: Date.now(), name } }),
-        500
-      )
-    );
+    try{
+    const newCategory = {
+      id: categories.length+1,
+      name: name,
+      type: "product",
+    }
+    categories.push(newCategory);
+    return {data: newCategory};
+  } catch(error){
+    console.log("Error pri kreiranju kategorije proizvoda!");
+    throw error;
+  }
+    //return new Promise((resolve) =>
+      //setTimeout(
+        //() => resolve({ success: true, data: { id: Date.now(), name } }),
+        //500
+      //)
+    //);
   } else {
     apiSetAuthHeader();
     try {
@@ -434,12 +467,24 @@ export const apiAddProductCategoryAsync = async (name) => {
 
 export const apiAddStoreCategoryAsync = async (name) => {
   if (API_ENV_DEV === API_FLAG) {
-    return new Promise((resolve) =>
-      setTimeout(
-        () => resolve({ success: true, data: { id: Date.now(), name } }),
-        500
-      )
-    );
+    try{
+      const newCategory = {
+        id: categories.length+1,
+        name: name,
+        type: "store",
+      }
+      categories.push(newCategory);
+      return newCategory;
+    } catch(error){
+      console.log("Error pri kreiranju kategorije trgovine!");
+      throw error;
+    }
+   // return new Promise((resolve) =>
+   //   setTimeout(
+   //     () => resolve({ success: true, data: { id: Date.now(), name } }),
+   //     500
+   //   )
+    //);
   } else {
     apiSetAuthHeader();
     try {
@@ -456,6 +501,13 @@ export const apiAddStoreCategoryAsync = async (name) => {
 };
 
 export const apiUpdateProductCategoryAsync = async (updatedCategory) => {
+  if (API_ENV_DEV === API_FLAG){
+    const index = categories.findIndex((cat) => cat.id === updatedCategory);
+    categories[index]={
+      ...updatedCategory
+    };
+    //???
+  }
   apiSetAuthHeader();
   try {
     const response = await axios.put(
@@ -470,6 +522,13 @@ export const apiUpdateProductCategoryAsync = async (updatedCategory) => {
 };
 
 export const apiUpdateStoreCategoryAsync = async (updatedCategory) => {
+  if (API_ENV_DEV === API_FLAG){
+    const index = categories.findIndex((cat) => cat.name === updatedCategory.name);
+    categories[index]={
+      ...updatedCategory
+    };
+    return { success: true, data: response.data };
+  } else {
   apiSetAuthHeader();
   try {
     const response = await axios.put(
@@ -481,10 +540,12 @@ export const apiUpdateStoreCategoryAsync = async (updatedCategory) => {
     console.error('Error updating store category:', error);
     return { success: false, message: error.message };
   }
+}
 };
 
 export const apiAddStoreAsync = async (newStore) => {
   if (API_ENV_DEV === API_FLAG) {
+    stores.push(newStore);
     return new Promise((resolve) =>
       setTimeout(
         () => resolve({ success: true, data: { ...newStore, id: Date.now() } }),
@@ -514,6 +575,14 @@ export const apiAddStoreAsync = async (newStore) => {
 
 export const apiDeleteStoreAsync = async (storeId) => {
   if (API_ENV_DEV === API_FLAG) {
+    const rez = stores.find((store) => store.id == storeId);
+    const index = stores.indexOf(rez);
+    //console.log(index);
+    if(index>-1){
+      stores.splice(index,1);
+      console.log(storeId)
+      console.log(rez.id)
+    }
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, deletedId: storeId }), 500)
     );
@@ -534,6 +603,10 @@ export const apiDeleteStoreAsync = async (storeId) => {
 // Mock ažuriranje korisnika
 export const apiUpdateUserAsync = async (updatedUser) => {
   if (API_ENV_DEV == API_FLAG) {
+    const index = users.findIndex((us) => us.id === updatedUser.id);
+    users[index]={
+      ...updatedUser
+    };
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, updatedUser }), 500)
     );
@@ -543,7 +616,7 @@ export const apiUpdateUserAsync = async (updatedUser) => {
       userName: updatedUser.email,
       id: updatedUser.id,
       role: updatedUser.roles[0],
-      isActive: updatedUser.isActive,
+      lastActive: updatedUser.isActive,
       isApproved: updatedUser.isApproved,
       email: updatedUser.email,
     });
@@ -554,6 +627,8 @@ export const apiUpdateUserAsync = async (updatedUser) => {
 export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
   if (API_ENV_DEV == API_FLAG) {
     const newStatus = currentStatus === 'Online' ? 'false' : 'true';
+    const index = users.find((us) => us.id==userId);
+    users[index].availability = newStatus; 
     return new Promise((resolve) =>
       setTimeout(
         () => resolve({ success: true, availability: newStatus }),
