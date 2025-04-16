@@ -5,6 +5,7 @@ import LoginDTO from './model/LoginDTO';
 import users from '../data/users';
 import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
@@ -683,4 +684,65 @@ export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
       activationStatus: currentStatus,
     });
   }
+};
+
+/**
+ * Mock: Bulk product creation from Excel/CSV data.
+ * @param {Array} products - List of product objects.
+ * @returns {Promise<{status: number, data: any}>}
+ */
+export const apiCreateProductsBulkAsync = async (products) => {
+  console.log('📤 Mock API: Bulk product creation', products);
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ status: 200, data: { success: true } }), 1000)
+  );
+};
+
+
+
+/**
+ * Simulira export proizvoda u Excel formatu.
+ * @returns {Promise<{status: number, data: Blob}>} Axios-like odgovor sa blobom Excel fajla
+ */
+export const apiExportProductsToExcelAsync = async () => {
+  const mockProducts = [
+    { name: 'Product 1', price: 100, description: 'Description 1' },
+    { name: 'Product 2', price: 200, description: 'Description 2' },
+    { name: 'Product 3', price: 300, description: 'Description 3' },
+  ];
+
+  // Kreiramo radnu svesku i dodajemo sheet sa podacima
+  const ws = XLSX.utils.json_to_sheet(mockProducts);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Products');
+
+  // Pretvaramo radnu svesku u binarne podatke (Buffer)
+  const excelData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+  // Vraćamo binarne podatke kao Blob
+  const blob = new Blob([excelData], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  return {
+    status: 200,
+    data: blob,
+  };
+};
+
+
+
+/**
+ * Simulira export proizvoda u CSV formatu.
+ * @returns {Promise<{status: number, data: Blob}>} Axios-like odgovor sa blobom CSV fajla
+ */
+export const apiExportProductsToCSVAsync = async () => {
+  const csvContent =
+    'Product ID,Product Name,Price\n1,Product A,10.99\n2,Product B,19.99';
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+
+  return {
+    status: 200,
+    data: blob,
+  };
 };

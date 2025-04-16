@@ -8,11 +8,16 @@ import {
   MenuItem,
   useTheme,
 } from '@mui/material';
-import ImageUploader from '@components/ImageUploader';
-import SuccessMessage from '@components/SuccessMessage';
+import ImageUploader from './ImageUploader';
+import SuccessMessage from './SuccessMessage';
 import { HiOutlineCube } from 'react-icons/hi';
-import style from './NewProductModalStyle';
-import { apiCreateProductAsync, apiGetProductCategoriesAsync } from '@api/api';
+import style from './AddProductModalStyle';
+import {
+  apiCreateProductAsync,
+  apiGetProductCategoriesAsync,
+  apiCreateProductsBulkAsync,
+} from './api/api';
+import * as XLSX from 'xlsx';
 
 const weightUnits = ['kg', 'g', 'lbs'];
 const volumeUnits = ['L', 'ml', 'oz'];
@@ -37,6 +42,8 @@ const AddProductModal = ({ open, onClose, storeID }) => {
     isSuccess: true,
     message: '',
   });
+
+  const [parsedProducts, setParsedProducts] = useState([]);
 
   useEffect(() => {
     if (open) {
@@ -129,6 +136,60 @@ const AddProductModal = ({ open, onClose, storeID }) => {
     }
   };
 
+  /**
+   * Handle upload and parsing of CSV/Excel file.
+   * Extracts rows and maps them into product objects.
+   * @param {Event} e - file input change event
+   */
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const binaryStr = evt.target.result;
+      const workbook = XLSX.read(binaryStr, { type: 'binary' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+      // Ovdje pretpostavljamo da Excel/CSV ima kolone: name, price, weight, weightunit, volume, volumeunit, productcategoryname
+      setParsedProducts(jsonData);
+      console.log("TEST::::::\n\n",jsonData);
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  /**
+   * Salje preuzete proizvode iz excel/csv bekendu da se pohrane u bazu
+   */
+  const handleBulkCreate = async () => {
+    if (parsedProducts.length === 0) return;
+
+    try {
+      const response = await apiCreateProductsBulkAsync(parsedProducts);
+      console.log("TEST 2::::::\n\n",parsedProducts);
+
+      if (response?.status === 200) {
+        setSuccessModal({
+          open: true,
+          isSuccess: true,
+          message: 'Products have been created from file successfully.',
+        });
+      } else {
+        throw new Error('Bulk creation failed.');
+      }
+    } catch (err) {
+      console.error('Bulk create error:', err);
+      setSuccessModal({
+        open: true,
+        isSuccess: false,
+        message: 'Failed to create products from file.',
+      });
+    }
+  };
+
   return (
     <>
       <Modal open={open} onClose={onClose}>
@@ -163,6 +224,53 @@ const AddProductModal = ({ open, onClose, storeID }) => {
 
           {/* Image Upload */}
           <ImageUploader onFilesSelected={handlePhotosChange} />
+
+          {/* Excel/CSV Upload */}
+          <Box mt={3}>
+            <Typography fontWeight={600} mb={3} textAlign={'center'}>
+              Import Products from Excel/CSV
+            </Typography>
+            <input
+              accept='.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel'
+              type='file'
+              id='excel-upload'
+              style={{ display: 'none' }}
+              onChange={handleFileUpload}
+            />
+            <label htmlFor='excel-upload'>
+              <Button
+                variant='outlined'
+                component='span'
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  color: '#4a0404',
+                  borderColor: '#4a0404',
+                  '&:hover': {
+                    color: '#ffffff',
+                    backgroundColor: '#3b1010',
+                    borderColor: '#3a0202',
+                  },
+                }}
+              >
+                Upload Excel/CSV
+              </Button>
+            </label>
+            {parsedProducts.length > 0 && (
+              <Button
+                variant='outlined'
+                color='success'
+                sx={{ mt: 1, ml: 15, mb: 1 }}
+                onClick={handleBulkCreate}
+              >
+                Upload {parsedProducts.length} Product
+                {parsedProducts.length > 1 ? 's' : ''}
+              </Button>
+            )}
+          </Box>
 
           {/* Form */}
           <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>

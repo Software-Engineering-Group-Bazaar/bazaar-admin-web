@@ -1,33 +1,33 @@
-import React from "react";
+import React from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-} from "react-router-dom";
-import LoginPage from "@pages/LoginPage";
-import UsersManagement from "@pages/UsersManagement";
-import PendingUsersPage from "@pages/PendingUsersPage";
-import { ThemeProvider } from "@mui/material/styles";
-import StoresPage from "@pages/StoresPage";
-import CssBaseline from "@mui/material/CssBaseline";
-import theme from "@styles/theme";
-import Sidebar from "@components/Sidebar";
-import CategoriesPage from "@pages/CategoriesPage"
-
+} from 'react-router-dom';
+import LoginPage from '@pages/LoginPage';
+import UsersManagement from '@pages/UsersManagement';
+import PendingUsersPage from '@pages/PendingUsersPage';
+import { ThemeProvider } from '@mui/material/styles';
+import StoresPage from '@pages/StoresPage';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from '@styles/theme';
+import Sidebar from '@components/Sidebar';
+import CategoriesPage from '@pages/CategoriesPage';
+import AddProductModal from '../components/TestPage.jsx';
 const isAuthenticated = () => {
-  console.log(localStorage.getItem("auth"));
-  return localStorage.getItem("auth");
+  console.log(localStorage.getItem('auth'));
+  return localStorage.getItem('auth');
 };
 
 const ProtectedRoute = ({ children }) => {
-  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+  return isAuthenticated() ? children : <Navigate to='/login' replace />;
 };
 
 const Layout = ({ children }) => (
-  <div style={{ display: "flex" }}>
+  <div style={{ display: 'flex' }}>
     <Sidebar />
-    <div style={{ flex: 1, padding: "2rem" }}>{children}</div>
+    <div style={{ flex: 1, padding: '2rem' }}>{children}</div>
   </div>
 );
 
@@ -36,7 +36,7 @@ const AppRoutes = () => {
     <Router>
       <Routes>
         <Route
-          path="/login"
+          path='/login'
           element={
             <ThemeProvider theme={theme}>
               <CssBaseline />
@@ -45,7 +45,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/users"
+          path='/users'
           element={
             <ProtectedRoute>
               <Layout>
@@ -58,7 +58,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/requests"
+          path='/requests'
           element={
             <ProtectedRoute>
               <Layout>
@@ -71,7 +71,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/stores"
+          path='/stores'
           element={
             <ProtectedRoute>
               <Layout>
@@ -84,22 +84,22 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/categories"
+          path='/categories'
           element={
             <ProtectedRoute>
               <Layout>
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <CategoriesPage />
-              </ThemeProvider>
-             </Layout>
-          </ProtectedRoute>
-         }
-       />
+                </ThemeProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
         <Route
-          path="/"
+          path='/'
           element={
-            <Navigate to={isAuthenticated() ? "/users" : "/login"} replace />
+            <Navigate to={isAuthenticated() ? '/users' : '/login'} replace />
           }
         />
       </Routes>
