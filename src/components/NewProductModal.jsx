@@ -11,7 +11,7 @@ import {
 import ImageUploader from './ImageUploader';
 import SuccessMessage from './SuccessMessage';
 import { HiOutlineCube } from 'react-icons/hi';
-import style from './AddProductModalStyle';
+import style from './NewProductModalStyle';
 import {
   apiCreateProductAsync,
   apiGetProductCategoriesAsync,
