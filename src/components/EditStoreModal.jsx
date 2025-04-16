@@ -17,7 +17,7 @@ import {
   apiUpdateStoreAsync,
   apiExportProductsToCSVAsync,
   apiExportProductsToExcelAsync,
-} from './api/api';
+} from '../api/api';
 
 const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
   const [storeName, setStoreName] = useState('');

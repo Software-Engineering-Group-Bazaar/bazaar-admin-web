@@ -16,7 +16,7 @@ import {
   apiCreateProductAsync,
   apiGetProductCategoriesAsync,
   apiCreateProductsBulkAsync,
-} from './api/api';
+} from '../api/api';
 import * as XLSX from 'xlsx';
 
 const weightUnits = ['kg', 'g', 'lbs'];
@@ -155,7 +155,7 @@ const AddProductModal = ({ open, onClose, storeID }) => {
 
       // Ovdje pretpostavljamo da Excel/CSV ima kolone: name, price, weight, weightunit, volume, volumeunit, productcategoryname
       setParsedProducts(jsonData);
-      console.log("TEST::::::\n\n",jsonData);
+      console.log('TEST::::::\n\n', jsonData);
     };
 
     reader.readAsBinaryString(file);
@@ -169,7 +169,7 @@ const AddProductModal = ({ open, onClose, storeID }) => {
 
     try {
       const response = await apiCreateProductsBulkAsync(parsedProducts);
-      console.log("TEST 2::::::\n\n",parsedProducts);
+      console.log('TEST 2::::::\n\n', parsedProducts);
 
       if (response?.status === 200) {
         setSuccessModal({
