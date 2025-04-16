@@ -14,7 +14,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@styles/theme';
 import Sidebar from '@components/Sidebar';
 import CategoriesPage from '@pages/CategoriesPage';
-import AddProductModal from '../components/TestPage.jsx';
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
   return localStorage.getItem('auth');
