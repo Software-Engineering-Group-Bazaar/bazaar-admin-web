@@ -26,6 +26,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.4.1",
     "web-admin": "file:",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

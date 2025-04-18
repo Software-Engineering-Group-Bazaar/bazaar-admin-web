@@ -8,6 +8,7 @@ import categories from '../data/categories';
 import products from '../data/products';
 import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
@@ -672,5 +673,94 @@ export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
       userId: userId,
       activationStatus: currentStatus,
     });
+  }
+};
+
+/**
+ * Simulira export proizvoda u Excel formatu.
+ * @returns {Promise<{status: number, data: Blob}>} Axios-like odgovor sa blobom Excel fajla
+ */
+export const apiExportProductsToExcelAsync = async (storeId) => {
+  if (API_ENV_DEV == API_FLAG) {
+    const mockProducts = [
+      { name: 'Product 1', price: 100, description: 'Description 1' },
+      { name: 'Product 2', price: 200, description: 'Description 2' },
+      { name: 'Product 3', price: 300, description: 'Description 3' },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(mockProducts);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Products');
+
+    const excelData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+    const blob = new Blob([excelData], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    return {
+      status: 200,
+      data: blob,
+    };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.get(`/api/Admin/store/${storeId}/products`);
+      const products = response.data;
+
+      // Pretvori podatke u Excel format
+      const ws = XLSX.utils.json_to_sheet(products);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Products');
+      const excelData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+      const blob = new Blob([excelData], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      return { status: 200, data: blob };
+    } catch (error) {
+      return {
+        status: error.response?.status || 500,
+        data: error.response?.data || error,
+      };
+    }
+  }
+};
+
+/**
+ * Simulira export proizvoda u CSV formatu.
+ * @returns {Promise<{status: number, data: Blob}>} Axios-like odgovor sa blobom CSV fajla
+ */
+export const apiExportProductsToCSVAsync = async (storeId) => {
+  if (API_ENV_DEV == API_FLAG) {
+    const csvContent =
+      'Product ID,Product Name,Price\n1,Product A,10.99\n2,Product B,19.99';
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+
+    return {
+      status: 200,
+      data: blob,
+    };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.get(`/api/Admin/store/${storeId}/products`);
+      const products = response.data;
+
+      // Pretvaranje objekata u CSV string
+      const header = Object.keys(products[0] || {}).join(',');
+      const rows = products.map((product) => Object.values(product).join(','));
+      const csvContent = [header, ...rows].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+
+      return { status: 200, data: blob };
+    } catch (error) {
+      return {
+        status: error.response?.status || 500,
+        data: error.response?.data || error,
+      };
+    }
   }
 };
