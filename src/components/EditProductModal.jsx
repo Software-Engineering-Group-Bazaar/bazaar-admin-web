@@ -6,9 +6,12 @@ import {
   Button,
   Typography,
   MenuItem,
+  IconButton,
 } from '@mui/material';
 import { HiOutlineCube } from 'react-icons/hi';
 import { apiUpdateProductAsync, apiGetProductCategoriesAsync } from '@api/api';
+import ImageUploader from '@components/ImageUploader';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const weightUnits = ['kg', 'g', 'lbs'];
 const volumeUnits = ['L', 'ml', 'oz'];
@@ -24,7 +27,9 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
     productcategoryid: '',
     isActive: true,
   });
+
   const [productCategories, setProductCategories] = useState([]);
+  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
     if (open) {
@@ -40,6 +45,7 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
           productcategoryid: product.productcategoryid || '',
           isActive: product.isActive ?? true,
         });
+        setPhotos(product.photos || []);
       }
     }
   }, [open, product]);
@@ -52,11 +58,20 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
     }));
   };
 
+  const handlePhotosChange = (files) => {
+    setPhotos((prev) => [...prev, ...files]);
+  };
+
+  const handleDeletePhoto = (indexToRemove) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== indexToRemove));
+  };
+
   const handleSubmit = async () => {
     try {
       const response = await apiUpdateProductAsync({
         ...product,
         ...formData,
+        photos: photos,
       });
       if (response.status === 200) {
         onSave(response.data);
@@ -65,6 +80,7 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
       console.error('Error updating product:', error);
     }
   };
+  
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -74,11 +90,13 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 500,
+          width: 550,
           bgcolor: 'background.paper',
           boxShadow: 24,
           p: 4,
           borderRadius: 2,
+          maxHeight: '90vh',
+          overflowY: 'auto',
         }}
       >
         <HiOutlineCube
@@ -94,7 +112,77 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
           Edit Product
         </Typography>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {photos && photos.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography fontWeight={600} mb={1}>
+              Current Images
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1.5,
+                border: '1px dashed #ccc',
+                p: 1,
+                borderRadius: 2,
+              }}
+            >
+              {photos.map((file, index) => {
+                const src =
+                  typeof file === 'string'
+                    ? file
+                    : file.path || URL.createObjectURL(file);
+                return (
+                  <Box
+                    key={index}
+                    sx={{
+                      position: 'relative',
+                      width: 80,
+                      height: 80,
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      border: '1px solid #e0e0e0',
+                    }}
+                  >
+                    <img
+                      src={src}
+                      alt={`Preview ${index}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDeletePhoto(index)}
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        backgroundColor: '#ffffffcc',
+                        borderRadius: '50%',
+                        padding: '2px',
+                        zIndex: 2,
+                        boxShadow: '0 0 3px rgba(0,0,0,0.3)',
+                        '&:hover': { backgroundColor: '#ffebee' },
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" sx={{ color: '#b71c1c' }} />
+                    </IconButton>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
+        )}
+        <Typography fontWeight={600} mt={2} mb={1}>
+          Add More Images
+        </Typography>
+        <ImageUploader onFilesSelected={handlePhotosChange} />
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
           <TextField
             label="Product Name"
             name="name"
@@ -203,4 +291,4 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
   );
 };
 
-export default EditProductModal; 
+export default EditProductModal;
