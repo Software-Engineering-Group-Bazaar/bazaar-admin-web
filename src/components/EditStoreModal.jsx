@@ -68,9 +68,9 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
     setLoading(false);
   };
 
-  const handleExportExcel = async () => {
+  const handleExportExcel = async (sId) => {
     try {
-      const response = await apiExportProductsToExcelAsync();
+      const response = await apiExportProductsToExcelAsync(sId);
 
       // Provjera da li server vraća ispravan tip podataka
       const blob = response.data;
@@ -78,7 +78,7 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'products.xlsx'); //naziv
+      link.setAttribute('download', 'Proizvodi.xlsx'); //naziv
 
       document.body.appendChild(link);
       link.click();
@@ -91,13 +91,13 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
     }
   };
 
-  const handleExportCSV = async () => {
+  const handleExportCSV = async (sId) => {
     try {
-      const response = await apiExportProductsToCSVAsync();
+      const response = await apiExportProductsToCSVAsync(sId);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'products.csv'); //naziv
+      link.setAttribute('download', 'Proizvodi.csv'); //naziv
       document.body.appendChild(link);
       link.click();
     } catch (error) {
@@ -228,7 +228,7 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
               <Button
                 variant='contained'
                 color='success'
-                onClick={handleExportExcel}
+                onClick={() => handleExportExcel(store.id)}
                 sx={{
                   backgroundColor: '#28A745',
                   '&:hover': { backgroundColor: '#218838' },
@@ -242,7 +242,7 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
               <Button
                 variant='contained'
                 color='info'
-                onClick={handleExportCSV}
+                onClick={() => handleExportCSV(store.id)}
                 sx={{
                   backgroundColor: '#a1b83e',
                   '&:hover': { backgroundColor: '#49541b' },

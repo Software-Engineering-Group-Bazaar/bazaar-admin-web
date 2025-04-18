@@ -687,62 +687,90 @@ export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
 };
 
 /**
- * Mock: Bulk product creation from Excel/CSV data.
- * @param {Array} products - List of product objects.
- * @returns {Promise<{status: number, data: any}>}
- */
-export const apiCreateProductsBulkAsync = async (products) => {
-  console.log('📤 Mock API: Bulk product creation', products);
-  return new Promise((resolve) =>
-    setTimeout(() => resolve({ status: 200, data: { success: true } }), 1000)
-  );
-};
-
-
-
-/**
  * Simulira export proizvoda u Excel formatu.
  * @returns {Promise<{status: number, data: Blob}>} Axios-like odgovor sa blobom Excel fajla
  */
-export const apiExportProductsToExcelAsync = async () => {
-  const mockProducts = [
-    { name: 'Product 1', price: 100, description: 'Description 1' },
-    { name: 'Product 2', price: 200, description: 'Description 2' },
-    { name: 'Product 3', price: 300, description: 'Description 3' },
-  ];
+export const apiExportProductsToExcelAsync = async (storeId) => {
+  if (API_ENV_DEV == API_FLAG) {
+    const mockProducts = [
+      { name: 'Product 1', price: 100, description: 'Description 1' },
+      { name: 'Product 2', price: 200, description: 'Description 2' },
+      { name: 'Product 3', price: 300, description: 'Description 3' },
+    ];
 
-  // Kreiramo radnu svesku i dodajemo sheet sa podacima
-  const ws = XLSX.utils.json_to_sheet(mockProducts);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Products');
+    const ws = XLSX.utils.json_to_sheet(mockProducts);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Products');
 
-  // Pretvaramo radnu svesku u binarne podatke (Buffer)
-  const excelData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const excelData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
 
-  // Vraćamo binarne podatke kao Blob
-  const blob = new Blob([excelData], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
+    const blob = new Blob([excelData], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
 
-  return {
-    status: 200,
-    data: blob,
-  };
+    return {
+      status: 200,
+      data: blob,
+    };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.get(`/api/Admin/store/${storeId}/products`);
+      const products = response.data;
+
+      // Pretvori podatke u Excel format
+      const ws = XLSX.utils.json_to_sheet(products);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Products');
+      const excelData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+      const blob = new Blob([excelData], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      return { status: 200, data: blob };
+    } catch (error) {
+      return {
+        status: error.response?.status || 500,
+        data: error.response?.data || error,
+      };
+    }
+  }
 };
-
-
 
 /**
  * Simulira export proizvoda u CSV formatu.
  * @returns {Promise<{status: number, data: Blob}>} Axios-like odgovor sa blobom CSV fajla
  */
-export const apiExportProductsToCSVAsync = async () => {
-  const csvContent =
-    'Product ID,Product Name,Price\n1,Product A,10.99\n2,Product B,19.99';
-  const blob = new Blob([csvContent], { type: 'text/csv' });
+export const apiExportProductsToCSVAsync = async (storeId) => {
+  if (API_ENV_DEV == API_FLAG) {
+    const csvContent =
+      'Product ID,Product Name,Price\n1,Product A,10.99\n2,Product B,19.99';
+    const blob = new Blob([csvContent], { type: 'text/csv' });
 
-  return {
-    status: 200,
-    data: blob,
-  };
+    return {
+      status: 200,
+      data: blob,
+    };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.get(`/api/Admin/store/${storeId}/products`);
+      const products = response.data;
+
+      // Pretvaranje objekata u CSV string
+      const header = Object.keys(products[0] || {}).join(',');
+      const rows = products.map((product) => Object.values(product).join(','));
+      const csvContent = [header, ...rows].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+
+      return { status: 200, data: blob };
+    } catch (error) {
+      return {
+        status: error.response?.status || 500,
+        data: error.response?.data || error,
+      };
+    }
+  }
 };

@@ -15,7 +15,6 @@ import style from './NewProductModalStyle';
 import {
   apiCreateProductAsync,
   apiGetProductCategoriesAsync,
-  apiCreateProductsBulkAsync,
 } from '../api/api';
 import * as XLSX from 'xlsx';
 
@@ -167,25 +166,39 @@ const AddProductModal = ({ open, onClose, storeID }) => {
   const handleBulkCreate = async () => {
     if (parsedProducts.length === 0) return;
 
-    try {
-      const response = await apiCreateProductsBulkAsync(parsedProducts);
-      console.log('TEST 2::::::\n\n', parsedProducts);
+    let successCount = 0;
+    let failCount = 0;
 
-      if (response?.status === 200) {
+    try {
+      for (const product of parsedProducts) {
+        const result = await apiCreateProductAsync(product);
+        if (result.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      }
+
+      // Prikaz modala s rezultatima
+      if (failCount === 0) {
         setSuccessModal({
           open: true,
           isSuccess: true,
-          message: 'Products have been created from file successfully.',
+          message: `All ${successCount} products have been successfully created from file.`,
         });
       } else {
-        throw new Error('Bulk creation failed.');
+        setSuccessModal({
+          open: true,
+          isSuccess: false,
+          message: `Created ${successCount} products. Failed to create ${failCount} products.`,
+        });
       }
     } catch (err) {
-      console.error('Bulk create error:', err);
+      console.error('Unexpected bulk create error:', err);
       setSuccessModal({
         open: true,
         isSuccess: false,
-        message: 'Failed to create products from file.',
+        message: 'Unexpected error occurred during bulk product creation.',
       });
     }
   };
