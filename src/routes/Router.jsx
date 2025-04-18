@@ -4,16 +4,20 @@ import {
   Routes,
   Route,
   Navigate,
-} from 'react-router-dom';
-import LoginPage from '@pages/LoginPage';
-import UsersManagement from '@pages/UsersManagement';
-import PendingUsersPage from '@pages/PendingUsersPage';
-import { ThemeProvider } from '@mui/material/styles';
-import StoresPage from '@pages/StoresPage';
-import CssBaseline from '@mui/material/CssBaseline';
-import theme from '@styles/theme';
-import Sidebar from '@components/Sidebar';
-import CategoriesPage from '@pages/CategoriesPage';
+
+} from "react-router-dom";
+import LoginPage from "@pages/LoginPage";
+import UsersManagement from "@pages/UsersManagement";
+import PendingUsersPage from "@pages/PendingUsersPage";
+import { ThemeProvider } from "@mui/material/styles";
+import StoresPage from "@pages/StoresPage";
+import CssBaseline from "@mui/material/CssBaseline";
+import theme from "@styles/theme";
+import Sidebar from "@components/Sidebar";
+import CategoriesPage from "@pages/CategoriesPage";
+import Orders from "@sections/OrdersSection";
+import OrdersSection from "../sections/OrdersSection";
+
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
   return localStorage.getItem('auth');
@@ -90,11 +94,24 @@ const AppRoutes = () => {
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <CategoriesPage />
-                </ThemeProvider>
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+              </ThemeProvider>
+             </Layout>
+          </ProtectedRoute>
+         }
+       />
+       <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <OrdersSection />
+              </ThemeProvider>
+             </Layout>
+          </ProtectedRoute>
+         }
+       />
         <Route
           path='/'
           element={
