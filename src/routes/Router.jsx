@@ -13,7 +13,9 @@ import StoresPage from "@pages/StoresPage";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "@styles/theme";
 import Sidebar from "@components/Sidebar";
-import CategoriesPage from "@pages/CategoriesPage"
+import CategoriesPage from "@pages/CategoriesPage";
+import Orders from "@sections/OrdersSection";
+import OrdersSection from "../sections/OrdersSection";
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem("auth"));
@@ -96,6 +98,21 @@ const AppRoutes = () => {
           </ProtectedRoute>
          }
        />
+       <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <OrdersSection />
+              </ThemeProvider>
+             </Layout>
+          </ProtectedRoute>
+         }
+       />
+       
+       
         <Route
           path="/"
           element={
