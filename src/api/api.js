@@ -270,68 +270,67 @@ export const apiDeleteUserAsync = async (userId) => {
 //   ]
 // }
 
+/**
+ * Fetches products for a specific store
+ * @param {number} storeId - ID of the store
+ * @returns {Promise<{status: number, data: Array}>} List of products
+ */
+export const apiGetStoreProductsAsync = async (storeId) => {
+  if (API_ENV_DEV === API_FLAG) {
+    return {
+      status: 200,
+      data: products.filter(p => p.storeId === storeId)
+    };
+  } else {
+    try {
+      const response = await axios.get(`${baseApiUrl}/api/Admin/stores/${storeId}/products`);
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Error fetching store products:', error);
+      return { status: error.response?.status || 500, data: [] };
+    }
+  }
+};
+
+/**
+ * Creates a new product
+ * @param {Object} productData - Product data to create
+ * @returns {Promise<{status: number, data: Object}>} Created product
+ */
 export const apiCreateProductAsync = async (productData) => {
-  if(API_ENV_DEV == API_FLAG){
+  if (API_ENV_DEV === API_FLAG) {
+    try {
+      const newProduct = {
+        id: products.length + 1,
+        ...productData
+      };
+      products.push(newProduct);
+      return { status: 201, data: newProduct };
+    } catch (error) {
+      console.error('Product creation failed:', error);
+      return { status: 500, data: null };
+    }
+  } else {
     try {
       const formData = new FormData();
       formData.append('RetailPrice', String(productData.price ?? 0));
-      formData.append(
-        'ProductCategoryId',
-        String(productData.productcategoryid)
-      );
+      formData.append('ProductCategoryId', String(productData.productcategoryid));
       formData.append('WholesalePrice', String(productData.price ?? 0));
       formData.append('Name', productData.name);
       formData.append('Weight', String(productData.weight ?? 0));
       formData.append('Volume', String(productData.volume ?? 0));
-      formData.append('WeightUnit', productData.weightunit ?? ''); 
-      formData.append('StoreId', String(productData.storeId)); 
-      formData.append('VolumeUnit', productData.volumeunit ?? ''); 
-      const imageFiles = productData.photos;
-      if (imageFiles && imageFiles.length > 0) {
-        imageFiles.forEach((file) => {
+      formData.append('WeightUnit', productData.weightunit ?? '');
+      formData.append('StoreId', String(productData.storeId));
+      formData.append('VolumeUnit', productData.volumeunit ?? '');
+
+      if (productData.photos?.length > 0) {
+        productData.photos.forEach((file) => {
           if (file instanceof File) {
             formData.append('Files', file, file.name);
           }
         });
       }
-      products.push(formData);
-      return { success: true };
-    } catch (error) {
-      console.error('Product creation failed:', error);
-      return { success: false };
-    }
-  }
-  else {
-    try {
-      // Create a FormData object
-      const formData = new FormData();
 
-      // --- FIX HERE ---
-      // Append product data fields, ensuring valid defaults for numbers
-      // Use ?? 0 to default null/undefined numeric values to 0 before converting to string.
-      // Adjust the default (e.g., to null or omit if API allows) based on API requirements.
-      formData.append('RetailPrice', String(productData.price ?? 0));
-      formData.append(
-        'ProductCategoryId',
-        String(productData.productcategoryid)
-      ); // Assuming this is always provided
-      formData.append('WholesalePrice', String(productData.price ?? 0));
-      formData.append('Name', productData.name);
-      formData.append('Weight', String(productData.weight ?? 0));
-      formData.append('Volume', String(productData.volume ?? 0));
-      formData.append('WeightUnit', productData.weightunit ?? ''); // Default to empty string if optional
-      formData.append('StoreId', String(productData.storeId)); // Assuming this is always provided
-      formData.append('VolumeUnit', productData.volumeunit ?? ''); // Default to empty string if optional
-      const imageFiles = productData.photos;
-      // Append each file in the array (Ensure this loop is correct if multiple files are expected)
-      if (imageFiles && imageFiles.length > 0) {
-        imageFiles.forEach((file) => {
-          if (file instanceof File) {
-            formData.append('Files', file, file.name); // Use the same key 'Files'
-          }
-        });
-      }
-      console.log(formData);
       const response = await axios.post(
         `${baseApiUrl}/api/Admin/products/create`,
         formData,
@@ -341,10 +340,61 @@ export const apiCreateProductAsync = async (productData) => {
           },
         }
       );
-      return { success: true };
+      return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Product creation failed:', error);
-      return { success: false };
+      return { status: error.response?.status || 500, data: null };
+    }
+  }
+};
+
+/**
+ * Updates an existing product
+ * @param {Object} productData - Product data to update
+ * @returns {Promise<{status: number, data: Object}>} Updated product
+ */
+export const apiUpdateProductAsync = async (productData) => {
+  if (API_ENV_DEV === API_FLAG) {
+    const index = products.findIndex(p => p.id === productData.id);
+    if (index !== -1) {
+      products[index] = { ...products[index], ...productData };
+      return { status: 200, data: products[index] };
+    }
+    return { status: 404, data: null };
+  } else {
+    try {
+      const response = await axios.put(
+        `${baseApiUrl}/api/Admin/products/${productData.id}`,
+        productData
+      );
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Error updating product:', error);
+      return { status: error.response?.status || 500, data: null };
+    }
+  }
+};
+
+/**
+ * Deletes a product
+ * @param {number} productId - ID of the product to delete
+ * @returns {Promise<{status: number, data: Object}>} Deletion result
+ */
+export const apiDeleteProductAsync = async (productId) => {
+  if (API_ENV_DEV === API_FLAG) {
+    const index = products.findIndex(p => p.id === productId);
+    if (index !== -1) {
+      products.splice(index, 1);
+      return { status: 204, data: null };
+    }
+    return { status: 404, data: null };
+  } else {
+    try {
+      const response = await axios.delete(`${baseApiUrl}/api/Admin/products/${productId}`);
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      return { status: error.response?.status || 500, data: null };
     }
   }
 };
