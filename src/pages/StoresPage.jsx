@@ -1,11 +1,56 @@
-// src/pages/OrdersPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
-import OrdersTable from '../components/OrdersTable';
+import StoresHeader from '@sections/StoresHeader';
+import StoreCard from '@components/StoreCard';
+import UserManagementPagination from '@components/UserManagementPagination';
+import { apiGetAllStoresAsync, apiAddStoreAsync } from '@api/api';
+import AddStoreModal from '@components/AddStoreModal';
 
-const OrdersPage = () => {
-  const [filter, setFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('date');
+const StoresPage = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [openModal, setOpenModal] = useState(false);
+  const storesPerPage = 16;
+
+  const [allStores, setAllStores] = useState([]);
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      const data = await apiGetAllStoresAsync();
+      console.log(data);
+      const mapped = data.map((store) => ({
+        ...store,
+        categoryId: store.categoryId || store.category?.id || 0,
+      }));
+      setAllStores(mapped);
+    };
+
+    fetchStores();
+  }, []);
+
+  const handleAddStore = async (newStoreData) => {
+    console.log('data', newStoreData);
+    const response = await apiAddStoreAsync(newStoreData);
+    console.log(response);
+    if (response.status < 400) {
+      const data = await apiGetAllStoresAsync();
+      setAllStores(data);
+    }
+  };
+
+  const filteredStores = allStores.filter(
+    (store) =>
+      store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      store.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredStores.length / storesPerPage);
+  const indexOfLastStore = currentPage * storesPerPage;
+  const indexOfFirstStore = indexOfLastStore - storesPerPage;
+  const currentStores = filteredStores.slice(
+    indexOfFirstStore,
+    indexOfLastStore
+  );
 
   return (
     <Box sx={{ width: '100%', backgroundColor: '#fefefe', minHeight: '100vh' }}>
@@ -18,35 +63,41 @@ const OrdersPage = () => {
           px: 2,
         }}
       >
-        <h1 className="text-2xl font-bold mb-4">Narudžbe</h1>
+        <StoresHeader
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          onAddStore={() => setOpenModal(true)}
+        />
 
-        {/* Filteri */}
-        <div className="flex gap-4 mb-6">
-          <select 
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="border p-2 rounded"
-          >
-            <option value="all">Sve narudžbe</option>
-            <option value="cancelled">Otkazane</option>
-            <option value="active">Aktivne</option>
-          </select>
+        {/* Grid layout */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 1.5,
+            mt: 3,
+          }}
+        >
+          {currentStores.map((store) => (
+            <StoreCard key={store.id} store={store} />
+          ))}
+        </Box>
 
-          <select 
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="border p-2 rounded"
-          >
-            <option value="date">Sortiraj po datumu</option>
-            <option value="address">Sortiraj po adresi</option>
-            <option value="status">Sortiraj po statusu</option>
-          </select>
-        </div>
-
-        <OrdersTable filter={filter} sortBy={sortBy} />
+        <Box sx={{ mt: 4 }}>
+          <UserManagementPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </Box>
       </Box>
+      <AddStoreModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        onAddStore={handleAddStore}
+      />
     </Box>
   );
 };
 
-export default OrdersPage;
+export default StoresPage;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from 'react';
 import {
   Box,
   Table,
@@ -8,253 +8,159 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-} from "@mui/material";
-import { Edit as EditIcon } from "@mui/icons-material";
+  Chip,
+} from '@mui/material';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import CircleIcon from '@mui/icons-material/FiberManualRecord';
 
-const OrdersTable = ({ orders, sortField, sortOrder, onOrderClick }) => {
-  const [orderList, setOrderList] = useState([]);
-  const [editingOrderId, setEditingOrderId] = useState(null);
+const getStatusColor = (status) => {
+  switch (status.toLowerCase()) {
+    case 'active':
+      return 'success'; 
+    case 'cancelled':
+      return 'error'; 
+    case 'pending':
+      return 'warning'; 
+    case 'requested':
+      return 'info'; 
+    case 'confirmed':
+      return 'primary'; 
+    case 'ready':
+      return 'success'; 
+    case 'sent':
+      return 'info'; 
+    case 'delivered':
+      return 'secondary'; 
+    default:
+      return 'default';
+  }
+};
 
-  useEffect(() => {
-    setOrderList(orders);
-  }, [orders]);
 
-  const sortedOrders = orderList.sort((a, b) => {
-    if (!a[sortField] || !b[sortField]) return 0;
-    if (sortOrder === "asc") {
-      return a[sortField] > b[sortField] ? 1 : -1;
-    } else {
-      return a[sortField] < b[sortField] ? 1 : -1;
-    }
-  });
-
-  const handleEditChange = (orderId, field, value) => {
-    setOrderList((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, [field]: value } : order
-      )
-    );
+const OrdersTable = ({
+  orders,
+  sortField,
+  sortOrder,
+  onSortChange,
+  onOrderClick,
+}) => {
+  const handleSort = (field) => {
+    const order = field === sortField && sortOrder === 'asc' ? 'desc' : 'asc';
+    onSortChange(field, order);
   };
 
-  const handleProductChange = (orderId, index, field, value) => {
-    setOrderList((prevOrders) =>
-      prevOrders.map((order) => {
-        if (order.id === orderId) {
-          const updatedProducts = [...order.products];
-          updatedProducts[index] = {
-            ...updatedProducts[index],
-            [field]: value,
-          };
-          return { ...order, products: updatedProducts };
-        }
-        return order;
-      })
-    );
-  };
+  const formatOrderId = (id) => `#${String(id).padStart(5, '0')}`;
 
-  const handleIsCancelledChange = (orderId, value) => {
-    setOrderList((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId
-          ? { ...order, isCancelled: value === "Yes", status: value === "Yes" ? "cancelled" : order.status }
-          : order
-      )
-    );
-  };
-
-  const handleEditClick = (orderId) => {
-    setEditingOrderId(orderId);
-  };
-
-  const handleSaveEdit = (orderId) => {
-    setEditingOrderId(null);
-  };
+  const columns = [
+    { label: 'Order #', field: 'id' },
+    { label: 'Buyer', field: 'buyerName' },
+    { label: 'Store', field: 'storeName' },
+    { label: 'Status', field: 'status' },
+    { label: 'Total', field: 'totalPrice' },
+    { label: 'Created', field: 'createdAt' },
+  ];
 
   return (
-    <Box>
-      <TableContainer component={Paper} sx={{ backgroundColor: '#ffffff' }}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: '#004ba0' }}>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>ID</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Status</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Buyer ID</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Store ID</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Delivery Address</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Created At</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Total Price</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Product Prices</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Product Quantities</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Cancelled</TableCell>
-              <TableCell sx={{ color: '#ffffff', fontWeight: 'bold' }}>Edit</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {sortedOrders.map((order) => (
-              <TableRow key={order.id} sx={{ backgroundColor: '#ffffff', '&:hover': { backgroundColor: '#f0f0f0' } }}>
-                {}
+    <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+      <Table>
+        <TableHead>
+          <TableRow sx={{ backgroundColor: '#f6c343', height: 28 }}>
+            {columns.map((col) => {
+              const isSorted = sortField === col.field;
+              const isAsc = sortOrder === 'asc';
+
+              return (
                 <TableCell
-                  sx={{ cursor: 'pointer', color: '#1976d2', fontWeight: 'bold' }}
-                  onClick={() => onOrderClick(order)}
+                  key={col.field}
+                  onClick={() => handleSort(col.field)}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#000',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    whiteSpace: 'nowrap',
+                    '&:hover': {
+                      color: '#444',
+                      '.sort-icon': {
+                        opacity: 1,
+                        color: '#444',
+                      },
+                    },
+                  }}
                 >
-                  {order.id}
-                </TableCell>
-
-                {}
-                <TableCell>
-                  {editingOrderId === order.id ? (
-                    <TextField
-                      value={order.status}
-                      onChange={(e) => handleEditChange(order.id, "status", e.target.value)}
-                      fullWidth
-                      variant="standard"
-                      margin="dense"
-                    />
-                  ) : (
-                    order.status
-                  )}
-                </TableCell>
-
-                {}
-                <TableCell>{order.buyerId}</TableCell>
-
-                {}
-                <TableCell>{order.storeId}</TableCell>
-
-                {}
-                <TableCell>
-                  {editingOrderId === order.id ? (
-                    <TextField
-                      value={order.deliveryAddress}
-                      onChange={(e) => handleEditChange(order.id, "deliveryAddress", e.target.value)}
-                      fullWidth
-                      variant="standard"
-                      margin="dense"
-                    />
-                  ) : (
-                    order.deliveryAddress
-                  )}
-                </TableCell>
-
-                {/* Created At */}
-                <TableCell>
-                  {editingOrderId === order.id ? (
-                    <TextField
-                      type="datetime-local"
-                      value={new Date(order.createdAt).toISOString().slice(0,16)}
-                      onChange={(e) => handleEditChange(order.id, "createdAt", new Date(e.target.value).toISOString())}
-                      fullWidth
-                      variant="standard"
-                      margin="dense"
-                    />
-                  ) : (
-                    new Date(order.createdAt).toLocaleString()
-                  )}
-                </TableCell>
-
-                {/* Total Price */}
-                <TableCell>
-                  {editingOrderId === order.id ? (
-                    <TextField
-                      type="number"
-                      value={order.totalPrice}
-                      onChange={(e) => handleEditChange(order.id, "totalPrice", parseFloat(e.target.value))}
-                      fullWidth
-                      variant="standard"
-                      margin="dense"
-                    />
-                  ) : (
-                    `$${order.totalPrice}`
-                  )}
-                </TableCell>
-
-                {/* Product Prices */}
-                <TableCell>
-                  {order.products.map((p, i) => (
-                    <div key={i}>
-                      {editingOrderId === order.id ? (
-                        <TextField
-                          type="number"
-                          value={p.price}
-                          onChange={(e) => handleProductChange(order.id, i, "price", parseFloat(e.target.value))}
-                          fullWidth
-                          variant="standard"
-                          margin="dense"
-                        />
-                      ) : (
-                        `$${p.price}`
-                      )}
-                    </div>
-                  ))}
-                </TableCell>
-
-                {/* Product Quantities */}
-                <TableCell>
-                  {order.products.map((p, i) => (
-                    <div key={i}>
-                      {editingOrderId === order.id ? (
-                        <TextField
-                          type="number"
-                          value={p.quantity}
-                          onChange={(e) => handleProductChange(order.id, i, "quantity", parseInt(e.target.value))}
-                          fullWidth
-                          variant="standard"
-                          margin="dense"
-                        />
-                      ) : (
-                        p.quantity
-                      )}
-                    </div>
-                  ))}
-                </TableCell>
-
-                {/* Is Cancelled */}
-                <TableCell>
-                  {editingOrderId === order.id ? (
-                    <Select
-                      value={order.isCancelled ? "Yes" : "No"}
-                      onChange={(e) => handleIsCancelledChange(order.id, e.target.value)}
-                      fullWidth
-                      variant="standard"
-                      margin="dense"
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                    {col.label}
+                    <Box
+                      className='sort-icon'
+                      sx={{
+                        ml: 0.3,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        opacity: isSorted ? 1 : 0,
+                        transition: 'opacity 0.2s',
+                      }}
                     >
-                      <MenuItem value="No">No</MenuItem>
-                      <MenuItem value="Yes">Yes</MenuItem>
-                    </Select>
-                  ) : (
-                    order.isCancelled ? "Yes" : "No"
-                  )}
+                      {isAsc ? (
+                        <ArrowDropUpIcon fontSize='small' />
+                      ) : (
+                        <ArrowDropDownIcon fontSize='small' />
+                      )}
+                    </Box>
+                  </Box>
                 </TableCell>
-
-                {/* Edit / Save Dugme */}
-                <TableCell>
-                  {editingOrderId === order.id ? (
-                    <Button
-                      onClick={() => handleSaveEdit(order.id)}
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                    >
-                      Save
-                    </Button>
-                  ) : (
-                    <IconButton onClick={() => handleEditClick(order.id)}>
-                      <EditIcon />
-                    </IconButton>
-                  )}
-                </TableCell>
-
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+              );
+            })}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.map((order) => (
+            <TableRow
+              key={order.id}
+              hover
+              sx={{
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: '#fdf6e3' },
+              }}
+              onClick={() => onOrderClick(order)}
+            >
+              <TableCell sx={{ color: '#1976d2', fontWeight: 600 }}>
+                {formatOrderId(order.id)}
+              </TableCell>
+              <TableCell sx={{ color: '#4a0404' }}>{order.buyerName}</TableCell>
+              <TableCell sx={{ color: '#4a0404' }}>{order.storeName}</TableCell>
+              <TableCell>
+                <Chip
+                  label={
+                    order.status.charAt(0).toUpperCase() + order.status.slice(1)
+                  }
+                  color={getStatusColor(order.status)}
+                  icon={<CircleIcon sx={{ fontSize: 10, ml: 0.5 }} />}
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '0.75rem',
+                    pl: 0.5,
+                    borderRadius: '10px',
+                    color: '#fff',
+                    height: '24px',
+                  }}
+                />
+              </TableCell>
+              <TableCell sx={{ color: '#4a0404' }}>
+                ${order.totalPrice}
+              </TableCell>
+              <TableCell sx={{ color: '#4a0404' }}>
+                {new Date(order.createdAt).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 
