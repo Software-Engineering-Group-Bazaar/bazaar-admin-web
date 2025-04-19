@@ -16,6 +16,7 @@ import AddProductModal from "@components/NewProductModal";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EditStoreModal from "@components/EditStoreModal";
 import ConfirmDeleteStoreModal from "@components/ConfirmDeleteStoreModal";
+import StoreProductsList from './StoreProductsList';
 
 
 const StoreCard = ({ store }) => {
@@ -266,6 +267,9 @@ useEffect(() => {
             Add Product
           </Button>
         </Box>
+
+        {/* Products List */}
+        <StoreProductsList storeId={store.id} />
       </Box>
 
       {/* Add Product Modal */}
