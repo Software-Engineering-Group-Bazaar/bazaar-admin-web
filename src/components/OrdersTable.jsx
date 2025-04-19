@@ -15,6 +15,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Edit as EditIcon } from "@mui/icons-material";
+import { apiUpdateOrderAsync } from '@api/api'; 
+
 
 const OrdersTable = ({ orders, sortField, sortOrder, onOrderClick }) => {
   const [orderList, setOrderList] = useState([]);
@@ -24,7 +26,7 @@ const OrdersTable = ({ orders, sortField, sortOrder, onOrderClick }) => {
     setOrderList(orders);
   }, [orders]);
 
-  const sortedOrders = orderList.sort((a, b) => {
+  const sortedOrders = (orderList || []).sort((a, b) => {
     if (!a[sortField] || !b[sortField]) return 0;
     if (sortOrder === "asc") {
       return a[sortField] > b[sortField] ? 1 : -1;
@@ -71,9 +73,23 @@ const OrdersTable = ({ orders, sortField, sortOrder, onOrderClick }) => {
     setEditingOrderId(orderId);
   };
 
-  const handleSaveEdit = (orderId) => {
+  const handleSaveEdit = async (orderId) => {
+    const updatedOrder = orderList.find((order) => order.id === orderId);
+  
+    try {
+      const response = await apiUpdateOrderAsync(updatedOrder);
+      if (response.status === 200) {
+        console.log("Order successfully updated");
+      } else {
+        console.error("Update failed:", response);
+      }
+    } catch (err) {
+      console.error("Error while updating order:", err);
+    }
+  
     setEditingOrderId(null);
   };
+  
 
   return (
     <Box>

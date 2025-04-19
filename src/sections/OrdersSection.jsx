@@ -1,14 +1,37 @@
-import React, { useState, useMemo } from 'react';
-import { Box, Tabs, Tab, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Box,
+  Tabs,
+  Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
 import Sidebar from '@components/Sidebar';
 import OrdersTable from '../components/OrdersTable';
-import OrderDetailsPopup from '../components/OrderComponent'; 
+import OrderDetailsPopup from '../components/OrderComponent';
+import { apiGetOrdersAsync } from '@api/api';
 
 const OrdersSection = () => {
   const [tabValue, setTabValue] = useState('all');
   const [sortField, setSortField] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('asc');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const response = await apiGetOrdersAsync();
+      if (response.status === 200) {
+        setOrders(response.data);
+      } else {
+        console.error('Failed to fetch orders:', response);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -20,54 +43,68 @@ const OrdersSection = () => {
     setSortOrder(order);
   };
 
-  const orders = [
-    {
-      id: 1,
-      status: "cancelled",
-      buyerId: 101,
-      storeId: 201,
-      deliveryAddress: "123 Street, New York",
-      createdAt: "2024-04-18T12:00:00",
-      totalPrice: 120,
-      products: [
-        { price: 40, quantity: 2 },
-        { price: 20, quantity: 2 },
-      ],
-      isCancelled: true,
-    },
-    {
-      id: 2,
-      status: "active",
-      buyerId: 102,
-      storeId: 202,
-      deliveryAddress: "456 Avenue, Chicago",
-      createdAt: "2024-04-15T09:30:00",
-      totalPrice: 80,
-      products: [
-        { price: 80, quantity: 1 },
-      ],
-      isCancelled: false,
-    }
-  ];
-
   const filteredOrders = useMemo(() => {
+    let filtered = [...orders];
+
     if (tabValue === 'active') {
-      return orders.filter((order) => !order.isCancelled);
+      filtered = filtered.filter((order) => !order.isCancelled);
     } else if (tabValue === 'cancelled') {
-      return orders.filter((order) => order.isCancelled);
-    } else {
-      return orders;
+      filtered = filtered.filter((order) => order.isCancelled);
     }
-  }, [orders, tabValue]);
+
+    filtered.sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+
+      if (sortField === 'createdAt') {
+        aVal = new Date(aVal);
+        bVal = new Date(bVal);
+      }
+
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [orders, tabValue, sortField, sortOrder]);
 
   return (
-    <Box sx={{ display: 'flex', width: '100%', backgroundColor: '#fefefe', minHeight: '100vh' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        width: '100%',
+        backgroundColor: '#fefefe',
+        minHeight: '100vh',
+      }}
+    >
       <Sidebar />
-      <Box sx={{ flexGrow: 1, width: '100%', maxWidth: '1400px', marginLeft: '260px', pt: 2, px: 2 }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          width: '100%',
+          maxWidth: '1400px',
+          marginLeft: '260px',
+          pt: 2,
+          px: 2,
+        }}
+      >
         <h1 className="text-2xl font-bold mb-4">Orders</h1>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Tabs value={tabValue} onChange={handleTabChange} textColor="primary" indicatorColor="secondary">
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 4,
+          }}
+        >
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            textColor="primary"
+            indicatorColor="secondary"
+          >
             <Tab value="all" label="All Orders" />
             <Tab value="active" label="Active Orders" />
             <Tab value="cancelled" label="Cancelled Orders" />
@@ -88,7 +125,6 @@ const OrdersSection = () => {
           </FormControl>
         </Box>
 
-        {/* Tabela narudžbi */}
         <OrdersTable
           orders={filteredOrders}
           sortField={sortField}
@@ -96,7 +132,6 @@ const OrdersSection = () => {
           onOrderClick={(order) => setSelectedOrder(order)}
         />
 
-        {/* Popup za detalje narudžbe */}
         {selectedOrder && (
           <OrderDetailsPopup
             narudzba={{
@@ -107,8 +142,8 @@ const OrdersSection = () => {
               adresa: selectedOrder.deliveryAddress,
               datum: selectedOrder.createdAt,
               ukupnaCijena: selectedOrder.totalPrice,
-              cijeneProizvoda: selectedOrder.products.map(p => p.price),
-              kolicineProizvoda: selectedOrder.products.map(p => p.quantity),
+              cijeneProizvoda: selectedOrder.products.map((p) => p.price),
+              kolicineProizvoda: selectedOrder.products.map((p) => p.quantity),
               isCancelled: selectedOrder.isCancelled,
             }}
             onClose={() => setSelectedOrder(null)}

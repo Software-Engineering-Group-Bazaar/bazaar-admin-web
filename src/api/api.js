@@ -764,3 +764,84 @@ export const apiExportProductsToCSVAsync = async (storeId) => {
     }
   }
 };
+
+
+//ORDERS - get all
+
+export const apiGetOrdersAsync = async () => {
+  if (API_ENV_DEV === API_FLAG) {
+    return {
+      status: 200,
+      data: [
+        {
+          id: 1,
+          status: "cancelled",
+          buyerId: 101,
+          storeId: 201,
+          deliveryAddress: "123 Street, New York",
+          createdAt: "2024-04-18T12:00:00",
+          totalPrice: 120,
+          products: [
+            { price: 40, quantity: 2 },
+            { price: 20, quantity: 2 },
+          ],
+          isCancelled: true,
+        },
+        {
+          id: 2,
+          status: "active",
+          buyerId: 102,
+          storeId: 202,
+          deliveryAddress: "456 Avenue, Chicago",
+          createdAt: "2024-04-15T09:30:00",
+          totalPrice: 80,
+          products: [
+            { price: 80, quantity: 1 },
+          ],
+          isCancelled: false,
+        },
+      ],
+    };
+  } else {
+    try {
+      apiSetAuthHeader();
+      const response = await axios.get(`${baseApiUrl}/api/order/all`);
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      return {
+        status: error.response?.status || 500,
+        data: error.response?.data || error.message,
+      };
+    }
+  }
+};
+
+//update orders
+export const apiUpdateOrderAsync = async (updatedOrder) => {
+  if (API_ENV_DEV === API_FLAG) {
+    return {
+      status: 200,
+      data: {
+        ...updatedOrder,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.put(
+        `${baseApiUrl}/api/order/update/${updatedOrder.id}`,
+        updatedOrder
+      );      
+      return {
+        status: response.status,
+        data: response.data,
+      };
+    } catch (error) {
+      return {
+        status: error.response?.status || 500,
+        data: error.response?.data || error.message,
+      };
+    }
+  }
+};
