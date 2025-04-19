@@ -7,6 +7,7 @@ import {
   Avatar,
   Menu,
   MenuItem,
+
 } from '@mui/material';
 import StoreIcon from '@mui/icons-material/Store';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -25,6 +26,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EditStoreModal from '@components/EditStoreModal';
 import ConfirmDeleteStoreModal from '@components/ConfirmDeleteStoreModal';
 import * as XLSX from 'xlsx';
+
 
 const StoreCard = ({ store }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -305,6 +307,8 @@ const StoreCard = ({ store }) => {
           <MenuItem onClick={handleExportCSV}>📤 Export CSV</MenuItem>
           <MenuItem onClick={handleExportExcel}>📤 Export Excel</MenuItem>
         </Menu>
+        {/* Products List */}
+        <StoreProductsList storeId={store.id} />
       </Box>
 
       <AddProductModal
