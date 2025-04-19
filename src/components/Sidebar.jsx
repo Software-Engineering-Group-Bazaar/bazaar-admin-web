@@ -25,6 +25,7 @@ import { usePendingUsers } from "@context/PendingUsersContext";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { FiShoppingBag } from "react-icons/fi";
 import { FiGrid } from "react-icons/fi";
+import {FiClipboard} from "react-icons/fi";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -54,6 +55,13 @@ const Sidebar = () => {
       path: "/categories",
       badge: null,
     },
+    {
+      icon: <FiClipboard />,
+      label: "Orders",
+      path: "/orders",
+      badge: null,
+    },
+    
   ];
   const [isDark, setIsDark] = useState(false);
   const toggleTheme = () => setIsDark(!isDark);
