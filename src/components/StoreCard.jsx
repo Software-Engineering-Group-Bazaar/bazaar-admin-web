@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -7,97 +7,126 @@ import {
   Avatar,
   Menu,
   MenuItem,
-} from "@mui/material";
-import StoreIcon from "@mui/icons-material/Store";
-import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import { FiEdit2, FiTrash } from "react-icons/fi";
-import { apiUpdateStoreAsync, apiDeleteStoreAsync, apiGetStoreCategoriesAsync } from "@api/api";
-import AddProductModal from "@components/NewProductModal";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import EditStoreModal from "@components/EditStoreModal";
-import ConfirmDeleteStoreModal from "@components/ConfirmDeleteStoreModal";
-import StoreProductsList from './StoreProductsList';
+
+} from '@mui/material';
+import StoreIcon from '@mui/icons-material/Store';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import { FiEdit2, FiTrash } from 'react-icons/fi';
+import { FaPaperclip } from 'react-icons/fa6';
+import {
+  apiUpdateStoreAsync,
+  apiDeleteStoreAsync,
+  apiGetStoreCategoriesAsync,
+  apiExportProductsToCSVAsync,
+  apiExportProductsToExcelAsync,
+  apiCreateProductAsync,
+} from '@api/api';
+import AddProductModal from '@components/NewProductModal';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import EditStoreModal from '@components/EditStoreModal';
+import ConfirmDeleteStoreModal from '@components/ConfirmDeleteStoreModal';
+import * as XLSX from 'xlsx';
 
 
 const StoreCard = ({ store }) => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const [isOnline, setIsOnline] = useState(store.isActive);
-  const [updating, setUpdating] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [updating, setUpdating] = useState(false);
+  const fileInputRef = useRef();
+  const [parsedProducts, setParsedProducts] = useState([]);
 
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const data = await apiGetStoreCategoriesAsync();
-      setCategories(data);
-    } catch (err) {
-      console.error("Greška pri dohvaćanju kategorija:", err);
-    }
-  };
+  const openStatus = Boolean(anchorEl);
+  const openMenu = Boolean(menuAnchor);
 
-  fetchCategories();
-}, []);
+  useEffect(() => {
+    apiGetStoreCategoriesAsync().then(setCategories);
+  }, []);
 
-
-  const open = Boolean(anchorEl);
-
-  const handleStatusClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleUpdateStore = async (updatedStore) => {
-  //const response = await apiUpdateStoreAsync(updatedStore);
-  if (response?.success) {
-    // osvježi podatke ili javi parentu da ažurira store listu
-  }
-};
-
+  const handleStatusClick = (e) => setAnchorEl(e.currentTarget);
   const handleStatusChange = async (newStatus) => {
-  setUpdating(true);
+    setUpdating(true);
+    const matchedCategory = categories.find(
+      (cat) => cat.name === store.categoryName
+    );
+    if (!matchedCategory) return;
 
-  // Nađi categoryId na osnovu categoryName
-  const matchedCategory = categories.find(
-    (cat) => cat.name === store.categoryName
-  );
+    const updatedStore = {
+      ...store,
+      isActive: newStatus,
+      categoryId: matchedCategory.id,
+    };
 
-  if (!matchedCategory) {
-    console.error("Category not found for:", store.categoryName);
+    const res = await apiUpdateStoreAsync(updatedStore);
+    if (res?.success || res?.status === 200) setIsOnline(newStatus);
     setUpdating(false);
     setAnchorEl(null);
-    return;
-  }
-
-  const updatedStore = {
-    id: store.id,
-    name: store.name,
-    address: store.address,
-    description: store.description,
-    categoryId: matchedCategory.id, // pravi ID sada
-    isActive: newStatus,
   };
 
-  try {
-    const response = await apiUpdateStoreAsync(updatedStore);
-    if (response?.status === 200 || response?.success) {
-      setIsOnline(newStatus);
+  const handleExportCSV = async () => {
+    const response = await apiExportProductsToCSVAsync(store.id);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Proizvodi.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportExcel = async () => {
+    const response = await apiExportProductsToExcelAsync(store.id);
+    const blob = response.data;
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Proizvodi.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleMenuClick = (e) => setMenuAnchor(e.currentTarget);
+  const handleMenuClose = () => setMenuAnchor(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const binaryStr = evt.target.result;
+      const workbook = XLSX.read(binaryStr, { type: 'binary' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+      setParsedProducts(jsonData);
+      handleBulkCreate(jsonData);
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const handleBulkCreate = async (products) => {
+    let success = 0;
+    let fail = 0;
+
+    for (const product of products) {
+      try {
+        const res = await apiCreateProductAsync({
+          ...product,
+          storeId: store.id,
+        });
+        res?.success ? success++ : fail++;
+      } catch {
+        fail++;
+      }
     }
-  } catch (err) {
-    console.error("Greška pri ažuriranju statusa:", err);
-  }
 
-  setUpdating(false);
-  setAnchorEl(null);
-};
-
-  const handleOpenModal = () => {
-    setOpenModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
+    console.log(`✅ ${success} created, ❌ ${fail} failed`);
   };
 
   return (
@@ -107,125 +136,84 @@ useEffect(() => {
           width: 270,
           p: 2.5,
           borderRadius: 3,
-          boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
-          backgroundColor: "#fff",
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
+          boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+          backgroundColor: '#fff',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
           minHeight: 160,
         }}
       >
-        {/* Online/Offline Status Dot */}
-        {/* Status + Delete dugmad gore desno */}
-        <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 0.5 }}>
-          {/* Diskretna Delete ikona */}
-          <IconButton
-            onClick={() => setOpenDeleteModal(true)}
-            sx={{
-              p: 0.5,
-              color: "#999",
-              "&:hover": { color: "#f44336" },
-            }}
-          >
-            <FiTrash size={14} />
+        {/* Status & Delete */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            display: 'flex',
+            gap: 0.5,
+          }}
+        >
+          <IconButton onClick={() => setOpenDeleteModal(true)} sx={{ p: 0.5 }}>
+            <FiTrash size={14} color='#999' />
           </IconButton>
-
-          {/* Status */}
           <IconButton
             onClick={handleStatusClick}
-            sx={{ p: 0.5 }}
             disabled={updating}
+            sx={{ p: 0.5 }}
           >
             <FiberManualRecordIcon
-              sx={{
-                color: isOnline ? "#4caf50" : "#f44336",
-                fontSize: 14,
-              }}
+              sx={{ fontSize: 14, color: isOnline ? '#4caf50' : '#f44336' }}
             />
           </IconButton>
         </Box>
 
-
         <Menu
           anchorEl={anchorEl}
-          open={open}
+          open={openStatus}
           onClose={() => setAnchorEl(null)}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-          PaperProps={{
-            sx: {
-              mt: 1,
-              borderRadius: 2,
-              boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
-            },
-          }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
           <MenuItem onClick={() => handleStatusChange(true)}>
-            <FiberManualRecordIcon
-              sx={{ color: "#4caf50", fontSize: 14, mr: 1 }}
-            />
-            Online
+            🟢 Online
           </MenuItem>
           <MenuItem onClick={() => handleStatusChange(false)}>
-            <FiberManualRecordIcon
-              sx={{ color: "#f44336", fontSize: 14, mr: 1 }}
-            />
-            Offline
+            🔴 Offline
           </MenuItem>
         </Menu>
 
-        {/* Header i opis */}
-        <Box sx={{ display: "flex", gap: 1.5 }}>
-          {/* Ikonica lijevo */}
-          <Avatar
-            sx={{
-              bgcolor: "#6A1B9A",
-              width: 40,
-              height: 40,
-              mt: 0.2,
-            }}
-          >
+        {/* Header */}
+        <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Avatar sx={{ bgcolor: '#6A1B9A', width: 40, height: 40 }}>
             <StoreIcon />
           </Avatar>
-
-          {/* Ime i adresa */}
           <Box sx={{ flexGrow: 1 }}>
             <Typography
-              variant="h6"
-              fontWeight="bold"
+              variant='h6'
+              fontWeight='bold'
               sx={{
-                lineHeight: 1,
-                display: "inline-flex",
-                alignItems: "center",
+                display: 'inline-flex',
+                alignItems: 'center',
                 gap: 1,
-                position: "relative",
-                "&:hover .edit-icon": { opacity: 1 },
+                position: 'relative',
+                '&:hover .edit-icon': { opacity: 1 },
               }}
             >
               {store.name}
               <IconButton
-                className="edit-icon"
-                size="small"
-                sx={{
-                  p: 0,
-                  opacity: 0,
-                  transition: "opacity 0.2s",
-                }}
+                className='edit-icon'
+                size='small'
                 onClick={() => setOpenEditModal(true)}
+                sx={{ p: 0, opacity: 0, transition: 'opacity 0.2s' }}
               >
                 <FiEdit2 size={16} />
               </IconButton>
             </Typography>
-
-
-            {/* Adresa */}
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 0.1, mt: 0.5 }}
-            >
-              <LocationOnIcon sx={{ fontSize: 14, color: "#607d8b" }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <LocationOnIcon sx={{ fontSize: 14, color: '#607d8b' }} />
               <Typography
-                variant="body2"
-                sx={{ fontSize: "0.75rem", color: "#607d8b", lineHeight: 1.2 }}
+                variant='body2'
+                sx={{ fontSize: '0.75rem', color: '#607d8b' }}
               >
                 {store.address}
               </Typography>
@@ -233,68 +221,113 @@ useEffect(() => {
           </Box>
         </Box>
 
-        {/* Opis ispod cijelom širinom */}
+        {/* Description */}
         <Typography
-          variant="body2"
-          color="text.secondary"
+          variant='body2'
+          color='text.secondary'
           sx={{
             mt: 1,
-            fontSize: "0.85rem",
-            display: "-webkit-box",
+            fontSize: '0.85rem',
+            display: '-webkit-box',
             WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
           }}
         >
           {store.description}
         </Typography>
 
-        {/* Add Product Button */}
-        <Box sx={{ mt: "auto" }}>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={handleOpenModal}
+        {/* Buttons */}
+        {/* Buttons */}
+        {/* Buttons */}
+        <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center' }}>
+          <Box
             sx={{
-              textTransform: "none",
-              fontWeight: 600,
-              backgroundColor: "#345",
-              "&:hover": {
-                backgroundColor: "#233",
-              },
+              display: 'flex',
+              width: '100%',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
-            Add Product
-          </Button>
+            <Button
+              variant='contained'
+              onClick={() => setOpenModal(true)}
+              sx={{
+                flexGrow: 1,
+                backgroundColor: '#2e3a45',
+                color: '#fff',
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: 0,
+                px: 2,
+                '&:hover': {
+                  backgroundColor: '#233039',
+                },
+              }}
+            >
+              Add Product
+            </Button>
+            <Box
+              onClick={handleMenuClick}
+              sx={{
+                width: 48,
+                backgroundColor: '#e0e0e0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#d5d5d5',
+                },
+              }}
+            >
+              <FaPaperclip size={16} color='#555' />
+            </Box>
+            <input
+              type='file'
+              ref={fileInputRef}
+              accept='.csv, .xlsx'
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+          </Box>
         </Box>
 
+        <Menu
+          anchorEl={menuAnchor}
+          open={openMenu}
+          onClose={handleMenuClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <MenuItem onClick={() => fileInputRef.current.click()}>
+            📥 Import (CSV/Excel)
+          </MenuItem>
+          <MenuItem onClick={handleExportCSV}>📤 Export CSV</MenuItem>
+          <MenuItem onClick={handleExportExcel}>📤 Export Excel</MenuItem>
+        </Menu>
         {/* Products List */}
         <StoreProductsList storeId={store.id} />
       </Box>
 
-      {/* Add Product Modal */}
       <AddProductModal
         open={openModal}
-        onClose={handleCloseModal}
+        onClose={() => setOpenModal(false)}
         storeID={store.id}
       />
-
       <EditStoreModal
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         store={store}
-        onSave={handleUpdateStore}
       />
-
       <ConfirmDeleteStoreModal
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
         storeName={store.name}
         onConfirm={async () => {
           const res = await apiDeleteStoreAsync(store.id);
-          if (res.success) {
-            window.location.reload(); 
-          }
+          if (res.success) window.location.reload();
         }}
       />
     </>
