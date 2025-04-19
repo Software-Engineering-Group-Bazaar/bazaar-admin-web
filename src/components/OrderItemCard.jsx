@@ -1,31 +1,15 @@
-import { Box, Typography, Avatar, TextField, IconButton } from '@mui/material';
-import { FaPen, FaCheck } from 'react-icons/fa6';
-import { useState } from 'react';
+import { Box, Typography, Avatar, TextField } from '@mui/material';
 
 const OrderItemCard = ({
   imageUrl,
   name,
   price,
   quantity,
-  tagIcon = '🌶',
-  tagLabel = 'Spicy',
+  tagIcon = '🏷️',
+  tagLabel = 'General',
   isEditable = false,
   onChange = () => {},
 }) => {
-  const [editing, setEditing] = useState(false);
-  const [localName, setLocalName] = useState(name);
-  const [localPrice, setLocalPrice] = useState(price);
-  const [localQuantity, setLocalQuantity] = useState(quantity);
-
-  const applyChanges = () => {
-    onChange({
-      name: localName,
-      price: parseFloat(localPrice),
-      quantity: parseInt(localQuantity),
-    });
-    setEditing(false);
-  };
-
   return (
     <Box
       sx={{
@@ -69,39 +53,18 @@ const OrderItemCard = ({
         flexGrow={1}
         ml={3}
       >
+        {/* Name & Tag */}
         <Box
           display='flex'
           alignItems='center'
           justifyContent='flex-end'
           gap={1}
           sx={{ width: '100%' }}
+          mb={0.5}
         >
-          {isEditable && (
-            <IconButton
-              onClick={() => (editing ? applyChanges() : setEditing(true))}
-              size='small'
-              sx={{
-                p: 0.3,
-                color: '#555',
-                '&:hover': { color: '#000' },
-              }}
-            >
-              {editing ? <FaCheck size={14} /> : <FaPen size={14} />}
-            </IconButton>
-          )}
-
-          {editing ? (
-            <TextField
-              variant='standard'
-              value={localName}
-              onChange={(e) => setLocalName(e.target.value)}
-              sx={{ flexGrow: 1 }}
-            />
-          ) : (
-            <Typography fontWeight={700} fontSize='1.2rem' color='#0f172a'>
-              {localName}
-            </Typography>
-          )}
+          <Typography fontWeight={700} fontSize='1.2rem' color='#0f172a'>
+            {name}
+          </Typography>
         </Box>
 
         <Box display='flex' alignItems='center' gap={0.5} mb={1}>
@@ -111,23 +74,32 @@ const OrderItemCard = ({
           </Typography>
         </Box>
 
+        {/* Quantity and Price */}
         <Box display='flex' alignItems='center' gap={2}>
-          {editing ? (
+          {isEditable ? (
             <>
               <TextField
                 variant='standard'
                 type='number'
                 label='Qty'
-                value={localQuantity}
-                onChange={(e) => setLocalQuantity(e.target.value)}
+                value={quantity}
+                onChange={(e) =>
+                  onChange({
+                    quantity: parseInt(e.target.value) || 0,
+                  })
+                }
                 sx={{ width: 50 }}
               />
               <TextField
                 variant='standard'
                 type='number'
                 label='Price'
-                value={localPrice}
-                onChange={(e) => setLocalPrice(e.target.value)}
+                value={price}
+                onChange={(e) =>
+                  onChange({
+                    price: parseFloat(e.target.value) || 0,
+                  })
+                }
                 sx={{ width: 80 }}
               />
             </>
@@ -144,10 +116,10 @@ const OrderItemCard = ({
                 minWidth='32px'
                 textAlign='center'
               >
-                {localQuantity}
+                {quantity}
               </Box>
               <Typography fontWeight={800} fontSize='1.3rem' color='#0f172a'>
-                ${parseFloat(localPrice).toFixed(2)}
+                ${parseFloat(price).toFixed(2)}
               </Typography>
             </>
           )}

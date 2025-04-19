@@ -9,34 +9,36 @@ import {
   TableRow,
   Paper,
   Chip,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import { FaTrash } from 'react-icons/fa6';
+import CircleIcon from '@mui/icons-material/FiberManualRecord';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import CircleIcon from '@mui/icons-material/FiberManualRecord';
 
 const getStatusColor = (status) => {
   switch (status.toLowerCase()) {
     case 'active':
-      return 'success'; 
+      return 'success';
     case 'cancelled':
-      return 'error'; 
+      return 'error';
     case 'pending':
-      return 'warning'; 
+      return 'warning';
     case 'requested':
-      return 'info'; 
+      return 'info';
     case 'confirmed':
-      return 'primary'; 
+      return 'primary';
     case 'ready':
-      return 'success'; 
+      return 'success';
     case 'sent':
-      return 'info'; 
+      return 'info';
     case 'delivered':
-      return 'secondary'; 
+      return 'secondary';
     default:
       return 'default';
   }
 };
-
 
 const OrdersTable = ({
   orders,
@@ -44,6 +46,7 @@ const OrdersTable = ({
   sortOrder,
   onSortChange,
   onOrderClick,
+  onDelete,
 }) => {
   const handleSort = (field) => {
     const order = field === sortField && sortOrder === 'asc' ? 'desc' : 'asc';
@@ -59,6 +62,7 @@ const OrdersTable = ({
     { label: 'Status', field: 'status' },
     { label: 'Total', field: 'totalPrice' },
     { label: 'Created', field: 'createdAt' },
+    { label: '', field: 'actions' },
   ];
 
   return (
@@ -66,51 +70,43 @@ const OrdersTable = ({
       <Table>
         <TableHead>
           <TableRow sx={{ backgroundColor: '#f6c343', height: 28 }}>
-            {columns.map((col) => {
-              const isSorted = sortField === col.field;
-              const isAsc = sortOrder === 'asc';
-
-              return (
-                <TableCell
-                  key={col.field}
-                  onClick={() => handleSort(col.field)}
-                  sx={{
-                    fontWeight: 'bold',
-                    color: '#000',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    whiteSpace: 'nowrap',
-                    '&:hover': {
-                      color: '#444',
-                      '.sort-icon': {
-                        opacity: 1,
-                        color: '#444',
-                      },
-                    },
-                  }}
-                >
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                    {col.label}
+            {columns.map((col) => (
+              <TableCell
+                key={col.field}
+                onClick={() => col.field !== 'actions' && handleSort(col.field)}
+                sx={{
+                  fontWeight: 'bold',
+                  color: '#000',
+                  cursor: col.field !== 'actions' ? 'pointer' : 'default',
+                  userSelect: 'none',
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    color: col.field !== 'actions' ? '#444' : undefined,
+                    '.sort-icon': { opacity: 1, color: '#444' },
+                  },
+                }}
+              >
+                <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                  {col.label}
+                  {col.field !== 'actions' && (
                     <Box
                       className='sort-icon'
                       sx={{
                         ml: 0.3,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        opacity: isSorted ? 1 : 0,
+                        opacity: sortField === col.field ? 1 : 0,
                         transition: 'opacity 0.2s',
                       }}
                     >
-                      {isAsc ? (
+                      {sortOrder === 'asc' ? (
                         <ArrowDropUpIcon fontSize='small' />
                       ) : (
                         <ArrowDropDownIcon fontSize='small' />
                       )}
                     </Box>
-                  </Box>
-                </TableCell>
-              );
-            })}
+                  )}
+                </Box>
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -127,8 +123,8 @@ const OrdersTable = ({
               <TableCell sx={{ color: '#1976d2', fontWeight: 600 }}>
                 {formatOrderId(order.id)}
               </TableCell>
-              <TableCell sx={{ color: '#4a0404' }}>{order.buyerName}</TableCell>
-              <TableCell sx={{ color: '#4a0404' }}>{order.storeName}</TableCell>
+              <TableCell>{order.buyerName}</TableCell>
+              <TableCell>{order.storeName}</TableCell>
               <TableCell>
                 <Chip
                   label={
@@ -146,15 +142,26 @@ const OrdersTable = ({
                   }}
                 />
               </TableCell>
-              <TableCell sx={{ color: '#4a0404' }}>
-                ${order.totalPrice}
-              </TableCell>
-              <TableCell sx={{ color: '#4a0404' }}>
+              <TableCell>${order.totalPrice}</TableCell>
+              <TableCell>
                 {new Date(order.createdAt).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
                 })}
+              </TableCell>
+              <TableCell align='right'>
+                <Tooltip title='Delete Order'>
+                  <IconButton
+                    size='small'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(order.id);
+                    }}
+                  >
+                    <FaTrash />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}

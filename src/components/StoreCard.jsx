@@ -25,6 +25,7 @@ import AddProductModal from '@components/NewProductModal';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EditStoreModal from '@components/EditStoreModal';
 import ConfirmDeleteStoreModal from '@components/ConfirmDeleteStoreModal';
+import StoreProductsList from '@components/StoreProductsList'
 import * as XLSX from 'xlsx';
 
 
@@ -246,6 +247,7 @@ const StoreCard = ({ store }) => {
               display: 'flex',
               width: '100%',
               borderRadius: '8px',
+              mt:1,
               overflow: 'hidden',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}

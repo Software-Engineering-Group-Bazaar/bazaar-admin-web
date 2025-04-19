@@ -6,12 +6,9 @@ import {
   Button,
   Typography,
   MenuItem,
-  IconButton,
 } from '@mui/material';
 import { HiOutlineCube } from 'react-icons/hi';
 import { apiUpdateProductAsync, apiGetProductCategoriesAsync } from '@api/api';
-import ImageUploader from '@components/ImageUploader';
-import DeleteIcon from '@mui/icons-material/Delete';
 
 const weightUnits = ['kg', 'g', 'lbs'];
 const volumeUnits = ['L', 'ml', 'oz'];
@@ -29,7 +26,6 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
   });
 
   const [productCategories, setProductCategories] = useState([]);
-  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
     if (open) {
@@ -45,7 +41,6 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
           productcategoryid: product.productcategoryid || '',
           isActive: product.isActive ?? true,
         });
-        setPhotos(product.photos || []);
       }
     }
   }, [open, product]);
@@ -58,20 +53,13 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
     }));
   };
 
-  const handlePhotosChange = (files) => {
-    setPhotos((prev) => [...prev, ...files]);
-  };
-
-  const handleDeletePhoto = (indexToRemove) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== indexToRemove));
-  };
-
   const handleSubmit = async () => {
     try {
       const response = await apiUpdateProductAsync({
-        ...product,
+        id: product.id,
+        storeId: product.storeId,
+        photos: product.photos,
         ...formData,
-        photos: photos,
       });
       if (response.status === 200) {
         onSave(response.data);
@@ -80,7 +68,6 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
       console.error('Error updating product:', error);
     }
   };
-  
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -90,129 +77,59 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 550,
+          width: 440,
           bgcolor: 'background.paper',
           boxShadow: 24,
-          p: 4,
-          borderRadius: 2,
-          maxHeight: '90vh',
+          p: 3,
+          borderRadius: 4,
+          maxHeight: '85vh',
           overflowY: 'auto',
         }}
       >
         <HiOutlineCube
           style={{
-            fontSize: '48px',
+            fontSize: '44px',
             color: '#00bcd4',
             margin: '0 auto 10px auto',
             display: 'block',
           }}
         />
 
-        <Typography variant="h5" fontWeight={700} mb={3} textAlign="center">
+        <Typography variant='h6' fontWeight={700} mb={2} textAlign='center'>
           Edit Product
         </Typography>
 
-        {photos && photos.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Typography fontWeight={600} mb={1}>
-              Current Images
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 1.5,
-                border: '1px dashed #ccc',
-                p: 1,
-                borderRadius: 2,
-              }}
-            >
-              {photos.map((file, index) => {
-                const src =
-                  typeof file === 'string'
-                    ? file
-                    : file.path || URL.createObjectURL(file);
-                return (
-                  <Box
-                    key={index}
-                    sx={{
-                      position: 'relative',
-                      width: 80,
-                      height: 80,
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      border: '1px solid #e0e0e0',
-                    }}
-                  >
-                    <img
-                      src={src}
-                      alt={`Preview ${index}`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDeletePhoto(index)}
-                      sx={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        backgroundColor: '#ffffffcc',
-                        borderRadius: '50%',
-                        padding: '2px',
-                        zIndex: 2,
-                        boxShadow: '0 0 3px rgba(0,0,0,0.3)',
-                        '&:hover': { backgroundColor: '#ffebee' },
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" sx={{ color: '#b71c1c' }} />
-                    </IconButton>
-                  </Box>
-                );
-              })}
-            </Box>
-          </Box>
-        )}
-        <Typography fontWeight={600} mt={2} mb={1}>
-          Add More Images
-        </Typography>
-        <ImageUploader onFilesSelected={handlePhotosChange} />
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
-            label="Product Name"
-            name="name"
+            label='Product Name'
+            name='name'
             value={formData.name}
             onChange={handleChange}
             fullWidth
           />
 
           <TextField
-            label="Price"
-            name="price"
+            label='Price'
+            name='price'
             value={formData.price}
             onChange={handleChange}
-            type="number"
+            type='number'
             fullWidth
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
-              label="Weight"
-              name="weight"
+              label='Weight'
+              name='weight'
               value={formData.weight}
               onChange={handleChange}
-              type="number"
+              type='number'
               sx={{ flex: 2 }}
             />
             <TextField
               select
-              label="Unit"
-              name="weightunit"
+              label='Unit'
+              name='weightunit'
               value={formData.weightunit}
               onChange={handleChange}
               sx={{ flex: 1 }}
@@ -227,17 +144,17 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
-              label="Volume"
-              name="volume"
+              label='Volume'
+              name='volume'
               value={formData.volume}
               onChange={handleChange}
-              type="number"
+              type='number'
               sx={{ flex: 2 }}
             />
             <TextField
               select
-              label="Unit"
-              name="volumeunit"
+              label='Unit'
+              name='volumeunit'
               value={formData.volumeunit}
               onChange={handleChange}
               sx={{ flex: 1 }}
@@ -252,8 +169,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
 
           <TextField
             select
-            label="Category"
-            name="productcategoryid"
+            label='Category'
+            name='productcategoryid'
             value={formData.productcategoryid}
             onChange={handleChange}
             fullWidth
@@ -267,8 +184,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
 
           <TextField
             select
-            label="Status"
-            name="isActive"
+            label='Status'
+            name='isActive'
             value={formData.isActive}
             onChange={handleChange}
             fullWidth
@@ -278,11 +195,13 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
           </TextField>
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
-          <Button variant="outlined" onClick={onClose}>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}
+        >
+          <Button variant='outlined' onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleSubmit}>
+          <Button variant='contained' onClick={handleSubmit}>
             Save Changes
           </Button>
         </Box>
