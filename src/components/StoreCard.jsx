@@ -126,6 +126,7 @@ const StoreCard = ({ store }) => {
 
         // Ovo je sad ispravno
         res?.status === 201 ? success++ : fail++;
+        window.location.reload();
       } catch (error) {
         console.error('Error in bulk create:', error);
         fail++;
