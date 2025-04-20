@@ -321,20 +321,21 @@ export const apiCreateProductAsync = async (productData) => {
       return { status: 500, data: null };
     }
   } else {
+    console.log('TEST: ', productData);
     try {
       const formData = new FormData();
-      formData.append('RetailPrice', String(productData.price ?? 0));
+      formData.append('RetailPrice', String(productData.retailPrice ?? 0));
+      formData.append('ProductCategoryId', String(productData.productCategory));
       formData.append(
-        'ProductCategoryId',
-        String(productData.productcategoryid)
+        'WholesalePrice',
+        String(productData.wholesalePrice ?? 0)
       );
-      formData.append('WholesalePrice', String(productData.price ?? 0));
       formData.append('Name', productData.name);
       formData.append('Weight', String(productData.weight ?? 0));
       formData.append('Volume', String(productData.volume ?? 0));
-      formData.append('WeightUnit', productData.weightunit ?? '');
+      formData.append('WeightUnit', productData.weightUnit ?? '');
       formData.append('StoreId', String(productData.storeId));
-      formData.append('VolumeUnit', productData.volumeunit ?? '');
+      formData.append('VolumeUnit', productData.volumeUnit ?? '');
 
       if (productData.photos?.length > 0) {
         productData.photos.forEach((file) => {
@@ -783,11 +784,20 @@ export const apiExportProductsToExcelAsync = async (storeId) => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.get(`/api/Admin/store/${storeId}/products`);
+      const response = await axios.get(`${baseApiUrl}/api/Admin/products`, {
+        params: { storeId },
+      });
+
+      console.log('Dobio odgovor:', response.data);
       const products = response.data;
 
       // Pretvori podatke u Excel format
-      const ws = XLSX.utils.json_to_sheet(products);
+      const flattenedProducts = products.map((product) => ({
+        ...product,
+        productCategory: product.productCategory?.id ?? null,
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(flattenedProducts);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Products');
       const excelData = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -823,12 +833,22 @@ export const apiExportProductsToCSVAsync = async (storeId) => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.get(`/api/Admin/store/${storeId}/products`);
+      const response = await axios.get(`${baseApiUrl}/api/Admin/products`, {
+        params: { storeId },
+      });
       const products = response.data;
 
       // Pretvaranje objekata u CSV string
-      const header = Object.keys(products[0] || {}).join(',');
-      const rows = products.map((product) => Object.values(product).join(','));
+      const flattenedProducts = products.map((product) => ({
+        ...product,
+        productCategory: product.productCategory?.id ?? null,
+      }));
+
+      const header = Object.keys(flattenedProducts[0] || {}).join(',');
+      const rows = flattenedProducts.map((product) =>
+        Object.values(product).join(',')
+      );
+
       const csvContent = [header, ...rows].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
