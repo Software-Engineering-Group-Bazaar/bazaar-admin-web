@@ -203,7 +203,7 @@ const OrdersPage = () => {
                 productId: p.productId,
                 price: p.price,
                 quantity: p.quantity,
-                name: p.name, // ✅ neophodno za match po imenu
+                name: p.name, 
               })),
             }}
           />

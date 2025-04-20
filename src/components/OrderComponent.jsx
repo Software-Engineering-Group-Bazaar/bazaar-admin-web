@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,30 +14,78 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { FaPen, FaCheck } from 'react-icons/fa';
 import OrderItemCard from './OrderItemCard';
-import { apiUpdateOrderAsync, apiUpdateOrderStatusAsync } from '@api/api';
+import {
+  apiUpdateOrderAsync,
+  apiGetAllStoresAsync,
+  apiFetchApprovedUsersAsync,
+} from '@api/api';
 
 const statusOptions = [
-  'requested',
-  'confirmed',
-  'rejected',
-  'ready',
-  'sent',
-  'delivered',
-  'cancelled',
-  'active',
+  'Requested',
+  'Confirmed',
+  'Rejected',
+  'Ready',
+  'Sent',
+  'Delivered',
+  'Cancelled',
 ];
 
-const OrderComponent = ({ open, onClose, narudzba }) => {
+const getStatusColor = (status) => {
+  switch (status.toLowerCase()) {
+    case 'confirmed':
+      return '#0288d1'; // plava
+    case 'rejected':
+      return '#d32f2f'; // crvena
+    case 'ready':
+      return '#388e3c'; // zelena
+    case 'sent':
+      return '#fbc02d'; // žuta
+    case 'delivered':
+      return '#1976d2'; // tamno plava
+    case 'cancelled':
+      return '#b71c1c'; // tamno crvena
+    case 'requested':
+      return '#757575'; // siva
+    default:
+      return '#9e9e9e'; // fallback siva
+  }
+};
+
+const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
   const [editMode, setEditMode] = useState(false);
   const [status, setStatus] = useState(narudzba.status);
-  const [buyer, setBuyer] = useState(narudzba.buyerId);
-  const [store, setStore] = useState(narudzba.storeId);
+  const [buyerId, setBuyerId] = useState(null);
+  const [storeId, setStoreId] = useState(null);
+  const [buyerName] = useState(narudzba.buyerId);
+  const [storeName] = useState(narudzba.storeId);
   const [date, setDate] = useState(
     new Date(narudzba.time).toISOString().slice(0, 16)
   );
   const [products, setProducts] = useState(narudzba.proizvodi || []);
 
-  const [originalStatus] = useState(narudzba.status);
+  useEffect(() => {
+    const fetchMappings = async () => {
+      const [stores, users] = await Promise.all([
+        apiGetAllStoresAsync(),
+        apiFetchApprovedUsersAsync(),
+      ]);
+
+      const storeEntry = stores.find((s) => s.name === narudzba.storeId);
+      const userEntry = users.find(
+        (u) => u.userName === narudzba.buyerId || u.email === narudzba.buyerId
+      );
+
+      if (storeEntry) {
+        setStoreId(storeEntry.id);
+      }
+
+      if (userEntry) {
+        setBuyerId(userEntry.id);
+      }
+    };
+
+    fetchMappings();
+  }, [narudzba.buyerId, narudzba.storeId]);
 
   const handleProductChange = (index, changes) => {
     setProducts((prev) =>
@@ -60,17 +108,28 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
       return;
     }
 
+    if (!storeId) {
+      alert('Greška: Store ID nije validan.');
+      console.log(storeId);
+      return;
+    }
+
+    if (!buyerId) {
+      alert('Greška: Buyer ID nije validan.');
+      return;
+    }
+
     const payload = {
-      buyerId: buyer,
-      storeId: store,
-      status: status,
+      buyerId: String(buyerId),
+      storeId,
+      status,
       time: new Date(date).toISOString(),
       total,
       orderItems: products.map((p, i) => {
         const original = originalOrderItems[i];
         return {
-          id: original.id,
-          productId: original.productId,
+          id: Number(original.id),
+          productId: Number(original.productId),
           price: Number(p.price),
           quantity: Number(p.quantity),
         };
@@ -80,34 +139,117 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
     const res = await apiUpdateOrderAsync(narudzba.id, payload);
 
     if (res.success) {
-      // Ako je status promijenjen, pošalji posebno PUT poziv
-      if (status !== originalStatus) {
-        await apiUpdateOrderStatusAsync(narudzba.id, status);
-      }
       setEditMode(false);
       onClose();
+      window.location.reload();
     } else {
       alert('Neuspješno ažuriranje narudžbe.');
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='xs' fullWidth>
-      <DialogContent sx={{ position: 'relative', px: 3, pt: 3, pb: 4 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth='xs'
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 6,
+          overflow: 'hidden',
+          position: 'relative',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 16px 48px rgba(0,0,0,0.15)',
+        },
+      }}
+    >
+      {/* Bubble Background */}
+      <Box
+        sx={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          top: 0,
+          left: 0,
+          pointerEvents: 'none',
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 180,
+            height: 180,
+            backgroundColor: '#f9d976',
+            opacity: 0.6,
+            borderRadius: '50%',
+            top: -40,
+            left: -40,
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 140,
+            height: 140,
+            backgroundColor: '#f6c343',
+            opacity: 0.5,
+            borderRadius: '50%',
+            bottom: -25,
+            right: -25,
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 90,
+            height: 90,
+            backgroundColor: '#d1d5db',
+            opacity: 0.4,
+            borderRadius: '50%',
+            bottom: 60,
+            left: -20,
+          }}
+        />
+      </Box>
+
+      <DialogContent
+        sx={{ position: 'relative', zIndex: 1, px: 3, pt: 3, pb: 4 }}
+      >
+        {/* Bubble Background */}
+
         <IconButton
           onClick={onClose}
-          sx={{ position: 'absolute', top: 16, right: 16 }}
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            zIndex: 1,
+            width: 36,
+            height: 36,
+            padding: 2,
+            '&:hover': {
+              backgroundColor: '#e0e0e0',
+            },
+          }}
         >
-          <CloseIcon />
+          <CloseIcon sx={{ fontSize: 20 }} />
         </IconButton>
 
-        <Box display='flex' alignItems='center' mb={2}>
+        <Box
+          display='flex'
+          alignItems='center'
+          mb={2}
+          zIndex={1}
+          position='relative'
+        >
           <Typography
             variant='h5'
             fontWeight={800}
             sx={{ color: '#1f2937', mr: 1 }}
           >
-            {`${buyer}'s Order`}
+            {`${buyerName}'s Order`}
           </Typography>
           <IconButton
             onClick={() => setEditMode(!editMode)}
@@ -117,11 +259,8 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
           </IconButton>
         </Box>
 
-        {/* Products */}
         <Box
           sx={{
-            maxHeight: 260,
-            overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
             mb: 3,
@@ -147,7 +286,6 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
           ))}
         </Box>
 
-        {/* Order Info */}
         <Box mb={2}>
           <Typography fontWeight={700} mb={2} fontSize='1rem' color='#4a0404'>
             Order Info
@@ -160,28 +298,12 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
 
           <Box display='flex' justifyContent='space-between' mb={1}>
             <Typography color='text.secondary'>Buyer:</Typography>
-            {editMode ? (
-              <TextField
-                variant='standard'
-                value={buyer}
-                onChange={(e) => setBuyer(e.target.value)}
-              />
-            ) : (
-              <Typography fontWeight={600}>{buyer}</Typography>
-            )}
+            <Typography fontWeight={600}>{buyerName}</Typography>
           </Box>
 
           <Box display='flex' justifyContent='space-between' mb={1}>
             <Typography color='text.secondary'>Store:</Typography>
-            {editMode ? (
-              <TextField
-                variant='standard'
-                value={store}
-                onChange={(e) => setStore(e.target.value)}
-              />
-            ) : (
-              <Typography fontWeight={600}>{store}</Typography>
-            )}
+            <Typography fontWeight={600}>{storeName}</Typography>
           </Box>
 
           <Box display='flex' justifyContent='space-between' mb={1}>
@@ -203,10 +325,17 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
             ) : (
               <Chip
                 label={status}
-                color='success'
                 size='small'
-                onClick={() => setEditMode(true)}
-                sx={{ cursor: 'pointer' }}
+                sx={{
+                  backgroundColor: getStatusColor(status),
+                  color: '#fff',
+                  fontWeight: 500,
+                  fontSize: '0.75rem',
+                  px: 1,
+                  height: '24px',
+                  borderRadius: '10px',
+                  textTransform: 'capitalize',
+                }}
               />
             )}
           </Box>
