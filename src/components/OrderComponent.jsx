@@ -63,7 +63,7 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
     const payload = {
       buyerId: buyer,
       storeId: store,
-      status: status === 'active' ? 1 : 0,
+      status: status,
       time: new Date(date).toISOString(),
       total,
       orderItems: products.map((p, i) => {

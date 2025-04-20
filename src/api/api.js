@@ -865,7 +865,6 @@ export const apiFetchOrdersAsync = async () => {
   }
 };
 
-
 const mapOrderStatus = (code) => {
   return (
     {
@@ -879,8 +878,6 @@ const mapOrderStatus = (code) => {
     }[code] || 'unknown'
   );
 };
-
-
 
 export const apiFetchGeographyAsync = async () => {
   apiSetAuthHeader();
@@ -897,7 +894,6 @@ export const apiFetchGeographyAsync = async () => {
   }
 };
 
-
 export const apiDeleteOrderAsync = async (orderId) => {
   apiSetAuthHeader();
   try {
@@ -913,6 +909,7 @@ export const apiUpdateOrderAsync = async (orderId, payload) => {
   apiSetAuthHeader();
 
   try {
+    console.log(payload);
     const response = await axios.put(
       `${baseApiUrl}/api/Admin/order/update/${orderId}`,
       {
@@ -955,11 +952,3 @@ export const apiUpdateOrderStatusAsync = async (orderId, newStatus) => {
     return { success: false, message: error.message };
   }
 };
-
-
-
-
-
-
-
-
