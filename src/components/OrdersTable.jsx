@@ -18,25 +18,21 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 const getStatusColor = (status) => {
-  switch (status.toLowerCase()) {
-    case 'active':
-      return 'success';
-    case 'cancelled':
-      return 'error';
-    case 'pending':
-      return 'warning';
-    case 'requested':
-      return 'info';
+  switch (status) {
     case 'confirmed':
-      return 'primary';
+      return '#0288d1'; // plava
+    case 'rejected':
+      return '#d32f2f'; // crvena
     case 'ready':
-      return 'success';
+      return '#388e3c'; // zelena
     case 'sent':
-      return 'info';
+      return '#fbc02d'; // žuta
     case 'delivered':
-      return 'secondary';
+      return '#1976d2'; // tamno plava
+    case 'cancelled':
+      return '#b71c1c'; // tamno crvena
     default:
-      return 'default';
+      return '#9e9e9e'; // siva
   }
 };
 
@@ -127,18 +123,17 @@ const OrdersTable = ({
               <TableCell>{order.storeName}</TableCell>
               <TableCell>
                 <Chip
-                  label={
-                    order.status.charAt(0).toUpperCase() + order.status.slice(1)
-                  }
-                  color={getStatusColor(order.status)}
-                  icon={<CircleIcon sx={{ fontSize: 10, ml: 0.5 }} />}
+                  label={order.status}
+                  size='small'
                   sx={{
+                    backgroundColor: getStatusColor(order.status.toLowerCase()),
+                    color: '#fff',
                     fontWeight: 500,
                     fontSize: '0.75rem',
-                    pl: 0.5,
-                    borderRadius: '10px',
-                    color: '#fff',
+                    px: 1,
                     height: '24px',
+                    borderRadius: '10px',
+                    textTransform: 'capitalize',
                   }}
                 />
               </TableCell>

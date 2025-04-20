@@ -850,9 +850,9 @@ export const apiFetchOrdersAsync = async () => {
     const orders = res.data;
     return orders.map((order) => ({
       id: order.id,
-      status: mapOrderStatus(order.status),
+      status: order.status,
       buyerName: order.buyerId,
-      storeName: order.storeId, // <-- ovo ostaje ID
+      storeName: order.storeId,
       deliveryAddress: 'Not available',
       createdAt: order.time,
       totalPrice: order.total,
