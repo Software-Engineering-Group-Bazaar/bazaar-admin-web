@@ -101,7 +101,7 @@ const AddProductModal = ({ open, onClose, storeID }) => {
 
     try {
       const response = await apiCreateProductAsync(productData);
-      if (response?.success) {
+      if (response?.status >= 200 && response?.status < 300) {
         setSuccessModal({
           open: true,
           isSuccess: true,

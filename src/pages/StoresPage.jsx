@@ -10,7 +10,7 @@ const StoresPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [openModal, setOpenModal] = useState(false);
-  const storesPerPage = 16;
+  const storesPerPage = 8;
 
   const [allStores, setAllStores] = useState([]);
 

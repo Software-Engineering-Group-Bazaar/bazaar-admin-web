@@ -53,7 +53,8 @@ const ImageUploader = ({ onFilesSelected }) => {
         sx={{
           border: '2px dashed #ccc',
           borderRadius: 4,
-          p: 4,
+          px: 4,
+          py:1,
           textAlign: 'center',
           backgroundColor: isDragActive ? '#f0f0f0' : '#fafafa',
           cursor: 'pointer',
@@ -77,50 +78,97 @@ const ImageUploader = ({ onFilesSelected }) => {
       </Box>
 
       {/* File Preview List */}
-      {files.map((f, i) => (
-        <Box
-          key={i}
-          sx={{
-            mb: 1,
-            px: 2,
-            py: 1,
-            border: '1px solid #ddd',
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            backgroundColor: '#f9f9f9',
-          }}
-        >
+      <Box
+        sx={{
+          display: 'flex',
+          overflowX: 'auto',
+          gap: 1.5,
+          py: 1,
+          px: 0.5,
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': {
+            height: 6,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#bbb',
+            borderRadius: 20,
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent',
+          },
+        }}
+      >
+        {files.map((f, i) => (
           <Box
+            key={i}
             sx={{
-              width: 12,
-              height: 12,
-              borderRadius: '50%',
-              backgroundColor: f.status === 'success' ? '#3f51b5' : '#f44336',
+              minWidth: 180,
+              maxWidth: 180,
+              px: 1.5,
+              py: 1,
+              border: '1px solid #ddd',
+              borderRadius: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0.5,
+              backgroundColor: '#fdfdfd',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              position: 'relative',
             }}
-          />
-          <Box sx={{ flex: 1 }}>
-            <Typography fontSize={14}>
-              {f.name} &nbsp; {formatSize(f.size)}
+          >
+            <IconButton
+              size='small'
+              onClick={() => removeFile(f.name)}
+              sx={{ position: 'absolute', top: 4, right: 4 }}
+            >
+              <Cancel fontSize='small' />
+            </IconButton>
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  backgroundColor:
+                    f.status === 'success' ? '#4caf50' : '#f44336',
+                }}
+              />
+              <Typography fontSize={12} noWrap>
+                {f.name}
+              </Typography>
+            </Box>
+
+            <Typography fontSize={11} color='text.secondary'>
+              {formatSize(f.size)}
             </Typography>
+
             <LinearProgress
               variant='determinate'
               value={100}
               color={f.status === 'success' ? 'primary' : 'error'}
-              sx={{ mt: 0.5, height: 6, borderRadius: 5 }}
+              sx={{ height: 5, borderRadius: 3 }}
             />
+
             {f.status === 'error' && (
-              <Typography variant='caption' color='error'>
-                File size exceeds the limit
+              <Typography
+                variant='caption'
+                color='error'
+                fontSize={11}
+                sx={{ mt: 0.5 }}
+              >
+                File too large
               </Typography>
             )}
           </Box>
-          <IconButton onClick={() => removeFile(f.name)}>
-            <Cancel fontSize='small' />
-          </IconButton>
-        </Box>
-      ))}
+        ))}
+      </Box>
     </Box>
   );
 };

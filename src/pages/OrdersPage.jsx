@@ -1,10 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Box, Tabs, Tab } from '@mui/material';
+import { Box } from '@mui/material';
 import Sidebar from '@components/Sidebar';
 import OrdersTable from '../components/OrdersTable';
 import OrderDetailsPopup from '../components/OrderComponent';
 import OrdersHeader from '@sections/OrdersHeader';
 import UserManagementPagination from '@components/UserManagementPagination';
+import {
+  apiFetchOrdersAsync,
+  apiFetchApprovedUsersAsync,
+  apiGetAllStoresAsync,
+  apiDeleteOrderAsync,
+  apiGetProductCategoriesAsync,
+  apiGetStoreProductsAsync,
+} from '@api/api';
 
 const OrdersPage = () => {
   const [tabValue, setTabValue] = useState('all');
@@ -14,145 +22,71 @@ const OrdersPage = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [orders, setOrders] = useState([]);
   const ordersPerPage = 10;
 
-  const orders = [
-    {
-      id: 1,
-      status: 'active',
-      buyerName: 'Tarik',
-      storeName: 'Konzum',
-      deliveryAddress: '456 Avenue, Chicago',
-      createdAt: '2024-04-15T09:30:00',
-      totalPrice: 80,
-      isCancelled: false,
-      products: [{ price: 80, quantity: 1 }],
-    },
-    {
-      id: 2,
-      status: 'cancelled',
-      buyerName: 'Mahir',
-      storeName: 'Amko',
-      deliveryAddress: '123 Street, New York',
-      createdAt: '2024-04-18T12:00:00',
-      totalPrice: 120,
-      isCancelled: true,
-      products: [
-        { price: 40, quantity: 2 },
-        { price: 20, quantity: 2 },
-      ],
-    },
-    {
-      id: 3,
-      status: 'requested',
-      buyerName: 'Hana',
-      storeName: 'Bauhaus',
-      deliveryAddress: 'Tool Road, Munich',
-      createdAt: '2024-04-17T14:00:00',
-      totalPrice: 40,
-      isCancelled: false,
-      products: [{ price: 20, quantity: 2 }],
-    },
-    {
-      id: 4,
-      status: 'delivered',
-      buyerName: 'Ajla',
-      storeName: 'Bingo',
-      deliveryAddress: 'Bingo Lane, LA',
-      createdAt: '2024-04-10T10:15:00',
-      totalPrice: 55,
-      isCancelled: false,
-      products: [{ price: 55, quantity: 1 }],
-    },
-    {
-      id: 5,
-      status: 'ready',
-      buyerName: 'Faris',
-      storeName: 'Hoše',
-      deliveryAddress: 'Hoše Drive, Mostar',
-      createdAt: '2024-04-11T09:00:00',
-      totalPrice: 65,
-      isCancelled: false,
-      products: [{ price: 65, quantity: 1 }],
-    },
-    {
-      id: 6,
-      status: 'sent',
-      buyerName: 'Lejla',
-      storeName: 'DM',
-      deliveryAddress: 'Beauty St, Vienna',
-      createdAt: '2024-04-12T11:30:00',
-      totalPrice: 85,
-      isCancelled: false,
-      products: [{ price: 85, quantity: 1 }],
-    },
-    {
-      id: 7,
-      status: 'confirmed',
-      buyerName: 'Nedim',
-      storeName: 'Interex',
-      deliveryAddress: 'Center Blvd, Sarajevo',
-      createdAt: '2024-04-13T15:30:00',
-      totalPrice: 95,
-      isCancelled: false,
-      products: [{ price: 95, quantity: 1 }],
-    },
-    {
-      id: 8,
-      status: 'cancelled',
-      buyerName: 'Sara',
-      storeName: 'Robot',
-      deliveryAddress: 'Green Way, Tuzla',
-      createdAt: '2024-04-14T12:00:00',
-      totalPrice: 100,
-      isCancelled: true,
-      products: [{ price: 50, quantity: 2 }],
-    },
-    {
-      id: 9,
-      status: 'active',
-      buyerName: 'Adnan',
-      storeName: 'Amko',
-      deliveryAddress: 'Amko Drive, Zenica',
-      createdAt: '2024-04-16T08:30:00',
-      totalPrice: 110,
-      isCancelled: false,
-      products: [{ price: 110, quantity: 1 }],
-    },
-    {
-      id: 10,
-      status: 'ready',
-      buyerName: 'Ajla',
-      storeName: 'Bingo',
-      deliveryAddress: 'Bingo Road, LA',
-      createdAt: '2024-04-17T13:45:00',
-      totalPrice: 130,
-      isCancelled: false,
-      products: [{ price: 65, quantity: 2 }],
-    },
-    {
-      id: 11,
-      status: 'active',
-      buyerName: 'Adnan',
-      storeName: 'Amko',
-      deliveryAddress: 'Amko Drive, Zenica',
-      createdAt: '2024-04-16T08:30:00',
-      totalPrice: 110,
-      isCancelled: false,
-      products: [{ price: 110, quantity: 1 }],
-    },
-    {
-      id: 12,
-      status: 'ready',
-      buyerName: 'Ajla',
-      storeName: 'Bingo',
-      deliveryAddress: 'Bingo Road, LA',
-      createdAt: '2024-04-17T13:45:00',
-      totalPrice: 130,
-      isCancelled: false,
-      products: [{ price: 65, quantity: 2 }],
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const [ordersData, users, stores, categories] = await Promise.all([
+        apiFetchOrdersAsync(),
+        apiFetchApprovedUsersAsync(),
+        apiGetAllStoresAsync(),
+        apiGetProductCategoriesAsync(),
+      ]);
+
+      const allProducts = [];
+      for (const store of stores) {
+        const res = await apiGetStoreProductsAsync(store.id);
+        if (res.status === 200) {
+          allProducts.push(...res.data);
+        }
+      }
+
+      const usersMap = Object.fromEntries(
+        users.map((u) => [u.id, u.userName || u.email])
+      );
+      const storesMap = Object.fromEntries(stores.map((s) => [s.id, s.name]));
+      const productsMap = Object.fromEntries(allProducts.map((p) => [p.id, p]));
+      const categoryMap = Object.fromEntries(
+        categories.map((c) => [c.id, c.name])
+      );
+
+      console.log(ordersData);
+
+      const enrichedOrders = ordersData.map((order) => ({
+        ...order,
+        buyerName: usersMap[order.buyerName] ?? order.buyerName,
+        storeName: storesMap[parseInt(order.storeName)] ?? order.storeName,
+        _productDetails: (order.products ?? []).map((p) => {
+          const prod = productsMap[p.productId] ?? {};
+          return {
+            name: prod.name ?? `Product ${p.productId}`,
+            quantity: p.quantity,
+            price: p.price,
+            imageUrl: prod.photos?.[0]
+              ? `${import.meta.env.VITE_API_BASE_URL}${prod.photos[0]}`
+              : 'https://via.placeholder.com/80',
+
+            tagIcon: '🏷️',
+            tagLabel: prod.productCategory?.name ?? 'Unknown Category',
+          };
+        }),
+      }));
+
+      setOrders(enrichedOrders);
+    };
+
+    fetchData();
+  }, []);
+
+  const handleDeleteOrder = async (orderId) => {
+    const res = await apiDeleteOrderAsync(orderId);
+    if (res.status === 204) {
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    } else {
+      alert('Failed to delete order.');
+    }
+  };
 
   const filteredOrders = useMemo(() => {
     const filteredByTab =
@@ -242,6 +176,7 @@ const OrdersPage = () => {
               setSortOrder(order);
             }}
             onOrderClick={(order) => setSelectedOrder(order)}
+            onDelete={handleDeleteOrder}
           />
         </Box>
 
@@ -262,13 +197,13 @@ const OrdersPage = () => {
               status: selectedOrder.status,
               time: selectedOrder.createdAt,
               total: selectedOrder.totalPrice,
-              proizvodi: selectedOrder.products.map((p, i) => ({
-                name: `Product ${i + 1}`,
-                quantity: p.quantity,
+              proizvodi: selectedOrder._productDetails,
+              orderItems: selectedOrder.products.map((p) => ({
+                id: p.id,
+                productId: p.productId,
                 price: p.price,
-                imageUrl: 'https://via.placeholder.com/80',
-                tagIcon: '🍽️',
-                tagLabel: 'Food',
+                quantity: p.quantity,
+                name: p.name, // ✅ neophodno za match po imenu
               })),
             }}
           />

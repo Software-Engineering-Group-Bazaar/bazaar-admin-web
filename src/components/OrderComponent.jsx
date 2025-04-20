@@ -8,21 +8,23 @@ import {
   Button,
   Divider,
   TextField,
-  MenuItem,
   Chip,
+  MenuItem,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { FaPen, FaCheck } from 'react-icons/fa';
 import OrderItemCard from './OrderItemCard';
+import { apiUpdateOrderAsync, apiUpdateOrderStatusAsync } from '@api/api';
 
 const statusOptions = [
-  'Requested',
-  'Confirmed',
-  'Rejected',
-  'Ready',
-  'Sent',
-  'Delivered',
-  'Cancelled',
+  'requested',
+  'confirmed',
+  'rejected',
+  'ready',
+  'sent',
+  'delivered',
+  'cancelled',
+  'active',
 ];
 
 const OrderComponent = ({ open, onClose, narudzba }) => {
@@ -30,7 +32,12 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
   const [status, setStatus] = useState(narudzba.status);
   const [buyer, setBuyer] = useState(narudzba.buyerId);
   const [store, setStore] = useState(narudzba.storeId);
+  const [date, setDate] = useState(
+    new Date(narudzba.time).toISOString().slice(0, 16)
+  );
   const [products, setProducts] = useState(narudzba.proizvodi || []);
+
+  const [originalStatus] = useState(narudzba.status);
 
   const handleProductChange = (index, changes) => {
     setProducts((prev) =>
@@ -40,81 +47,53 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
 
   const total = useMemo(() => {
     return products.reduce(
-      (sum, p) => sum + parseFloat(p.price) * parseInt(p.quantity),
+      (sum, p) => sum + parseFloat(p.price || 0) * parseInt(p.quantity || 0),
       0
     );
   }, [products]);
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth='xs'
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 6,
-          overflow: 'hidden',
-          position: 'relative',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 16px 48px rgba(0,0,0,0.15)',
-        },
-      }}
-    >
-      {/* Bubble Background */}
-      <Box
-        sx={{
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          zIndex: 0,
-          top: 0,
-          left: 0,
-          pointerEvents: 'none',
-          overflow: 'hidden',
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 180,
-            height: 180,
-            backgroundColor: '#f9d976',
-            opacity: 0.6,
-            borderRadius: '50%',
-            top: -40,
-            left: -40,
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 140,
-            height: 140,
-            backgroundColor: '#f6c343',
-            opacity: 0.5,
-            borderRadius: '50%',
-            bottom: -25,
-            right: -25,
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            width: 90,
-            height: 90,
-            backgroundColor: '#d1d5db',
-            opacity: 0.4,
-            borderRadius: '50%',
-            bottom: 60,
-            left: -20,
-          }}
-        />
-      </Box>
+  const handleSaveChanges = async () => {
+    const originalOrderItems = narudzba.orderItems || [];
 
-      <DialogContent
-        sx={{ position: 'relative', zIndex: 1, px: 3, pt: 3, pb: 4 }}
-      >
+    if (originalOrderItems.length !== products.length) {
+      alert('Greška: broj proizvoda se ne poklapa.');
+      return;
+    }
+
+    const payload = {
+      buyerId: buyer,
+      storeId: store,
+      status: status === 'active' ? 1 : 0,
+      time: new Date(date).toISOString(),
+      total,
+      orderItems: products.map((p, i) => {
+        const original = originalOrderItems[i];
+        return {
+          id: original.id,
+          productId: original.productId,
+          price: Number(p.price),
+          quantity: Number(p.quantity),
+        };
+      }),
+    };
+
+    const res = await apiUpdateOrderAsync(narudzba.id, payload);
+
+    if (res.success) {
+      // Ako je status promijenjen, pošalji posebno PUT poziv
+      if (status !== originalStatus) {
+        await apiUpdateOrderStatusAsync(narudzba.id, status);
+      }
+      setEditMode(false);
+      onClose();
+    } else {
+      alert('Neuspješno ažuriranje narudžbe.');
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth='xs' fullWidth>
+      <DialogContent sx={{ position: 'relative', px: 3, pt: 3, pb: 4 }}>
         <IconButton
           onClick={onClose}
           sx={{ position: 'absolute', top: 16, right: 16 }}
@@ -122,15 +101,7 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
           <CloseIcon />
         </IconButton>
 
-        {/* Title */}
-        <Box
-          display='flex'
-          alignItems='center'
-          mb={2}
-          sx={{
-            '&:hover .edit-icon': { opacity: 1, transform: 'translateX(0)' },
-          }}
-        >
+        <Box display='flex' alignItems='center' mb={2}>
           <Typography
             variant='h5'
             fontWeight={800}
@@ -139,21 +110,14 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
             {`${buyer}'s Order`}
           </Typography>
           <IconButton
-            className='edit-icon'
             onClick={() => setEditMode(!editMode)}
-            sx={{
-              opacity: 0,
-              transition: 'all 0.2s ease',
-              transform: 'translateX(-8px)',
-              color: '#6b7280',
-              p: 0.5,
-            }}
+            sx={{ color: '#6b7280', p: 0.5 }}
           >
             {editMode ? <FaCheck size={14} /> : <FaPen size={14} />}
           </IconButton>
         </Box>
 
-        {/* Product list */}
+        {/* Products */}
         <Box
           sx={{
             maxHeight: 260,
@@ -162,18 +126,6 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
             flexDirection: 'column',
             mb: 3,
             pr: 1,
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#f6c343 transparent',
-            '&::-webkit-scrollbar': {
-              width: '6px',
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'transparent',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: '#f6c343',
-              borderRadius: 8,
-            },
           }}
         >
           {products.map((item, idx) => (
@@ -243,7 +195,7 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
                 sx={{ minWidth: 120 }}
               >
                 {statusOptions.map((option) => (
-                  <MenuItem key={option} value={option.toLowerCase()}>
+                  <MenuItem key={option} value={option}>
                     {option}
                   </MenuItem>
                 ))}
@@ -251,23 +203,29 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
             ) : (
               <Chip
                 label={status}
-                color={
-                  status === 'cancelled'
-                    ? 'error'
-                    : status === 'active'
-                      ? 'success'
-                      : 'default'
-                }
+                color='success'
                 size='small'
+                onClick={() => setEditMode(true)}
+                sx={{ cursor: 'pointer' }}
               />
             )}
           </Box>
 
           <Box display='flex' justifyContent='space-between' mb={1}>
             <Typography color='text.secondary'>Date:</Typography>
-            <Typography fontWeight={500}>
-              {new Date(narudzba.time).toLocaleString()}
-            </Typography>
+            {editMode ? (
+              <TextField
+                variant='standard'
+                type='datetime-local'
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                sx={{ ml: 2 }}
+              />
+            ) : (
+              <Typography fontWeight={500}>
+                {new Date(narudzba.time).toLocaleString()}
+              </Typography>
+            )}
           </Box>
         </Box>
 
@@ -290,6 +248,7 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
         <Button
           fullWidth
           variant='contained'
+          onClick={handleSaveChanges}
           sx={{
             mt: 4,
             py: 1.6,
@@ -298,15 +257,9 @@ const OrderComponent = ({ open, onClose, narudzba }) => {
             fontSize: '1rem',
             background: 'linear-gradient(to right, #fbbc05, #f6c343)',
             color: '#000',
-            boxShadow: '0px 4px 14px rgba(251, 188, 5, 0.3)',
-            textTransform: 'none',
-            '&:hover': {
-              background: 'linear-gradient(to right, #f6c343, #fbbc05)',
-              boxShadow: '0px 6px 18px rgba(251, 188, 5, 0.45)',
-            },
           }}
         >
-          Checkout
+          Save Changes
         </Button>
       </DialogContent>
     </Dialog>

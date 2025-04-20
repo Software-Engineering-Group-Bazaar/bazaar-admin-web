@@ -141,11 +141,11 @@ export const apiCreateUserAsync = async (newUserPayload) => {
         password: newUserPayload.password,
         id: users.length + 1,
         isApproved: false,
-        roles:[newUserPayload.role]
+        roles: [newUserPayload.role],
       };
       //users.push(newUser);
       pendingUsers.push(newUser);
-      return {data: newUser};
+      return { data: newUser };
     } catch (error) {
       console.error('Greška pri kreiranju korisnika:', error);
       throw error;
@@ -276,15 +276,24 @@ export const apiDeleteUserAsync = async (userId) => {
  * @param {number} storeId - ID of the store
  * @returns {Promise<{status: number, data: Array}>} List of products
  */
-export const apiGetStoreProductsAsync = async (storeId) => {
+export const apiGetStoreProductsAsync = async (storeId, categoryId = null) => {
   if (API_ENV_DEV === API_FLAG) {
     return {
       status: 200,
-      data: products.filter(p => p.storeId === storeId)
+      data: products.filter((p) => p.storeId === storeId),
     };
   } else {
     try {
-      const response = await axios.get(`${baseApiUrl}/api/Admin/stores/${storeId}/products`);
+      apiSetAuthHeader();
+      const params = new URLSearchParams();
+      params.append('storeId', storeId);
+      if (categoryId !== null) {
+        params.append('categoryId', categoryId);
+      }
+
+      const response = await axios.get(
+        `${baseApiUrl}/api/Admin/products?${params.toString()}`
+      );
       return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Error fetching store products:', error);
@@ -303,7 +312,7 @@ export const apiCreateProductAsync = async (productData) => {
     try {
       const newProduct = {
         id: products.length + 1,
-        ...productData
+        ...productData,
       };
       products.push(newProduct);
       return { status: 201, data: newProduct };
@@ -315,7 +324,10 @@ export const apiCreateProductAsync = async (productData) => {
     try {
       const formData = new FormData();
       formData.append('RetailPrice', String(productData.price ?? 0));
-      formData.append('ProductCategoryId', String(productData.productcategoryid));
+      formData.append(
+        'ProductCategoryId',
+        String(productData.productcategoryid)
+      );
       formData.append('WholesalePrice', String(productData.price ?? 0));
       formData.append('Name', productData.name);
       formData.append('Weight', String(productData.weight ?? 0));
@@ -355,51 +367,39 @@ export const apiCreateProductAsync = async (productData) => {
  * @returns {Promise<{status: number, data: Object}>} Updated product
  */
 export const apiUpdateProductAsync = async (productData) => {
-  if (API_ENV_DEV === API_FLAG) {
-    const index = products.findIndex(p => p.id === productData.id);
-    if (index !== -1) {
-      products[index] = { ...products[index], ...productData };
-      return { status: 200, data: products[index] };
-    }
-    return { status: 404, data: null };
-  } else {
-    try {
-      const formData = new FormData();
-      formData.append('ProductId', String(productData.id));
-      formData.append('RetailPrice', String(productData.price ?? 0));
-      formData.append('WholesalePrice', String(productData.price ?? 0));
-      formData.append('ProductCategoryId', String(productData.productcategoryid));
-      formData.append('Name', productData.name);
-      formData.append('Weight', String(productData.weight ?? 0));
-      formData.append('Volume', String(productData.volume ?? 0));
-      formData.append('WeightUnit', productData.weightunit ?? '');
-      formData.append('VolumeUnit', productData.volumeunit ?? '');
-      formData.append('IsActive', String(productData.isActive ?? true));
+  apiSetAuthHeader();
+  try {
+    const payload = {
+      name: productData.name,
+      retailPrice: Number(productData.price ?? 0),
+      wholesaleThreshold: 0,
+      wholesalePrice: Number(productData.price ?? 0),
+      productCategoryId: Number(productData.productcategoryid),
+      weight: Number(productData.weight ?? 0),
+      volume: Number(productData.volume ?? 0),
+      weightUnit: productData.weightunit ?? '',
+      volumeUnit: productData.volumeunit ?? '',
+      storeId: Number(productData.storeId),
+      isActive: productData.isActive ?? true,
+      files:
+        productData.photos?.map((f) => (typeof f === 'string' ? f : f.path)) ??
+        [],
+    };
 
-      if (productData.photos?.length > 0) {
-        productData.photos.forEach((photo) => {
-          if (photo instanceof File) {
-            formData.append('Files', photo, photo.name);
-          } else {
-            formData.append('ExistingPhotos', photo); 
-          }
-        });
+    const response = await axios.put(
+      `${baseApiUrl}/api/Admin/products/${productData.id}`,
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
+    );
 
-      const response = await axios.put(
-        `${baseApiUrl}/api/Admin/products/update/${productData.id}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      return { status: response.status, data: response.data };
-    } catch (error) {
-      console.error('Error updating product:', error);
-      return { status: error.response?.status || 500, data: null };
-    }
+    return { status: response.status, data: response.data };
+  } catch (error) {
+    console.error('Error updating product:', error);
+    return { status: error.response?.status || 500, data: null };
   }
 };
 
@@ -410,7 +410,7 @@ export const apiUpdateProductAsync = async (productData) => {
  */
 export const apiDeleteProductAsync = async (productId) => {
   if (API_ENV_DEV === API_FLAG) {
-    const index = products.findIndex(p => p.id === productId);
+    const index = products.findIndex((p) => p.id === productId);
     if (index !== -1) {
       products.splice(index, 1);
       return { status: 204, data: null };
@@ -418,7 +418,9 @@ export const apiDeleteProductAsync = async (productId) => {
     return { status: 404, data: null };
   } else {
     try {
-      const response = await axios.delete(`${baseApiUrl}/api/Admin/products/${productId}`);
+      const response = await axios.delete(
+        `${baseApiUrl}/api/Admin/products/${productId}`
+      );
       return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -470,10 +472,10 @@ export const apiGetStoreByIdAsync = async (storeId) => {
 
 export const apiUpdateStoreAsync = async (store) => {
   if (API_ENV_DEV === API_FLAG) {
-    const index = stores.indexOf((st) => store.name==st.name)
-    stores[index]={
-      ...store
-    }
+    const index = stores.indexOf((st) => store.name == st.name);
+    stores[index] = {
+      ...store,
+    };
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, data: store }), 500)
     );
@@ -494,7 +496,7 @@ export const apiUpdateStoreAsync = async (store) => {
 export const apiGetAllStoresAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
     //izbrisati poslije
-    return stores
+    return stores;
     //return new Promise((resolve) => setTimeout(() => resolve({stores}), 500));
   } else {
     apiSetAuthHeader();
@@ -509,9 +511,9 @@ export const apiDeleteProductCategoryAsync = async (categoryId) => {
   if (API_ENV_DEV === API_FLAG) {
     const rez = categories.filter((cat) => cat.id == categoryId);
     const index = categories.indexOf(rez);
-    if(index>-1){
-      categories.splice(index,1);
-      console.log("deleted");
+    if (index > -1) {
+      categories.splice(index, 1);
+      console.log('deleted');
     }
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, deletedId: categoryId }), 500)
@@ -527,9 +529,9 @@ export const apiDeleteStoreCategoryAsync = async (categoryId) => {
   if (API_ENV_DEV === API_FLAG) {
     const rez = categories.filter((cat) => cat.id == categoryId);
     const index = categories.indexOf(rez);
-    if(index>-1){
-      categories.splice(index,1);
-      console.log("deleted");
+    if (index > -1) {
+      categories.splice(index, 1);
+      console.log('deleted');
     }
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, deletedId: categoryId }), 500)
@@ -542,23 +544,23 @@ export const apiDeleteStoreCategoryAsync = async (categoryId) => {
 
 export const apiAddProductCategoryAsync = async (name) => {
   if (API_ENV_DEV === API_FLAG) {
-    try{
-    const newCategory = {
-      id: categories.length+1,
-      name: name,
-      type: "product",
+    try {
+      const newCategory = {
+        id: categories.length + 1,
+        name: name,
+        type: 'product',
+      };
+      categories.push(newCategory);
+      return { data: newCategory };
+    } catch (error) {
+      console.log('Error pri kreiranju kategorije proizvoda!');
+      throw error;
     }
-    categories.push(newCategory);
-    return {data: newCategory};
-  } catch(error){
-    console.log("Error pri kreiranju kategorije proizvoda!");
-    throw error;
-  }
     //return new Promise((resolve) =>
-      //setTimeout(
-        //() => resolve({ success: true, data: { id: Date.now(), name } }),
-        //500
-      //)
+    //setTimeout(
+    //() => resolve({ success: true, data: { id: Date.now(), name } }),
+    //500
+    //)
     //);
   } else {
     apiSetAuthHeader();
@@ -576,23 +578,23 @@ export const apiAddProductCategoryAsync = async (name) => {
 
 export const apiAddStoreCategoryAsync = async (name) => {
   if (API_ENV_DEV === API_FLAG) {
-    try{
+    try {
       const newCategory = {
-        id: categories.length+1,
+        id: categories.length + 1,
         name: name,
-        type: "store",
-      }
+        type: 'store',
+      };
       categories.push(newCategory);
       return newCategory;
-    } catch(error){
-      console.log("Error pri kreiranju kategorije trgovine!");
+    } catch (error) {
+      console.log('Error pri kreiranju kategorije trgovine!');
       throw error;
     }
-   // return new Promise((resolve) =>
-   //   setTimeout(
-   //     () => resolve({ success: true, data: { id: Date.now(), name } }),
-   //     500
-   //   )
+    // return new Promise((resolve) =>
+    //   setTimeout(
+    //     () => resolve({ success: true, data: { id: Date.now(), name } }),
+    //     500
+    //   )
     //);
   } else {
     apiSetAuthHeader();
@@ -610,10 +612,10 @@ export const apiAddStoreCategoryAsync = async (name) => {
 };
 
 export const apiUpdateProductCategoryAsync = async (updatedCategory) => {
-  if (API_ENV_DEV === API_FLAG){
+  if (API_ENV_DEV === API_FLAG) {
     const index = categories.findIndex((cat) => cat.id === updatedCategory);
-    categories[index]={
-      ...updatedCategory
+    categories[index] = {
+      ...updatedCategory,
     };
     //???
   }
@@ -631,36 +633,35 @@ export const apiUpdateProductCategoryAsync = async (updatedCategory) => {
 };
 
 export const apiUpdateStoreCategoryAsync = async (updatedCategory) => {
-  if (API_ENV_DEV === API_FLAG){
-    const index = categories.findIndex((cat) => cat.name === updatedCategory.name);
-    categories[index]={
-      ...updatedCategory
+  if (API_ENV_DEV === API_FLAG) {
+    const index = categories.findIndex(
+      (cat) => cat.name === updatedCategory.name
+    );
+    categories[index] = {
+      ...updatedCategory,
     };
     return { success: true, data: response.data };
   } else {
-  apiSetAuthHeader();
-  try {
-    const response = await axios.put(
-      `${baseApiUrl}/api/Admin/store/category/${updatedCategory.id}`,
-      { name: updatedCategory.name }
-    );
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error('Error updating store category:', error);
-    return { success: false, message: error.message };
+    apiSetAuthHeader();
+    try {
+      const response = await axios.put(
+        `${baseApiUrl}/api/Admin/store/category/${updatedCategory.id}`,
+        { name: updatedCategory.name }
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error updating store category:', error);
+      return { success: false, message: error.message };
+    }
   }
-}
 };
 
 export const apiAddStoreAsync = async (newStore) => {
   if (API_ENV_DEV === API_FLAG) {
-    stores.push(newStore);
-    return new Promise((resolve) =>
-      setTimeout(
-        () => resolve({ success: true, data: { ...newStore, id: Date.now() } }),
-        800
-      )
-    );
+    return {
+      status: 201,
+      data: { ...newStore, id: Date.now() },
+    };
   } else {
     apiSetAuthHeader();
     try {
@@ -671,9 +672,9 @@ export const apiAddStoreAsync = async (newStore) => {
           categoryId: newStore.categoryid,
           address: newStore.address,
           description: newStore.description,
+          placeId: newStore.placeId,
         }
       );
-      console.log(response);
       return response;
     } catch (error) {
       console.error('Greška pri kreiranju prodavnice:', error);
@@ -687,10 +688,10 @@ export const apiDeleteStoreAsync = async (storeId) => {
     const rez = stores.find((store) => store.id == storeId);
     const index = stores.indexOf(rez);
     //console.log(index);
-    if(index>-1){
-      stores.splice(index,1);
-      console.log(storeId)
-      console.log(rez.id)
+    if (index > -1) {
+      stores.splice(index, 1);
+      console.log(storeId);
+      console.log(rez.id);
     }
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, deletedId: storeId }), 500)
@@ -713,8 +714,8 @@ export const apiDeleteStoreAsync = async (storeId) => {
 export const apiUpdateUserAsync = async (updatedUser) => {
   if (API_ENV_DEV == API_FLAG) {
     const index = users.findIndex((us) => us.id === updatedUser.id);
-    users[index]={
-      ...updatedUser
+    users[index] = {
+      ...updatedUser,
     };
     return new Promise((resolve) =>
       setTimeout(() => resolve({ success: true, updatedUser }), 500)
@@ -736,8 +737,8 @@ export const apiUpdateUserAsync = async (updatedUser) => {
 export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
   if (API_ENV_DEV == API_FLAG) {
     const newStatus = currentStatus === 'Online' ? 'false' : 'true';
-    const index = users.find((us) => us.id==userId);
-    users[index].availability = newStatus; 
+    const index = users.find((us) => us.id == userId);
+    users[index].availability = newStatus;
     return new Promise((resolve) =>
       setTimeout(
         () => resolve({ success: true, availability: newStatus }),
@@ -841,3 +842,124 @@ export const apiExportProductsToCSVAsync = async (storeId) => {
     }
   }
 };
+
+export const apiFetchOrdersAsync = async () => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.get(`${baseApiUrl}/api/Admin/order`);
+    const orders = res.data;
+    return orders.map((order) => ({
+      id: order.id,
+      status: mapOrderStatus(order.status),
+      buyerName: order.buyerId,
+      storeName: order.storeId, // <-- ovo ostaje ID
+      deliveryAddress: 'Not available',
+      createdAt: order.time,
+      totalPrice: order.total,
+      isCancelled: order.status === 1,
+      products: order.orderItems,
+    }));
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+    return [];
+  }
+};
+
+
+const mapOrderStatus = (code) => {
+  return (
+    {
+      0: 'active',
+      1: 'cancelled',
+      2: 'requested',
+      3: 'confirmed',
+      4: 'ready',
+      5: 'sent',
+      6: 'delivered',
+    }[code] || 'unknown'
+  );
+};
+
+
+
+export const apiFetchGeographyAsync = async () => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.get(`${baseApiUrl}/api/Geography/geography`, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching geography data:', error);
+    return { regions: [], places: [] };
+  }
+};
+
+
+export const apiDeleteOrderAsync = async (orderId) => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.delete(`${baseApiUrl}/api/Admin/order/${orderId}`);
+    return { status: res.status };
+  } catch (err) {
+    console.error('Error deleting order:', err);
+    return { status: err.response?.status || 500 };
+  }
+};
+
+export const apiUpdateOrderAsync = async (orderId, payload) => {
+  apiSetAuthHeader();
+
+  try {
+    const response = await axios.put(
+      `${baseApiUrl}/api/Admin/order/update/${orderId}`,
+      {
+        buyerId: String(payload.buyerId),
+        storeId: Number(payload.storeId),
+        status: String(payload.status),
+        time: new Date(payload.time).toISOString(),
+        total: Number(payload.total),
+        orderItems: payload.orderItems.map((item) => ({
+          id: Number(item.id),
+          productId: Number(item.productId),
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+        })),
+      }
+    );
+
+    return { success: response.status === 204 };
+  } catch (error) {
+    console.error('Error updating order:', error.response?.data || error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const apiUpdateOrderStatusAsync = async (orderId, newStatus) => {
+  apiSetAuthHeader();
+  try {
+    const response = await axios.put(
+      `${baseApiUrl}/api/Admin/order/update/status/${orderId}`,
+      {
+        newStatus: newStatus === 'active' ? 1 : 0,
+      }
+    );
+    return { success: response.status === 204 };
+  } catch (error) {
+    console.error(
+      'Error updating order status:',
+      error.response?.data || error
+    );
+    return { success: false, message: error.message };
+  }
+};
+
+
+
+
+
+
+
+
