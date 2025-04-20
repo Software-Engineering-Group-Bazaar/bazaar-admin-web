@@ -1,9 +1,28 @@
-## Slike
+## storeId i buyerId
 
-Trenutno ako idem dodaj sliku pa opet dodaj pa opet dodaj
-Doda se samo zadnja. Vise slika usustini mora se odjednom sve.
+prioritet: 0
 
-## Reloads
+Provuci kroz komponente ideve a ne nazive da se poziv uradi uspjesno,
+Naravno korisnku prikazujete nazive ali id se salje bekendu.
 
-Reload radi lose pri dodavanju Store-a.
-Moram rucno Ctrl+R da se priakze.
+## import/export csv i xlsx
+
+prioritet: 0
+
+Nesto tu steka
+
+## active store reload
+
+prioritet: 1
+Ne updatea se vDOM
+
+## active product preko tackice
+
+prioritet: 1
+Fali categoryId
+
+## edit store
+
+prioritet: 2
+
+nije dodana lista regiona i mjesta
