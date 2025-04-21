@@ -798,6 +798,7 @@ export const apiExportProductsToExcelAsync = async (storeId) => {
       const flattenedProducts = products.map((product) => ({
         ...product,
         productCategory: product.productCategory?.id ?? null,
+        photos: product.photos || ''
       }));
 
       const ws = XLSX.utils.json_to_sheet(flattenedProducts);
@@ -845,6 +846,7 @@ export const apiExportProductsToCSVAsync = async (storeId) => {
       const flattenedProducts = products.map((product) => ({
         ...product,
         productCategory: product.productCategory?.id ?? null,
+                photos: product.photos || ''
       }));
 
       const header = Object.keys(flattenedProducts[0] || {}).join(',');
