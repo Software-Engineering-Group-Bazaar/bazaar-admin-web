@@ -7,7 +7,6 @@ import {
   Avatar,
   Menu,
   MenuItem,
-
 } from '@mui/material';
 import StoreIcon from '@mui/icons-material/Store';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -25,9 +24,8 @@ import AddProductModal from '@components/NewProductModal';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EditStoreModal from '@components/EditStoreModal';
 import ConfirmDeleteStoreModal from '@components/ConfirmDeleteStoreModal';
-import StoreProductsList from '@components/StoreProductsList'
+import StoreProductsList from '@components/StoreProductsList';
 import * as XLSX from 'xlsx';
-
 
 const StoreCard = ({ store }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -81,6 +79,8 @@ const StoreCard = ({ store }) => {
 
   const handleExportExcel = async () => {
     const response = await apiExportProductsToExcelAsync(store.id);
+    console.log('PREOVJERA', response.data);
+
     const blob = response.data;
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -98,17 +98,31 @@ const StoreCard = ({ store }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const fileName = file.name.toLowerCase();
+    const isCSV = fileName.endsWith('.csv');
     const reader = new FileReader();
+
     reader.onload = (evt) => {
-      const binaryStr = evt.target.result;
-      const workbook = XLSX.read(binaryStr, { type: 'binary' });
+      const fileContent = evt.target.result;
+      let workbook;
+
+      if (isCSV) {
+        workbook = XLSX.read(fileContent, { type: 'string' });
+      } else {
+        workbook = XLSX.read(fileContent, { type: 'binary' });
+      }
+
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(sheet);
       setParsedProducts(jsonData);
       handleBulkCreate(jsonData);
     };
 
-    reader.readAsBinaryString(file);
+    if (isCSV) {
+      reader.readAsText(file); // CSV kao tekst
+    } else {
+      reader.readAsBinaryString(file); // Excel kao binarni
+    }
   };
 
   const handleBulkCreate = async (products) => {
@@ -116,16 +130,22 @@ const StoreCard = ({ store }) => {
     let fail = 0;
 
     for (const product of products) {
+      console.log('Creating product:', product);
       try {
         const res = await apiCreateProductAsync({
           ...product,
           storeId: store.id,
         });
-        res?.success ? success++ : fail++;
-      } catch {
+        console.log('Response from apiCreateProductAsync:', res);
+
+        // Ovo je sad ispravno
+        res?.status === 201 ? success++ : fail++;
+      } catch (error) {
+        console.error('Error in bulk create:', error);
         fail++;
       }
     }
+    window.location.reload();
 
     console.log(`✅ ${success} created, ❌ ${fail} failed`);
   };
@@ -247,7 +267,7 @@ const StoreCard = ({ store }) => {
               display: 'flex',
               width: '100%',
               borderRadius: '8px',
-              mt:1,
+              mt: 1,
               overflow: 'hidden',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
