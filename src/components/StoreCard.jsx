@@ -98,17 +98,31 @@ const StoreCard = ({ store }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const fileName = file.name.toLowerCase();
+    const isCSV = fileName.endsWith('.csv');
     const reader = new FileReader();
+
     reader.onload = (evt) => {
-      const binaryStr = evt.target.result;
-      const workbook = XLSX.read(binaryStr, { type: 'binary' });
+      const fileContent = evt.target.result;
+      let workbook;
+
+      if (isCSV) {
+        workbook = XLSX.read(fileContent, { type: 'string' });
+      } else {
+        workbook = XLSX.read(fileContent, { type: 'binary' });
+      }
+
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(sheet);
       setParsedProducts(jsonData);
       handleBulkCreate(jsonData);
     };
 
-    reader.readAsBinaryString(file);
+    if (isCSV) {
+      reader.readAsText(file); // CSV kao tekst
+    } else {
+      reader.readAsBinaryString(file); // Excel kao binarni
+    }
   };
 
   const handleBulkCreate = async (products) => {
@@ -126,12 +140,12 @@ const StoreCard = ({ store }) => {
 
         // Ovo je sad ispravno
         res?.status === 201 ? success++ : fail++;
-        window.location.reload();
       } catch (error) {
         console.error('Error in bulk create:', error);
         fail++;
       }
     }
+    window.location.reload();
 
     console.log(`✅ ${success} created, ❌ ${fail} failed`);
   };
