@@ -31,7 +31,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          #cache: 'npm' # Cache npm dependencies for faster builds
+          cache: 'npm' # Cache npm dependencies for faster builds
 
       # 3. Install dependencies (use 'ci' for clean installs in CI)
       - name: Install dependencies
