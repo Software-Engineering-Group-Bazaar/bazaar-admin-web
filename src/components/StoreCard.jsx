@@ -63,7 +63,7 @@ const StoreCard = ({ store }) => {
     };
 
     const res = await apiUpdateStoreAsync(updatedStore);
-    if (res?.success || res?.status === 200) setIsOnline(newStatus);
+    if (res?.success || res?.status === 201) setIsOnline(newStatus);
     setUpdating(false);
     setAnchorEl(null);
   };
