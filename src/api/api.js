@@ -325,7 +325,10 @@ export const apiCreateProductAsync = async (productData) => {
     try {
       const formData = new FormData();
       formData.append('RetailPrice', String(productData.retailPrice ?? 0));
-      formData.append('ProductCategoryId', String(productData.productCategory));
+      formData.append(
+        'ProductCategoryId',
+        String(productData.productcategoryid)
+      );
       formData.append(
         'WholesalePrice',
         String(productData.wholesalePrice ?? 0)
