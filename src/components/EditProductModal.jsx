@@ -16,12 +16,12 @@ const volumeUnits = ['L', 'ml', 'oz'];
 const EditProductModal = ({ open, onClose, product, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
-    price: '',
+    retailPrice: '',
     weight: '',
-    weightunit: 'kg',
+    weightUnit: 'kg',
     volume: '',
-    volumeunit: 'L',
-    productcategoryid: '',
+    volumeUnit: 'L',
+    productCategoryId: '',
     isActive: true,
   });
 
@@ -33,12 +33,12 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
       if (product) {
         setFormData({
           name: product.name || '',
-          price: product.price || '',
+          retailPrice: product.retailPrice || '',
           weight: product.weight || '',
-          weightunit: product.weightunit || 'kg',
+          weightUnit: product.weightUnit || 'kg',
           volume: product.volume || '',
-          volumeunit: product.volumeunit || 'L',
-          productcategoryid: product.productcategoryid || '',
+          volumeUnit: product.volumeUnit || 'L',
+          productCategoryId: product.productCategoryId || '',
           isActive: product.isActive ?? true,
         });
       }
@@ -49,7 +49,7 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'isActive' ? value === 'true' : value,
+      [name]: name === 'isActive' ? JSON.parse(value) : value,
     }));
   };
 
@@ -61,8 +61,10 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
         photos: product.photos,
         ...formData,
       });
-      if (response.status === 200) {
-        onSave(response.data);
+      if (response.status >= 200 && response.status < 300) {
+        onSave(response.data || {});
+        onClose();
+        window.location.reload();
       }
     } catch (error) {
       console.error('Error updating product:', error);
@@ -110,8 +112,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
 
           <TextField
             label='Price'
-            name='price'
-            value={formData.price}
+            name='retailPrice'
+            value={formData.retailPrice}
             onChange={handleChange}
             type='number'
             fullWidth
@@ -129,8 +131,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
             <TextField
               select
               label='Unit'
-              name='weightunit'
-              value={formData.weightunit}
+              name='weightUnit'
+              value={formData.weightUnit}
               onChange={handleChange}
               sx={{ flex: 1 }}
             >
@@ -154,8 +156,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
             <TextField
               select
               label='Unit'
-              name='volumeunit'
-              value={formData.volumeunit}
+              name='volumeUnit'
+              value={formData.volumeUnit}
               onChange={handleChange}
               sx={{ flex: 1 }}
             >
@@ -170,8 +172,8 @@ const EditProductModal = ({ open, onClose, product, onSave }) => {
           <TextField
             select
             label='Category'
-            name='productcategoryid'
-            value={formData.productcategoryid}
+            name='productCategoryId'
+            value={formData.productCategoryId}
             onChange={handleChange}
             fullWidth
           >
