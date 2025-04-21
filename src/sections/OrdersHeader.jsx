@@ -51,14 +51,12 @@ const OrdersHeader = ({
           >
             <MenuItem value=''>All</MenuItem>
             {[
-              'Requested',
               'Confirmed',
               'Rejected',
               'Ready',
               'Sent',
               'Delivered',
               'Cancelled',
-              'Active',
             ].map((status) => (
               <MenuItem key={status} value={status.toLowerCase()}>
                 {status}

@@ -292,7 +292,7 @@ export const apiGetStoreProductsAsync = async (storeId, categoryId = null) => {
       }
 
       const response = await axios.get(
-        `${baseApiUrl}/api/Admin/products?${params.toString()}`
+        `${baseApiUrl}/api/Catalog/products?${params.toString()}`
       );
       return { status: response.status, data: response.data };
     } catch (error) {
@@ -372,23 +372,24 @@ export const apiCreateProductAsync = async (productData) => {
  */
 export const apiUpdateProductAsync = async (productData) => {
   apiSetAuthHeader();
+
   try {
     const payload = {
       name: productData.name,
-      retailPrice: Number(productData.price ?? 0),
-      wholesaleThreshold: 0,
-      wholesalePrice: Number(productData.price ?? 0),
-      productCategoryId: Number(productData.productcategoryid),
+      productCategoryId: Number(productData.productCategoryId),
+      retailPrice: Number(productData.retailPrice ?? 0),
+      wholesaleThreshold: Number(productData.wholesaleThreshold ?? 0),
+      wholesalePrice: Number(productData.wholesalePrice ?? 0),
       weight: Number(productData.weight ?? 0),
+      weightUnit: productData.weightUnit ?? 'kg',
       volume: Number(productData.volume ?? 0),
-      weightUnit: productData.weightunit ?? '',
-      volumeUnit: productData.volumeunit ?? '',
+      volumeUnit: productData.volumeUnit ?? 'L',
       storeId: Number(productData.storeId),
-      isActive: productData.isActive ?? true,
-      files:
-        productData.photos?.map((f) => (typeof f === 'string' ? f : f.path)) ??
-        [],
+      isActive: Boolean(productData.isActive),
+      files: productData.files ?? [],
     };
+
+    console.log('📦 Product update payload:', payload);
 
     const response = await axios.put(
       `${baseApiUrl}/api/Admin/products/${productData.id}`,
@@ -402,7 +403,7 @@ export const apiUpdateProductAsync = async (productData) => {
 
     return { status: response.status, data: response.data };
   } catch (error) {
-    console.error('Error updating product:', error);
+    console.error('❌ Error updating product:', error.response?.data || error);
     return { status: error.response?.status || 500, data: null };
   }
 };
@@ -798,7 +799,7 @@ export const apiExportProductsToExcelAsync = async (storeId) => {
       const flattenedProducts = products.map((product) => ({
         ...product,
         productCategory: product.productCategory?.id ?? null,
-        photos: product.photos || ''
+        photos: product.photos || '',
       }));
 
       const ws = XLSX.utils.json_to_sheet(flattenedProducts);
@@ -846,7 +847,7 @@ export const apiExportProductsToCSVAsync = async (storeId) => {
       const flattenedProducts = products.map((product) => ({
         ...product,
         productCategory: product.productCategory?.id ?? null,
-                photos: product.photos || ''
+        photos: product.photos || '',
       }));
 
       const header = Object.keys(flattenedProducts[0] || {}).join(',');

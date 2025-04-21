@@ -42,16 +42,36 @@ const StoreProductsList = ({ storeId }) => {
 
   const handleStatusClick = async (product, e) => {
     e.stopPropagation();
+    console.log('🟡 Selected product before toggle:', product);
+
     const updatedProduct = {
-      ...product,
+      id: product.id,
+      name: product.name,
+      retailPrice: Number(product.retailPrice ?? product.price ?? 0),
+      wholesaleThreshold: 0,
+      wholesalePrice: Number(product.wholesalePrice ?? product.price ?? 0),
+      productCategoryId:
+        product.productCategory?.id ?? product.productCategoryId ?? 1,
+      weight: product.weight ?? 0,
+      volume: product.volume ?? 0,
+      weightUnit: product.weightUnit ?? 'kg',
+      volumeUnit: product.volumeUnit ?? 'L',
+      storeId: product.storeId,
       isActive: !product.isActive,
+      files: product.photos ?? [],
     };
+
+    console.log('📦 Sending updated product to API:', updatedProduct);
+
     const response = await apiUpdateProductAsync(updatedProduct);
-    if (response.status === 200) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? updatedProduct : p))
-      );
-    }
+   if (response.status >= 200 && response.status < 300) {
+     setProducts((prev) =>
+       prev.map((p) =>
+         p.id === product.id ? { ...p, isActive: !p.isActive } : p
+       )
+     );
+   }
+
   };
 
   const renderPlaceholderItems = () => {
