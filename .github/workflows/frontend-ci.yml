@@ -4,10 +4,10 @@ name: Frontend CI Checks
 on:
   # Triggers the workflow on push events but only for the main branch
   push:
-    branches: [ develop ]
+    branches: [develop]
   # Triggers the workflow on pull request events targeting the main branch
   pull_request:
-    branches: [ develop ]
+    branches: [develop]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm' # Cache npm dependencies for faster builds
+          #cache: 'npm' # Cache npm dependencies for faster builds
 
       # 3. Install dependencies (use 'ci' for clean installs in CI)
       - name: Install dependencies
@@ -50,6 +50,7 @@ jobs:
       # 6. Build the project (catches syntax errors, type errors if TS, build config issues)
       - name: Build project
         run: npm run build --if-present # Runs 'npm run build' if the script exists
+
 
       # 7. Run tests (if you have tests configured - Vitest, Jest, etc.)
       #    Make sure you have a test script in package.json (e.g., "vitest run")
