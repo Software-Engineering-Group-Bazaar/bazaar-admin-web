@@ -26,42 +26,48 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { FiShoppingBag } from "react-icons/fi";
 import { FiGrid } from "react-icons/fi";
 import {FiClipboard} from "react-icons/fi";
+import { FiBarChart2 } from 'react-icons/fi';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const { pendingUsers } = usePendingUsers();
   const menuItems = [
     {
+      icon: <FiBarChart2 />,
+      label: 'Analytics',
+      path: '/analytics',
+      badge: null,
+    },
+    {
       icon: <HiOutlineUserGroup />,
-      label: "Users",
-      path: "/users",
+      label: 'Users',
+      path: '/users',
       badge: null,
     },
     {
       icon: <HiOutlineBell />,
-      label: "Requests",
-      path: "/requests",
+      label: 'Requests',
+      path: '/requests',
       badge: pendingUsers.length,
     },
     {
       icon: <FiShoppingBag />,
-      label: "Stores",
-      path: "/stores",
+      label: 'Stores',
+      path: '/stores',
       badge: null,
     },
     {
       icon: <FiGrid />,
-      label: "Categories",
-      path: "/categories",
+      label: 'Categories',
+      path: '/categories',
       badge: null,
     },
     {
       icon: <FiClipboard />,
-      label: "Orders",
-      path: "/orders",
+      label: 'Orders',
+      path: '/orders',
       badge: null,
     },
-    
   ];
   const [isDark, setIsDark] = useState(false);
   const toggleTheme = () => setIsDark(!isDark);
