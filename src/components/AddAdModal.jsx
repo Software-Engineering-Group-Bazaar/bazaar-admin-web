@@ -89,6 +89,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
         <ImageUploader onFilesSelected={handlePhotosChange} />
 
         <TextField
+          select
           name='sellerId'
           label='Seller'
           fullWidth
