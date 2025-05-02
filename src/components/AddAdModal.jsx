@@ -8,8 +8,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import StoreMallDirectoryIcon from '@mui/icons-material/StoreMallDirectory';
-import { apiGetStoreCategoriesAsync, apiFetchGeographyAsync } from '@api/api';
-
+import { apiGetAllStoresAsync, apiFetchApprovedUsersAsync,apiGetStoreProductsAsync } from '@api/api';
 const AddAdModal = ({ open, onClose, onAddAd }) => {
   const [formData, setFormData] = useState({
     sellerId:'',
@@ -210,4 +209,4 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
   );
 };
 
-export default AddStoreModal;
+export default AddAdModal;
