@@ -60,7 +60,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
   };
 
   const handleSubmit = () => {
-    onAddStore(formData);
+    onAddAd(formData);
     onClose();
   };
 
