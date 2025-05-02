@@ -25,10 +25,15 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
   const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
-
+  const [sellers, setSellers] = useState([]);
   useEffect(() => {
     if (open) {
         apiGetAllStoresAsync.then(setStores);
+        apiFetchApprovedUsersAsync.then((users) =>{
+          const rez = users.filter((u) => u.role.toLowerCase() === "seller")
+          setSellers(rez)
+        })
+        
         apiGetStoreProductsAsync().then((geo) => {
         setPlaces(geo?.places || []);
       });
@@ -40,6 +45,17 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     setFormData((prev) => ({
       ...prev,
       [name]: name === 'isActive' ? value === 'true' : value,
+    }));
+  };
+
+  const handlePhotosChange = (files) => {
+    const image = files[0]; 
+    setFormData((prev) => ({
+      ...prev,
+      AdData: [{
+        ...prev.AdData[0],
+        Image: image,
+      }]
     }));
   };
 
@@ -66,72 +82,94 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <StoreMallDirectoryIcon sx={{ fontSize: 48, color: '#fbbc05' }} />
           <Typography variant='h5' fontWeight={700} mt={1}>
-            Add New Store
+            Add New Ad
           </Typography>
         </Box>
 
+        <ImageUploader onFilesSelected={handlePhotosChange} />
+
         <TextField
-          name='name'
-          label='Store Name'
+          name='sellerId'
+          label='Seller'
           fullWidth
-          value={formData.name}
+          value={formData.sellerId}
           onChange={handleChange}
           sx={{ mb: 2 }}
+          InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
+          >
+          {sellers.map((seller) => (
+          <MenuItem key={seller.id} value={seller.id}>
+          {seller.name} 
+          </MenuItem>
+          ))}
+        </TextField>
+        
+        <TextField
+          name='Start time'
+          label='Start time'
+          type='time'
+          fullWidth
+          value={formData.startTime}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+          InputLabelProps={{ shrink: true }}
           InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
         />
 
         <TextField
-          name='address'
-          label='Address'
+          name='End time'
+          label='End time'
+          type='time'
           fullWidth
-          value={formData.address}
+          value={formData.endTime}
           onChange={handleChange}
           sx={{ mb: 2 }}
-          InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
-        />
-
-        <TextField
-          name='description'
-          label='Description'
-          fullWidth
-          multiline
-          rows={2}
-          value={formData.description}
-          onChange={handleChange}
-          sx={{ mb: 2 }}
+          InputLabelProps={{ shrink: true }}
           InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
         />
 
         <TextField
           select
-          name='placeId'
-          label='Place'
+          name='Description'
+          label='Description'
           fullWidth
-          value={formData.placeId}
+          value={formData.AdData[0].placeId}
           onChange={handleChange}
           sx={{ mb: 2 }}
           SelectProps={{ sx: { backgroundColor: '#f9f9f9', borderRadius: 2 } }}
         >
-          {places.map((place) => (
-            <MenuItem key={place.id} value={place.id}>
-              {place.name} ({place.postalCode})
+        </TextField>
+
+        <TextField
+          select
+          name='Product link'
+          label='Product link'
+          fullWidth
+          value={formData.AdData[0].ProductLink}
+          onChange={handleChange}
+          sx={{ mb: 4 }}
+          SelectProps={{ sx: { backgroundColor: '#f9f9f9', borderRadius: 2 } }}
+        >
+          {products.map((p) => (
+            <MenuItem key={p.id} value={p.id}>
+              {p.name}
             </MenuItem>
           ))}
         </TextField>
 
         <TextField
           select
-          name='categoryid'
-          label='Category'
+          name='Store link'
+          label='Store link'
           fullWidth
-          value={formData.categoryid}
+          value={formData.AdData[0].StoreLink}
           onChange={handleChange}
           sx={{ mb: 4 }}
           SelectProps={{ sx: { backgroundColor: '#f9f9f9', borderRadius: 2 } }}
         >
-          {categories.map((cat) => (
-            <MenuItem key={cat.id} value={cat.id}>
-              {cat.name}
+          {stores.map((p) => (
+            <MenuItem key={p.id} value={p.id}>
+              {p.name}
             </MenuItem>
           ))}
         </TextField>
@@ -164,7 +202,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
               '&:hover': { backgroundColor: '#3a0202' },
             }}
           >
-            Save Store
+            Save Ad
           </Button>
         </Box>
       </Box>
