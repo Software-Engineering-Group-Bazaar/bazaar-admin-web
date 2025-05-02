@@ -15,6 +15,7 @@ import theme from '@styles/theme';
 import Sidebar from '@components/Sidebar';
 import CategoriesPage from '@pages/CategoriesPage';
 import OrdersPage from '@pages/OrdersPage';
+import AnalyticsPage from '@pages/AnalyticsPage'
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
@@ -105,6 +106,19 @@ const AppRoutes = () => {
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <OrdersPage />
+                </ThemeProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/analytics'
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <AnalyticsPage />
                 </ThemeProvider>
               </Layout>
             </ProtectedRoute>
