@@ -27,6 +27,9 @@ import { FiShoppingBag } from "react-icons/fi";
 import { FiGrid } from "react-icons/fi";
 import {FiClipboard} from "react-icons/fi";
 import { FiBarChart2 } from 'react-icons/fi';
+import { HiOutlineMegaphone } from 'react-icons/hi2';
+
+
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -66,6 +69,12 @@ const Sidebar = () => {
       icon: <FiClipboard />,
       label: 'Orders',
       path: '/orders',
+      badge: null,
+    },
+    {
+      icon: <HiOutlineMegaphone />,
+      label: 'Advertisements',
+      path: '/ads',
       badge: null,
     },
   ];

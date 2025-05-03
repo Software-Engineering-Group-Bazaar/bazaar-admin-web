@@ -9,7 +9,7 @@ import products from '../data/products';
 import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
-
+import ads from "../data/ads.js"
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
 const API_ENV_DEV = 'dev';
@@ -981,6 +981,7 @@ export const apiUpdateOrderStatusAsync = async (orderId, newStatus) => {
 };
 
 
+
 export const apiFetchAllUsersAsync = async () => {
   if (API_ENV_DEV == API_FLAG) {
     try {
@@ -997,5 +998,161 @@ export const apiFetchAllUsersAsync = async () => {
     }
     const users = await axios.get(`${baseApiUrl}/api/Admin/users`);
     return users;
+
+/**
+ * Kreiranje reklame
+ * @param {Object} adData - Podaci za reklamu
+ * @returns {Promise<{status: number, data: Object}>} 
+ */
+export const apiCreateAdAsync = async (adData) => {
+  if (API_ENV_DEV === API_FLAG) {
+    try {
+        //Mock
+        let mockAd = ads[0];
+        return { status: 201, data: mockAd };
+    } catch (error) {
+      console.error('Advertisement creation failed:', error);
+      return { status: 500, data: null };
+    }
+  } else {
+    try {
+      apiSetAuthHeader();
+      
+      // Create FormData if there are image files to upload
+      const formData = new FormData();
+      formData.append('sellerId', adData.sellerId);
+      formData.append('startTime', new Date(adData.startTime).toISOString());
+      formData.append('endTime', new Date(adData.endTime).toISOString());
+      
+      // Handle the AdData array
+      adData.AdData.forEach((item, index) => {
+        formData.append(`AdData[${index}].Description`, item.Description);
+        formData.append(`AdData[${index}].ProductLink`, item.ProductLink);
+        formData.append(`AdData[${index}].StoreLink`, item.StoreLink);
+        
+        // Handle image file if it exists
+        if (item.Image instanceof File) {
+          formData.append(`AdData[${index}].Image`, item.Image, item.Image.name);
+        } else if (typeof item.Image === 'string') {
+          // If it's just a path string, you might need special handling
+          formData.append(`AdData[${index}].ImagePath`, item.Image);
+        }
+      });
+      
+      const response = await axios.post(
+        `${baseApiUrl}/api/Admin/ads/create`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Advertisement creation failed:', error);
+      return { status: error.response?.status || 500, data: null };
+    }
+  }
+};
+
+/**
+ * Fetches all advertisements
+ * @returns {Promise<{status: number, data: Array}>} lista reklama
+ */
+export const apiGetAllAdsAsync = async () => {
+  if (API_ENV_DEV === API_FLAG) {
+    // Return mock data for development
+    const mockAds = ads;
+    
+    return { status: 200, data: mockAds };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.get(`${baseApiUrl}/api/Admin/ads`);
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Error fetching advertisements:', error);
+      return { status: error.response?.status || 500, data: [] };
+    }
+  }
+};
+
+/**
+ * Deletes an advertisement
+ * @param {number} adId - ID reklame koja se brise
+ * @returns {Promise<{status: number, data: Object}>} 
+ */
+export const apiDeleteAdAsync = async (adId) => {
+  if (API_ENV_DEV === API_FLAG) {
+    // Mock deletion for development
+    return { status: 204, data: null };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.delete(`${baseApiUrl}/api/Admin/ads/${adId}`);
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Error deleting advertisement:', error);
+      return { status: error.response?.status || 500, data: null };
+    }
+  }
+};
+
+/**
+ * Updates an existing advertisement
+ * @param {Object} adData - Advertisement data to update
+ * @returns {Promise<{status: number, data: Object}>} Updated advertisement
+ */
+export const apiUpdateAdAsync = async (adData) => {
+  if (API_ENV_DEV === API_FLAG) {
+    // Mock update for development
+    return { 
+      status: 200, 
+      data: {
+        ...adData,
+        startTime: new Date(adData.startTime).toISOString(),
+        endTime: new Date(adData.endTime).toISOString(),
+      } 
+    };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const formData = new FormData();
+      formData.append('id', adData.id);
+      formData.append('sellerId', adData.sellerId);
+      formData.append('startTime', new Date(adData.startTime).toISOString());
+      formData.append('endTime', new Date(adData.endTime).toISOString());
+      
+      // Handle the AdData array
+      adData.AdData.forEach((item, index) => {
+        formData.append(`AdData[${index}].Description`, item.Description);
+        formData.append(`AdData[${index}].ProductLink`, item.ProductLink);
+        formData.append(`AdData[${index}].StoreLink`, item.StoreLink);
+        
+        // Handle image file if it exists
+        if (item.Image instanceof File) {
+          formData.append(`AdData[${index}].Image`, item.Image, item.Image.name);
+        } else if (typeof item.Image === 'string') {
+          formData.append(`AdData[${index}].ImagePath`, item.Image);
+        }
+      });
+      
+      const response = await axios.put(
+        `${baseApiUrl}/api/Admin/ads/${adData.id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Advertisement update failed:', error);
+      return { status: error.response?.status || 500, data: null };
+    }
   }
 };

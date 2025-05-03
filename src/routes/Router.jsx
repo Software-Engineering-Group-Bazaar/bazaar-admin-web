@@ -16,6 +16,7 @@ import Sidebar from '@components/Sidebar';
 import CategoriesPage from '@pages/CategoriesPage';
 import OrdersPage from '@pages/OrdersPage';
 import AnalyticsPage from '@pages/AnalyticsPage'
+import AdPage from '@pages/AdPage'
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
@@ -119,6 +120,19 @@ const AppRoutes = () => {
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <AnalyticsPage />
+                </ThemeProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/ads'
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <AdPage />
                 </ThemeProvider>
               </Layout>
             </ProtectedRoute>
