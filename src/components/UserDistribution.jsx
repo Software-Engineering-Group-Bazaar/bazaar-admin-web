@@ -11,8 +11,9 @@ const UserDistribution = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const users = await apiFetchAllUsersAsync();
 
+      const response  = await apiFetchAllUsersAsync();
+      const users = response.data;
       setTotalUsers(users.length);
       setApproved(users.filter((u) => u.isApproved).length);
       setBuyers(

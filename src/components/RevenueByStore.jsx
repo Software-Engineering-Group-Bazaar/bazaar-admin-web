@@ -29,24 +29,25 @@ const RevenueByStore = () => {
         storeMap[store.id] = store.name;
       });
 
-      // Suma total po storeId
       const revenueByStore = {};
       orders.forEach((order) => {
-        const storeId = order.storeId;
+        const storeId = order.storeName; // order.storeName je zapravo storeId!
+        if (!storeMap[storeId]) return; // preskoči ako nema prodavnice
         if (!revenueByStore[storeId]) {
           revenueByStore[storeId] = 0;
         }
-        revenueByStore[storeId] += order.total || 0;
+        revenueByStore[storeId] += order.totalPrice || 0;
       });
 
-      // Pripremi podatke za chart
       const chartData = Object.entries(revenueByStore)
         .map(([storeId, value]) => ({
           name: storeMap[storeId] || 'Unknown',
           value,
         }))
         .sort((a, b) => b.value - a.value)
-        .slice(0, 5); // top 5
+        .slice(0, 5);
+
+      console.log('chartData:', chartData);
 
       setData(chartData);
     };
@@ -74,7 +75,9 @@ const RevenueByStore = () => {
           <BarChart
             layout='vertical'
             data={data}
-            margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
+            margin={{ top: 1, right: 20, left: 20, bottom: -10 }}
+            barCategoryGap={32} // ili veća vrijednost za veći razmak
+            barGap={20} // dodatni razmak između barova
           >
             <XAxis
               type='number'
@@ -82,14 +85,15 @@ const RevenueByStore = () => {
               tickFormatter={(v) => `$${(v / 1000).toFixed(1)}K`}
               axisLine={false}
               tickLine={false}
+              tick={{ fontSize: 13, dy: 2 }}
             />
             <YAxis
               dataKey='name'
               type='category'
               axisLine={false}
               tickLine={false}
-              width={80}
-              tick={{ fontSize: 14 }}
+              width={80} // povećaj po potrebi
+              tick={{ fontSize: 14, wordBreak: 'break-all' }}
             />
             <Tooltip formatter={(val) => `$${val}`} />
             <Bar

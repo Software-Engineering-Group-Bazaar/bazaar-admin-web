@@ -52,7 +52,8 @@ const AnalyticsChart = () => {
       // 1. Orders
       const orders = await apiFetchOrdersAsync();
       // 2. Users
-      const users = await apiFetchAllUsersAsync();
+      const response  = await apiFetchAllUsersAsync();
+      const users = response.data;
 
       // 3. Revenue po mjesecima
       const revenueByMonth = months.map((monthLabel, idx) => {

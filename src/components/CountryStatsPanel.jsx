@@ -9,20 +9,35 @@ import {
   LinearProgress,
 } from '@mui/material';
 import Flag from 'react-world-flags';
-import {
-  apiGetAllStoresAsync,
-  apiFetchOrdersAsync,
-} from '../api/api.js';
-
+import { apiGetAllStoresAsync, apiFetchOrdersAsync } from '../api/api.js';
 
 // Ovdje možeš proširiti mapu gradova na country code i ime države
 const cityToCountry = {
+  Zenica: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Živinice: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Brčko: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Konjic: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Vitez: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Cazin: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Tešanj: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Gračanica: { code: 'BA', country: 'Bosnia and Herzegovina' },
   Sarajevo: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Zagreb: { code: 'HR', country: 'Croatia' },
-  Belgrade: { code: 'RS', country: 'Serbia' },
-  Berlin: { code: 'DE', country: 'Germany' },
-  Paris: { code: 'FR', country: 'France' },
-  // Dodaj ostale gradove po potrebi
+  Jajce: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Čapljina: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Banja: { code: 'BA', country: 'Bosnia and Herzegovina' }, // Banja Luka
+  Banja_Luka: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Mostar: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Kakanj: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Tuzla: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Bihać: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Ilidža: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Sanski: { code: 'BA', country: 'Bosnia and Herzegovina' }, // Sanski Most
+  Sanski_Most: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Travnik: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Lukavac: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Visoko: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  Vogošća: { code: 'BA', country: 'Bosnia and Herzegovina' },
+  // Dodaj sve ostale gradove iz baze!
 };
 
 const CountryStatsPanel = () => {
@@ -35,29 +50,27 @@ const CountryStatsPanel = () => {
         apiGetAllStoresAsync(),
         apiFetchOrdersAsync(),
       ]);
-
-      // Mapiraj storeId na country info koristeći placeName
+     
+      // Mapiraj storeId na prodavnicu
       const storeMap = {};
       stores.forEach((store) => {
-        const countryInfo =
-          cityToCountry[store.placeName] || {
-            code: 'UN',
-            country: store.placeName || 'Unknown',
-          };
-        storeMap[store.id] = countryInfo;
+        storeMap[store.id] = store;
       });
 
-      // Revenue po "državi"
+      // Suma po državi
       const revenueByCountry = {};
       let totalRevenue = 0;
       orders.forEach((order) => {
-        const store = storeMap[order.storeId]; 
+        const store = storeMap[order.storeName]; // order.storeName je zapravo storeId
         if (!store) return;
-        const key = store.code;
+        const place = store.placeName;
+        const countryInfo = cityToCountry[place];
+        if (!countryInfo) return; // Ako nema grad u mapi, preskoči
+        const key = countryInfo.code;
         if (!revenueByCountry[key]) {
           revenueByCountry[key] = {
-            code: store.code,
-            country: store.country,
+            code: countryInfo.code,
+            country: countryInfo.country,
             value: 0,
             count: 0,
           };
@@ -71,17 +84,20 @@ const CountryStatsPanel = () => {
       const ordersByCountry = {};
       let totalOrders = 0;
       orders.forEach((order) => {
-        const store = storeMap[order.storeId];
+        const store = storeMap[order.storeName];
         if (!store) return;
-        const key = store.code;
+        const place = store.placeName;
+        const countryInfo = cityToCountry[place];
+        if (!countryInfo) return;
+        const key = countryInfo.code;
         if (!ordersByCountry[key]) {
           ordersByCountry[key] = {
-            code: store.code,
-            country: store.country,
-            value: 0,
+            code: countryInfo.code,
+            country: countryInfo.country,
+            value: 0, // OVDJE JE BITNO: value je broj narudžbi!
           };
         }
-        ordersByCountry[key].value += 1;
+        ordersByCountry[key].value += 1; // Broji narudžbe, ne totalPrice!
         totalOrders += 1;
       });
 

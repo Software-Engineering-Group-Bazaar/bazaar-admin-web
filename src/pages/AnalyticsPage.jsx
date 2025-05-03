@@ -48,7 +48,11 @@ const AnalyticsPage = () => {
       : 100;
   
     // 2. Korisnici
-    const users = await apiFetchAllUsersAsync();
+    const response = await apiFetchAllUsersAsync();
+    console.log("RESPONSE: ", response);
+    const users = response.data;
+    console.log("users: ", users);
+
     const usersThisMonth = users.filter(
       u => new Date(u.createdAt) >= lastMonth
     );

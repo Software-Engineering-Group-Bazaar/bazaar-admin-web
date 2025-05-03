@@ -8,8 +8,10 @@ const statusColors = {
   Confirmed: '#6366F1',
   Delivered: '#F59E0B',
   Cancelled: '#EF4444',
-  Ready: '#0EA5E9',
+  Ready: '#58d604',
   Sent: '#10B981',
+  Requested: '#03e8fc',
+  Rejected: '#e01ceb',
   // Dodaj ostale statuse po potrebi
 }; //???????????????
 
@@ -51,7 +53,7 @@ const OrdersByStatus = () => {
       sx={{
         borderRadius: 3,
         boxShadow: 3,
-        height: '100%',
+        height: 340, // ili više, npr. 380
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -62,7 +64,7 @@ const OrdersByStatus = () => {
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, position: 'relative' }}>
-        <ResponsiveContainer width='100%' height='100%'>
+        <ResponsiveContainer width='100%' height='80%'>
           <PieChart>
             <Pie
               data={data}
