@@ -120,7 +120,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           transform: 'translate(-50%, -50%)',
           width: 'auto',
           maxWidth: 1000,
-          height: '85%',
+          height: '50%',
           bgcolor: '#fff',
           borderRadius: 3,
           boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
@@ -133,13 +133,13 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            mb: 2,
+            mb: 4,
             gap: 1,
           }}
         >
           <SellIcon sx={{ fontSize: 28, color: '#fbbc05' }} />
           <Typography variant="h5" fontWeight={700}>
-            Add New Ad
+            Create Ad
           </Typography>
         </Box>
 
