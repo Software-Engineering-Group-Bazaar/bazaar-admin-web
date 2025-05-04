@@ -64,14 +64,13 @@ const StoreProductsList = ({ storeId }) => {
     console.log('📦 Sending updated product to API:', updatedProduct);
 
     const response = await apiUpdateProductAsync(updatedProduct);
-   if (response.status >= 200 && response.status < 300) {
-     setProducts((prev) =>
-       prev.map((p) =>
-         p.id === product.id ? { ...p, isActive: !p.isActive } : p
-       )
-     );
-   }
-
+    if (response.status >= 200 && response.status < 300) {
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id ? { ...p, isActive: !p.isActive } : p
+        )
+      );
+    }
   };
 
   const renderPlaceholderItems = () => {
@@ -100,7 +99,7 @@ const StoreProductsList = ({ storeId }) => {
       </Typography>
       <Box
         sx={{
-          height: '120px',
+          height: '75px',
           overflowY: 'auto',
           '&::-webkit-scrollbar': { width: '8px' },
           '&::-webkit-scrollbar-track': {

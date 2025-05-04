@@ -92,7 +92,7 @@ const RevenueByStore = () => {
               type='category'
               axisLine={false}
               tickLine={false}
-              width={80} // povećaj po potrebi
+              width={100} // povećaj po potrebi
               tick={{ fontSize: 14, wordBreak: 'break-all' }}
             />
             <Tooltip formatter={(val) => `$${val}`} />
