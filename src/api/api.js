@@ -753,6 +753,10 @@ export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
     );
   } else {
     apiSetAuthHeader();
+    console.log({
+      userId: userId,
+      activationStatus: currentStatus,
+    });
     return axios.post(`${baseApiUrl}/api/Admin/users/activate`, {
       userId: userId,
       activationStatus: currentStatus,

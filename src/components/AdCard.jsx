@@ -22,6 +22,7 @@ import {
 import { toast } from 'react-hot-toast';
 import DeleteConfirmationModal from './DeleteAdConfirmation';
 import EditAdModal from './EditAdModal';
+const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const IconStat = ({ icon, value, label, bg }) => (
   <Stack
@@ -156,7 +157,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                 {adItem?.productId && (
                   <Tooltip title="Product Link">
                     <a
-                      href={adItem.productId}
+                      href={`${baseApiUrl}/api/Catalog/products/${adItem.productId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -170,10 +171,10 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                     </a>
                   </Tooltip>
                 )}
-                {adItem?.StoreLink && (
+                {adItem?.storeId && (
                   <Tooltip title="Store Link">
                     <a
-                      href={adItem.StoreLink}
+                      href={`${baseApiUrl}/api/Stores/${adItem.storeId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
