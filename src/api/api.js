@@ -998,7 +998,8 @@ export const apiFetchAllUsersAsync = async () => {
     }
     const users = await axios.get(`${baseApiUrl}/api/Admin/users`);
     return users;
-
+  }
+}
 /**
  * Kreiranje reklame
  * @param {Object} adData - Podaci za reklamu
