@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import SellIcon from '@mui/icons-material/Sell';
 import ImageUploader from './ImageUploader';
+import AddAdItemModal from './AddAdItemModal';
 import {
   apiGetAllStoresAsync,
   apiFetchApprovedUsersAsync,
@@ -18,20 +19,19 @@ import {
 const AddAdModal = ({ open, onClose, onAddAd }) => {
   const [formData, setFormData] = useState({
     sellerId: '',
+    views: 0,
+    clicks: 0,
     startTime: '',
     endTime: '',
-    AdData: [{
-      Description: '',
-      Image: '',
-      ProductLink: '',
-      StoreLink: '',
-    }],
+    isActive: true,
+    adData: [],
   });
 
   const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+  const [adItemModalOpen, setAdItemModalOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -45,20 +45,10 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (['Description', 'ProductLink', 'StoreLink'].includes(name)) {
-      setFormData((prev) => ({
-        ...prev,
-        AdData: [{
-          ...prev.AdData[0],
-          [name]: value,
-        }],
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSellerChange = async (e) => {
@@ -75,14 +65,10 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     }
   };
 
-  const handlePhotosChange = (files) => {
-    const image = files[0];
+  const handleAddAdItem = (item) => {
     setFormData((prev) => ({
       ...prev,
-      AdData: [{
-        ...prev.AdData[0],
-        Image: image,
-      }],
+      adData: [...prev.adData, item],
     }));
   };
 
@@ -90,22 +76,20 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     const errors = {};
 
     if (!formData.sellerId) errors.sellerId = 'Seller is required';
-    if (!formData.AdData[0].ProductLink) errors.ProductLink = 'Product is required';
-    if (!formData.AdData[0].StoreLink) errors.StoreLink = 'Store is required';
-    if (!formData.AdData[0].Description.trim()) errors.Description = 'Description is required';
-  
-    if (!formData.startTime) {
-      errors.startTime = 'Start time is required';
-    }
+    if (!formData.startTime) errors.startTime = 'Start time is required';
     if (!formData.endTime) {
       errors.endTime = 'End time is required';
     } else if (formData.startTime && formData.endTime <= formData.startTime) {
       errors.endTime = 'End time must be after start time';
     }
 
+    if (formData.adData.length === 0) {
+      errors.adData = 'At least one ad item is required';
+    }
+
     setFormErrors(errors);
-  
     if (Object.keys(errors).length > 0) return;
+
     onAddAd(formData);
     onClose();
   };
@@ -120,7 +104,9 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           transform: 'translate(-50%, -50%)',
           width: 'auto',
           maxWidth: 1000,
-          height: '50%',
+          height: 'auto',
+          maxHeight: '90vh',
+          overflowY: 'auto',
           bgcolor: '#fff',
           borderRadius: 3,
           boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
@@ -147,7 +133,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
         <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mb: 2 }}>
           {/* Left: Image */}
           <Box sx={{ width: '50%' }}>
-            <ImageUploader onFilesSelected={handlePhotosChange} />
+            <ImageUploader onFilesSelected={(files) => {}} />
           </Box>
 
           {/* Right: Form */}
@@ -199,64 +185,43 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
               InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
             />
 
-            <TextField
-              name="Description"
-              label="Description"
-              fullWidth
-              size="small"
-              value={formData.AdData[0].Description}
-              error={!!formErrors.Description}
-              helperText={formErrors.Description}
-              onChange={handleChange}
-              sx={{ mb: 1.2 }}
-              InputProps={{ sx: { backgroundColor: '#f9f9f9', borderRadius: 2 } }}
-            />
-
-            <TextField
-              select
-              name="ProductLink"
-              label="Product link"
-              size="small"
-              error={!!formErrors.ProductLink}
-              helperText={formErrors.ProductLink}
-              value={formData.AdData[0].ProductLink}
-              onChange={handleChange}
-              sx={{ mb: 1.2 }}
-              SelectProps={{ sx: { backgroundColor: '#f9f9f9', borderRadius: 2 } }}
+            <Button
+              variant="outlined"
+              onClick={() => setAdItemModalOpen(true)}
+              sx={{
+                mb: 1.2,
+                color: '#444',
+                borderColor: '#bbb',
+                textTransform: 'none',
+                borderRadius: 2,
+              }}
             >
-              {products.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {p.name}
-                </MenuItem>
-              ))}
-            </TextField>
+              Add Item
+            </Button>
 
-            <TextField
-              select
-              name="StoreLink"
-              label="Store link"
-              size="small"
-              value={formData.AdData[0].StoreLink}
-              onChange={handleChange}
-              error={!!formErrors.StoreLink}
-              helperText={formErrors.StoreLink}
-              sx={{ mb: 2 }}
-              SelectProps={{ sx: { backgroundColor: '#f9f9f9', borderRadius: 2 } }}
-            >
-              {stores.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {p.name}
-                </MenuItem>
-              ))}
-            </TextField>
+            {/* Error message if no items */}
+            {formErrors.adData && (
+              <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+                {formErrors.adData}
+              </Typography>
+            )}
+
+            {/* Display added ad items */}
+            {formData.adData.map((item, index) => (
+              <Box key={index} sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}>
+                <Typography variant="body2"><strong>Ad Text:</strong> {item.advertisment}</Typography>
+                <Typography variant="body2"><strong>Store:</strong> {item.storeId}</Typography>
+                <Typography variant="body2"><strong>Product:</strong> {item.productId}</Typography>
+              </Box>
+            ))}
 
             {/* Buttons */}
-            <Box display="flex" gap="1.2px" justifyContent="flex-end">
+            <Box display="flex" gap="1.2px" justifyContent="flex-end" mt={2}>
               <Button
                 variant="outlined"
                 onClick={onClose}
                 sx={{
-                  mr:1.2,
+                  mr: 1.2,
                   color: '#555',
                   borderColor: '#ccc',
                   borderRadius: 2,
@@ -285,6 +250,15 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             </Box>
           </Box>
         </Box>
+
+        {/* Add Ad Item Modal */}
+        <AddAdItemModal
+          open={adItemModalOpen}
+          onClose={() => setAdItemModalOpen(false)}
+          onAddItem={handleAddAdItem}
+          stores={stores}
+          products={products}
+        />
       </Box>
     </Modal>
   );
