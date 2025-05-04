@@ -1010,56 +1010,55 @@ export const apiFetchAllUsersAsync = async () => {
 export const apiCreateAdAsync = async (adData) => {
   if (API_ENV_DEV === API_FLAG) {
     try {
-      //Mock
       let mockAd = ads[0];
       return { status: 201, data: mockAd };
     } catch (error) {
       console.error('Advertisement creation failed:', error);
       return { status: 500, data: null };
     }
-  } else {
-    try {
-      apiSetAuthHeader();
+  }
 
-      // Create FormData if there are image files to upload
-      const formData = new FormData();
-      formData.append('SellerId', adData.sellerId);
-      formData.append('Views', adData.Views);
-      formData.append('Clicks', adData.Clicks);
-      formData.append('StartTime', new Date(adData.startTime).toISOString());
-      formData.append('EndTime', new Date(adData.endTime).toISOString());
-      formData.append('IsActive', adData.isActive);
-      // Handle the AdData array
-      adData.AdData.forEach((item, index) => {
-        // Handle image file if it exists
-        if (item.Image instanceof File) {
-          formData.append(`AdData[${index}].ImageUrl`, item.Image, item.Image.name);
-        } else if (typeof item.Image === 'string') {
-          // If it's just a path string, you might need special handling
-          formData.append(`AdDataItems[${index}].ImagePath`, item.Image);
-        }
-        formData.append(`AdDataItems[${index}].StoreId`, item.StoreLink);
-        formData.append(`AdDataItems[${index}].ProductId`, item.ProductLink);
-        formData.append(`AdDataItems[${index}].Description`, item.Description);      
-      });
-      
-      });
+  try {
+    apiSetAuthHeader();
 
-      const response = await axios.post(
-        `${baseApiUrl}/api/AdminAnalytics/advertisements`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
+    const formData = new FormData();
+    formData.append('SellerId', String(adData.sellerId));
+    formData.append('StartTime', new Date(adData.startTime).toISOString());
+    formData.append('EndTime', new Date(adData.endTime).toISOString());
+    formData.append('IsActive', adData.isActive);
+
+    adData.AdData.forEach((item, index) => {
+      console.log('item Image', item.Image);
+      formData.append(
+        `AdDataItems[${index}].imageFile`,
+        item.Image,
+        item.Image.name
       );
+      formData.append(`AdDataItems[${index}].storeId`, String(item.StoreLink));
+      formData.append(
+        `AdDataItems[${index}].productId`,
+        String(item.ProductLink)
+      );
+      formData.append(
+        `AdDataItems[${index}].description`,
+        item.Description ?? ''
+      );
+    });
 
-      return { status: response.status, data: response.data };
-    } catch (error) {
-      console.error('Advertisement creation failed:', error);
-      return { status: error.response?.status || 500, data: null };
-    }
+    const response = await axios.post(
+      `${baseApiUrl}/api/AdminAnalytics/advertisements`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    return { status: response.status, data: response.data };
+  } catch (error) {
+    console.error('Advertisement creation failed:', error);
+    return { status: error.response?.status || 500, data: null };
   }
 };
 
@@ -1076,7 +1075,9 @@ export const apiGetAllAdsAsync = async () => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.get(`${baseApiUrl}/api/AdminAnalytics/advertisements`);
+      const response = await axios.get(
+        `${baseApiUrl}/api/AdminAnalytics/advertisements`
+      );
       return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Error fetching advertisements:', error);
@@ -1097,7 +1098,9 @@ export const apiDeleteAdAsync = async (adId) => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.delete(`${baseApiUrl}/api/AdminAnalytics/advertisements/${adId}`);
+      const response = await axios.delete(
+        `${baseApiUrl}/api/AdminAnalytics/advertisements/${adId}`
+      );
       return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Error deleting advertisement:', error);
@@ -1190,4 +1193,3 @@ export const apiGetGeographyAsync = async () => {
     return { regions: [], places: [] };
   }
 };
-

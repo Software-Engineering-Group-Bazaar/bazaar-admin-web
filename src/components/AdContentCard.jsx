@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Paper, Stack } from '@mui/material';
 import { Store, Package, MessageSquare } from 'lucide-react';
+const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const AdContentCard = ({ imageUrl, storeName, productName, description }) => {
   return (
@@ -26,7 +27,7 @@ const AdContentCard = ({ imageUrl, storeName, productName, description }) => {
         }}
       >
         <img
-          src={imageUrl}
+          src={`${baseApiUrl}${imageUrl}`}
           alt='ad'
           style={{
             width: '100%',
