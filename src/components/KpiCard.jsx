@@ -23,8 +23,6 @@ const iconMap = {
   newUsers: <UserPlus size={32} color='#7c2d12' />,
 };
 
-
-
 const KpiCard = ({ label, value, percentageChange = 0, type = 'orders' }) => {
   const isPositive = percentageChange >= 0;
 
@@ -51,7 +49,9 @@ const KpiCard = ({ label, value, percentageChange = 0, type = 'orders' }) => {
           {label}
         </Typography>
         <Typography variant='h5' fontWeight={700} color='text.primary' mt={1}>
-          {value}
+          {Number(value) % 1 === 0
+            ? Number(value)
+            : Number(value).toFixed(2)}{' '}
         </Typography>
       </Box>
 
@@ -65,7 +65,8 @@ const KpiCard = ({ label, value, percentageChange = 0, type = 'orders' }) => {
       >
         {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
         <Typography variant='caption' ml={1}>
-          {Math.abs(percentageChange)}% Compared to last month
+          {Math.abs(Number(percentageChange)).toFixed(2)}% Compared to last
+          month{' '}
         </Typography>
       </Box>
     </Card>

@@ -259,8 +259,6 @@ const StoreCard = ({ store }) => {
         </Typography>
 
         {/* Buttons */}
-        {/* Buttons */}
-        {/* Buttons */}
         <Box sx={{ mt: 'auto', display: 'flex', alignItems: 'center' }}>
           <Box
             sx={{
