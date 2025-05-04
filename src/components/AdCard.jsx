@@ -82,9 +82,9 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
     }
   };
 
-  const handleEdit = async (updatedAd) => {
+  const handleEdit = async (adId, payload) => {
     try {
-      await onEdit(updatedAd);
+      await onEdit(adId, payload);
       toast.success('Ad updated successfully');
     } catch (err) {
       toast.error(err.message || 'Failed to update ad');
@@ -92,6 +92,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
       setIsEditOpen(false);
     }
   };
+
 
   const handleDetails = () => {
     try {
@@ -125,18 +126,18 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
         <Box
           sx={{ display: 'flex', alignItems: 'center', minWidth: 360, gap: 2 }}
         >
-            <Box
-              component='img'
-              src={defaultAdImage}
-              alt='Ad'
-              sx={{
-                width: 60,
-                height: 60,
-                borderRadius: 2,
-                objectFit: 'cover',
-                flexShrink: 0,
-              }}
-            />
+          <Box
+            component='img'
+            src={defaultAdImage}
+            alt='Ad'
+            sx={{
+              width: 60,
+              height: 60,
+              borderRadius: 2,
+              objectFit: 'cover',
+              flexShrink: 0,
+            }}
+          />
           <Box>
             <Box
               sx={{
@@ -281,6 +282,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
           onClose={() => setIsEditOpen(false)}
           onSave={handleEdit}
         />
+
         <DeleteConfirmationModal
           open={isDeleteOpen}
           onClose={() => setIsDeleteOpen(false)}

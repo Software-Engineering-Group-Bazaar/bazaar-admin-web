@@ -8,18 +8,10 @@ import {
   Button,
   IconButton,
   Stack,
-  Divider,
-  Chip,
 } from '@mui/material';
-import {
-  CalendarDays,
-  Edit3,
-  Trash2,
-  PlusCircle,
-  ChevronRight,
-} from 'lucide-react';
+import { Edit3, Trash2 } from 'lucide-react';
 
-const EditAdModal = ({ open, onClose, ad, allAdContentItems, onSave }) => {
+const EditAdModal = ({ open, onClose, ad, onSave }) => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [isActive, setIsActive] = useState(false);
@@ -30,48 +22,72 @@ const EditAdModal = ({ open, onClose, ad, allAdContentItems, onSave }) => {
       setStartTime(ad.startTime || '');
       setEndTime(ad.endTime || '');
       setIsActive(ad.isActive || false);
-      setAdContentItems(ad.adData || []);
+      setAdContentItems(
+        (ad.adData || []).map((item) => ({
+          ...item,
+          imageFile: null, // novo uploadovan file (ako bude)
+          existingImageUrl: item.imageUrl, // postojeca slika iz GET-a
+        }))
+      );
     }
   }, [ad]);
 
+
+  const handleFieldChange = (index, field, value) => {
+    const updatedItems = [...adContentItems];
+    updatedItems[index][field] = value;
+    setAdContentItems(updatedItems);
+  };
+
+  const handleFileChange = (index, file) => {
+    const updatedItems = [...adContentItems];
+    updatedItems[index].imageFile = file;
+    setAdContentItems(updatedItems);
+  };
+
+  const handleRemoveItem = (index) => {
+    const updatedItems = [...adContentItems];
+    updatedItems.splice(index, 1);
+    setAdContentItems(updatedItems);
+  };
+
   const handleSave = () => {
+    const cleanedItems = adContentItems.map((item) => ({
+      storeId: Number(item.storeId),
+      productId: Number(item.productId),
+      description: item.description,
+      imageFile: item.imageFile || null, // ako nema novog file-a, backend koristi stari
+    }));
+
     onSave?.(ad.id, {
       startTime,
       endTime,
       isActive,
-      newAdDataItems: adContentItems,
+      newAdDataItems: cleanedItems,
     });
+
     onClose();
   };
 
-  const handleAddItem = (item) => {
-    setAdContentItems((prev) => [...prev, item]);
-  };
 
-  const handleRemoveItem = (itemId) => {
-    setAdContentItems((prev) => prev.filter((item) => item.id !== itemId));
-  };
-
-  const availableItems = (allAdContentItems || []).filter(
-    (item) => !adContentItems.some((selected) => selected.id === item.id)
-  );
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box
         sx={{
           p: 4,
-          width: '90%',
-          maxWidth: 700,
+          width: '95%',
+          maxWidth: 900,
+          maxHeight: '90vh',
+          overflowY: 'auto',
           bgcolor: '#fff',
           borderRadius: 4,
-          boxShadow: 24,
           mx: 'auto',
           my: '5%',
-          outline: 'none',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
           <Edit3 color='#1976d2' style={{ marginRight: 10 }} />
           <Typography variant='h5' fontWeight={700}>
@@ -79,155 +95,119 @@ const EditAdModal = ({ open, onClose, ad, allAdContentItems, onSave }) => {
           </Typography>
         </Box>
 
-        {/* Start & End Time */}
+        {/* Time + Active */}
         <Stack spacing={3}>
+          <TextField
+            label='Start Time'
+            type='datetime-local'
+            fullWidth
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label='End Time'
+            type='datetime-local'
+            fullWidth
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
           <Box>
-            <Typography variant='subtitle2' color='text.secondary' mb={1}>
-              Start Time
-            </Typography>
-            <TextField
-              fullWidth
-              type='datetime-local'
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <CalendarDays size={18} style={{ marginRight: 10 }} />
-                ),
-              }}
+            <Checkbox
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              sx={{ mr: 1 }}
             />
-          </Box>
-          <Box>
-            <Typography variant='subtitle2' color='text.secondary' mb={1}>
-              End Time
-            </Typography>
-            <TextField
-              fullWidth
-              type='datetime-local'
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <CalendarDays size={18} style={{ marginRight: 10 }} />
-                ),
-              }}
-            />
+            <Typography component='span'>Is Active</Typography>
           </Box>
         </Stack>
 
-        {/* Is Active */}
-        <Box sx={{ mt: 3 }}>
-          <Checkbox
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            sx={{ mr: 1 }}
-          />
-          <Typography component='span' variant='body1'>
-            Is Active
-          </Typography>
-        </Box>
-
-        <Divider sx={{ my: 3 }} />
-
-        {/* Ad Content Items */}
-        <Typography variant='subtitle1' fontWeight={600} mb={2}>
+        {/* Ad Items Section */}
+        <Typography variant='h6' mt={4} mb={2}>
           Advertisement Items
         </Typography>
+
         <Box
           sx={{
-            maxHeight: 160, // visina za 2-3 kartice
+            maxHeight: '30vh',
             overflowY: 'auto',
             pr: 1,
-            mb: 2,
+            mb: 3,
             '&::-webkit-scrollbar': {
-              height: 8,
+              width: 8,
             },
             '&::-webkit-scrollbar-thumb': {
               backgroundColor: '#bbb',
               borderRadius: 4,
             },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'transparent',
-            },
           }}
         >
-          <Stack spacing={1}>
-            {adContentItems.map((item) => (
+          <Stack spacing={2}>
+            {adContentItems.map((item, index) => (
               <Box
-                key={item.id}
+                key={index}
                 sx={{
-                  backgroundColor: '#f9f9f9',
-                  p: 1.5,
+                  border: '1px solid #ddd',
                   borderRadius: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  p: 2,
+                  backgroundColor: '#f9fafb',
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ChevronRight size={18} />
-                  <Typography variant='body2' fontWeight={500}>
-                    Ad Content #{item.id}
-                  </Typography>
-                </Box>
+                <TextField
+                  label='Description'
+                  fullWidth
+                  value={item.description}
+                  onChange={(e) =>
+                    handleFieldChange(index, 'description', e.target.value)
+                  }
+                  sx={{ mb: 1 }}
+                />
+                <TextField
+                  label='Store ID'
+                  type='number'
+                  fullWidth
+                  value={item.storeId}
+                  onChange={(e) =>
+                    handleFieldChange(index, 'storeId', e.target.value)
+                  }
+                  sx={{ mb: 1 }}
+                />
+                <TextField
+                  label='Product ID'
+                  type='number'
+                  fullWidth
+                  value={item.productId}
+                  onChange={(e) =>
+                    handleFieldChange(index, 'productId', e.target.value)
+                  }
+                  sx={{ mb: 1 }}
+                />
+                <Button variant='outlined' component='label' sx={{ mt: 1 }}>
+                  Upload Image
+                  <input
+                    hidden
+                    type='file'
+                    onChange={(e) => handleFileChange(index, e.target.files[0])}
+                  />
+                </Button>
                 <IconButton
-                  onClick={() => handleRemoveItem(item.id)}
+                  onClick={() => handleRemoveItem(index)}
                   size='small'
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={20} />
                 </IconButton>
               </Box>
             ))}
           </Stack>
         </Box>
 
-        {/* Add More Items */}
-        <Typography variant='subtitle1' fontWeight={600} mt={4} mb={1}>
-          Add More Items
-        </Typography>
-        <Box
-          sx={{
-            overflowX: 'auto',
-            whiteSpace: 'nowrap',
-            pb: 1,
-            pr: 1,
-            display: 'flex',
-            gap: 1,
-            flexWrap: 'nowrap',
-            maxHeight: 100, // 2 reda
-            '&::-webkit-scrollbar': {
-              height: 8,
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: '#bbb',
-              borderRadius: 4,
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'transparent',
-            },
-          }}
-        >
-          {availableItems.map((item) => (
-            <Chip
-              key={item.id}
-              label={`Ad Content #${item.id}`}
-              onClick={() => handleAddItem(item)}
-              icon={<PlusCircle size={16} />}
-              variant='outlined'
-              clickable
-              sx={{ bgcolor: '#f3faff', flex: '0 0 auto' }}
-            />
-          ))}
-        </Box>
-
-        {/* Action Buttons */}
-        <Box
-          sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}
-        >
-          <Button onClick={onClose} variant='outlined' color='secondary'>
+        {/* Buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+          <Button onClick={onClose} sx={{ mr: 2 }}>
             Cancel
           </Button>
-          <Button onClick={handleSave} variant='contained' color='primary'>
+          <Button onClick={handleSave} variant='contained'>
             Save
           </Button>
         </Box>
