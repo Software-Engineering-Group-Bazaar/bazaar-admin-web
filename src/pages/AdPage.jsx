@@ -5,7 +5,7 @@ import AdsManagementHeader from '@sections/AdsManagementHeader';
 import UserManagementPagination from '@components/UserManagementPagination';
 import AddAdModal from '@components/AddAdModal'; 
 import AdvertisementDetailsModal from '@components/AdvertisementDetailsModal';
-
+import { apiCreateAdAsync, apiGetAllAdsAsync } from '../api/api';
 const generateMockAds = () => {
   return Array.from({ length: 26 }, (_, i) => ({
     id: i + 1,
@@ -45,6 +45,15 @@ const AdPage = () => {
     currentPage * adsPerPage
   );
 
+  useEffect(() => {
+    const fetchAds = async () => {
+      const rez = await apiGetAllAdsAsync();
+      console.log(data);
+      setAds(rez.data);
+    };
+    fetchAds();
+  }, []);
+
   const handleDelete = async (id) => {
     console.log('Deleting ad with id:', id);
     setAds((prev) => prev.filter((ad) => ad.id !== id));
@@ -66,9 +75,15 @@ const AdPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleAddAd = (newAd) => {
+  const handleAddAd = async (newAd) => {
     const nextId = Math.max(...ads.map((a) => a.id)) + 1;
     setAds((prev) => [...prev, { ...newAd, id: nextId }]);
+
+    const response = await apiCreateAdAsync(newAd);
+        if (response.status < 400) {
+          const res = await apiGetAllAdsAsync();
+          setAds(res.data);
+        }
   };
 
   const handlePageChange = (page) => {
