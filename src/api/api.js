@@ -753,6 +753,10 @@ export const apiToggleUserAvailabilityAsync = async (userId, currentStatus) => {
     );
   } else {
     apiSetAuthHeader();
+    console.log({
+      userId: userId,
+      activationStatus: currentStatus,
+    });
     return axios.post(`${baseApiUrl}/api/Admin/users/activate`, {
       userId: userId,
       activationStatus: currentStatus,
@@ -1036,7 +1040,8 @@ export const apiCreateAdAsync = async (adData) => {
         }
         formData.append(`AdDataItems[${index}].StoreId`, item.StoreLink);
         formData.append(`AdDataItems[${index}].ProductId`, item.ProductLink);
-        formData.append(`AdDataItems[${index}].Description`, item.Description);
+        formData.append(`AdDataItems[${index}].Description`, item.Description);      
+      });
       
       });
 

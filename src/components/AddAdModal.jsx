@@ -58,7 +58,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
   const handleSubmit = () => {
     const errors = {};
-
+    console.log(formData);
     if (!formData.sellerId) errors.sellerId = 'Seller is required';
     if (!formData.startTime) errors.startTime = 'Start time is required';
     if (!formData.endTime) {

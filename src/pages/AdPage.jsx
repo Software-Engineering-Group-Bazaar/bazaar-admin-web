@@ -36,7 +36,7 @@ const AdPage = () => {
   const adsPerPage = 5;
 
   const filteredAds = ads.filter((ad) =>
-    ad.adData[0].description.toLowerCase().includes(searchTerm.toLowerCase())
+    ad.adData != undefined && ad.adData[0].description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredAds.length / adsPerPage);
