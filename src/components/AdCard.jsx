@@ -88,7 +88,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
     }
   };
 
-  const adItem = ad.AdData[0];
+  const adItem = ad.adData[0];
   const dateRange = `${new Date(ad.startTime).toLocaleDateString()} - ${new Date(ad.endTime).toLocaleDateString()}`;
 
   return (
@@ -118,11 +118,11 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
         >
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-            {adItem?.Image && (
+            {adItem?.image && (
               <Box
                 component="img"
-                src={adItem.Image}
-                alt={adItem.Description || 'Ad Image'}
+                src={adItem.image}
+                alt={adItem.description || 'Ad Image'}
                 sx={{
                   width: 70,
                   height: 70,
@@ -150,13 +150,13 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                 </Typography>
               </Box>
               <Typography variant="subtitle1" fontWeight={600}>
-                {adItem?.Description || 'No Description'}
+                {adItem?.description || 'No Description'}
               </Typography>
               <Box sx={{ mt: 0.5 }}>
                 {adItem?.ProductLink && (
                   <Tooltip title="Product Link">
                     <a
-                      href={adItem.ProductLink}
+                      href={adItem.productId}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -173,7 +173,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                 {adItem?.StoreLink && (
                   <Tooltip title="Store Link">
                     <a
-                      href={adItem.StoreLink}
+                      href={adItem.storeId}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -202,13 +202,13 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
             <Stack direction="row" spacing={2} alignItems="center">
               <IconStat
                 icon={<Eye size={20} color="#fff" />}
-                value={ad.Views}
+                value={ad.views}
                 label="Views"
                 bg="#0284c7"
               />
               <IconStat
                 icon={<Hand size={20} color="#fff" />}
-                value={ad.Clicks}
+                value={ad.clicks}
                 label="Clicks"
                 bg="#0d9488"
               />

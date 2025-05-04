@@ -30,13 +30,13 @@ const AdPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [ads, setAds] = useState(generateMockAds());
+  const [ads, setAds] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
 
   const adsPerPage = 5;
 
   const filteredAds = ads.filter((ad) =>
-    ad.AdData[0].Description.toLowerCase().includes(searchTerm.toLowerCase())
+    ad.adData[0].description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredAds.length / adsPerPage);
@@ -48,7 +48,7 @@ const AdPage = () => {
   useEffect(() => {
     const fetchAds = async () => {
       const rez = await apiGetAllAdsAsync();
-      console.log(data);
+      console.log(rez);
       setAds(rez.data);
     };
     fetchAds();
