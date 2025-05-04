@@ -981,6 +981,25 @@ export const apiUpdateOrderStatusAsync = async (orderId, newStatus) => {
 };
 
 
+
+export const apiFetchAllUsersAsync = async () => {
+  if (API_ENV_DEV == API_FLAG) {
+    try {
+      return pendingUsers;
+    } catch (error) {
+      console.error('Greška pri dohvaćanju korisnika:', error);
+      throw error;
+    }
+  } else {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    const users = await axios.get(`${baseApiUrl}/api/Admin/users`);
+    return users;
+  }
+}
 /**
  * Kreiranje reklame
  * @param {Object} adData - Podaci za reklamu
