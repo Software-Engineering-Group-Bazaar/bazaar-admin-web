@@ -9,36 +9,11 @@ import {
   LinearProgress,
 } from '@mui/material';
 import Flag from 'react-world-flags';
-import { apiGetAllStoresAsync, apiFetchOrdersAsync } from '../api/api.js';
-
-// Ovdje možeš proširiti mapu gradova na country code i ime države
-const cityToCountry = {
-  Zenica: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Živinice: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Brčko: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Konjic: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Vitez: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Cazin: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Tešanj: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Gračanica: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Sarajevo: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Jajce: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Čapljina: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Banja: { code: 'BA', country: 'Bosnia and Herzegovina' }, // Banja Luka
-  Banja_Luka: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Mostar: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Kakanj: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Tuzla: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Bihać: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Ilidža: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Sanski: { code: 'BA', country: 'Bosnia and Herzegovina' }, // Sanski Most
-  Sanski_Most: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Travnik: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Lukavac: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Visoko: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  Vogošća: { code: 'BA', country: 'Bosnia and Herzegovina' },
-  // Dodaj sve ostale gradove iz baze!
-};
+import {
+  apiGetAllStoresAsync,
+  apiFetchOrdersAsync,
+  apiGetGeographyAsync,
+} from '../api/api.js';
 
 const CountryStatsPanel = () => {
   const [tab, setTab] = useState(0);
@@ -46,92 +21,126 @@ const CountryStatsPanel = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [stores, orders] = await Promise.all([
+      const [stores, orders, geography] = await Promise.all([
         apiGetAllStoresAsync(),
         apiFetchOrdersAsync(),
+        apiGetGeographyAsync(),
       ]);
-     
-      // Mapiraj storeId na prodavnicu
+
+      const { regions, places } = geography;
+
+      const regionMap = {};
+      regions.forEach((r) => {
+        regionMap[r.id] = {
+          name: r.name,
+          code: r.countryCode?.toUpperCase() || 'BA',
+        };
+      });
+
+      const placeNameToRegionId = {};
+      places.forEach((p) => {
+        placeNameToRegionId[p.name] = p.regionId;
+      });
+
       const storeMap = {};
       stores.forEach((store) => {
         storeMap[store.id] = store;
       });
 
-      // Suma po državi
-      const revenueByCountry = {};
+      const revenueByRegion = {};
       let totalRevenue = 0;
+
+      const ordersByRegion = {};
+      let totalOrders = 0;
+
       orders.forEach((order) => {
-        const store = storeMap[order.storeName]; // order.storeName je zapravo storeId
+        const store = storeMap[order.storeName];
         if (!store) return;
-        const place = store.placeName;
-        const countryInfo = cityToCountry[place];
-        if (!countryInfo) return; // Ako nema grad u mapi, preskoči
-        const key = countryInfo.code;
-        if (!revenueByCountry[key]) {
-          revenueByCountry[key] = {
-            code: countryInfo.code,
-            country: countryInfo.country,
+
+        const regionId = placeNameToRegionId[store.placeName];
+        const region = regionMap[regionId];
+
+        const targetId = region ? regionId : 'others';
+        const targetRegion = region || { name: 'Others', code: 'BA' };
+
+        if (!revenueByRegion[targetId]) {
+          revenueByRegion[targetId] = {
+            name: targetRegion.name,
+            code: targetRegion.code,
             value: 0,
             count: 0,
           };
         }
-        revenueByCountry[key].value += order.totalPrice || 0;
-        revenueByCountry[key].count += 1;
+        revenueByRegion[targetId].value += order.totalPrice || 0;
+        revenueByRegion[targetId].count += 1;
         totalRevenue += order.totalPrice || 0;
-      });
 
-      // Orders po "državi"
-      const ordersByCountry = {};
-      let totalOrders = 0;
-      orders.forEach((order) => {
-        const store = storeMap[order.storeName];
-        if (!store) return;
-        const place = store.placeName;
-        const countryInfo = cityToCountry[place];
-        if (!countryInfo) return;
-        const key = countryInfo.code;
-        if (!ordersByCountry[key]) {
-          ordersByCountry[key] = {
-            code: countryInfo.code,
-            country: countryInfo.country,
-            value: 0, // OVDJE JE BITNO: value je broj narudžbi!
+        if (!ordersByRegion[targetId]) {
+          ordersByRegion[targetId] = {
+            name: targetRegion.name,
+            code: targetRegion.code,
+            value: 0,
           };
         }
-        ordersByCountry[key].value += 1; // Broji narudžbe, ne totalPrice!
+        ordersByRegion[targetId].value += 1;
         totalOrders += 1;
       });
 
-      // Pretvori u niz i izračunaj procente
-      const revenueArr = Object.values(revenueByCountry)
-        .map((item) => ({
-          ...item,
-          percent: totalRevenue
-            ? Number(((item.value / totalRevenue) * 100).toFixed(1))
-            : 0,
-        }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 4); // top 4
+      const revenueSorted = Object.values(revenueByRegion).sort(
+        (a, b) => b.value - a.value
+      );
+      const ordersSorted = Object.values(ordersByRegion).sort(
+        (a, b) => b.value - a.value
+      );
 
-      const ordersArr = Object.values(ordersByCountry)
-        .map((item) => ({
-          ...item,
-          percent: totalOrders
-            ? Number(((item.value / totalOrders) * 100).toFixed(1))
-            : 0,
-        }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 4);
-
-      setData({
-        revenue: revenueArr,
-        orders: ordersArr,
+      const topRevenue = revenueSorted.slice(0, 4);
+      const otherRevenue = revenueSorted.slice(4).reduce(
+        (acc, r) => {
+          acc.value += r.value;
+          acc.count += r.count;
+          return acc;
+        },
+        { name: 'Others', code: 'BA', value: 0, count: 0 }
+      );
+      const revenueArr = [...topRevenue];
+      if (otherRevenue.value > 0) {
+        revenueArr.push({
+          ...otherRevenue,
+          percent: Number(
+            ((otherRevenue.value / totalRevenue) * 100).toFixed(1)
+          ),
+        });
+      }
+      revenueArr.forEach((r) => {
+        r.percent = Number(((r.value / totalRevenue) * 100).toFixed(1));
       });
+
+      const topOrders = ordersSorted.slice(0, 4);
+      const otherOrders = ordersSorted.slice(4).reduce(
+        (acc, o) => {
+          acc.value += o.value;
+          return acc;
+        },
+        { name: 'Others', code: 'BA', value: 0 }
+      );
+      const ordersArr = [...topOrders];
+      if (otherOrders.value > 0) {
+        ordersArr.push({
+          ...otherOrders,
+          percent: Number(((otherOrders.value / totalOrders) * 100).toFixed(1)),
+        });
+      }
+      ordersArr.forEach((o) => {
+        o.percent = Number(((o.value / totalOrders) * 100).toFixed(1));
+      });
+
+      setData({ revenue: revenueArr, orders: ordersArr });
     };
 
     fetchData();
   }, []);
 
-  const labels = ['Revenue by Country', 'Orders by Country'];
+  const labels = ['Revenue by Regions', 'Orders by Regions'];
   const keys = ['revenue', 'orders'];
   const currentData = data[keys[tab]] || [];
 
@@ -141,7 +150,6 @@ const CountryStatsPanel = () => {
         <Typography fontWeight={600} mb={1}>
           {labels[tab]}
         </Typography>
-
         <Tabs
           value={tab}
           onChange={(e, newVal) => setTab(newVal)}
@@ -163,15 +171,19 @@ const CountryStatsPanel = () => {
             >
               <Box display='flex' alignItems='center' gap={1}>
                 <Flag
-                  code={item.code}
+                  code='BA'
                   style={{ width: 24, height: 16, borderRadius: 2 }}
                 />
                 <Typography fontSize={14} color='text.secondary'>
-                  {item.country}
+                  {item.name}
                 </Typography>
               </Box>
               <Typography fontSize={14} fontWeight={600}>
-                {item.value.toLocaleString()} • {item.percent}%
+                {item.value.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{' '}
+                • {item.percent}%
               </Typography>
             </Box>
             <LinearProgress

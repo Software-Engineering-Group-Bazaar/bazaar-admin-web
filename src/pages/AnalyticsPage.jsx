@@ -13,14 +13,7 @@ import {
   apiGetAllStoresAsync,
   apiGetStoreProductsAsync,
 } from '../api/api.js';
-
-
 import { subMonths} from 'date-fns';
-
-
-
-
-
 
 
 const AnalyticsPage = () => {
@@ -229,49 +222,49 @@ const AnalyticsPage = () => {
       <Grid container spacing={3} mb={3} width={1200}>
         {[
           {
-            label: 'Ukupan broj narudžbi',
+            label: 'Total Orders',
             value: kpi.orders.total,
             change: kpi.orders.change,
             type: 'orders',
           },
           {
-            label: 'Ukupan broj korisnika',
+            label: 'Total Users',
             value: kpi.users.total,
             change: kpi.users.change,
             type: 'users',
           },
           {
-            label: 'Ukupan broj prodavnica',
+            label: 'Total Stores',
             value: kpi.stores.total,
-            change: kpi.stores.total,
+            change: kpi.stores.change, // ispravljeno s kpi.stores.total
             type: 'stores',
           },
           {
-            label: 'Ukupan broj proizvoda',
+            label: 'Total Products',
             value: kpi.products.total,
             change: kpi.products.change,
             type: 'products',
           },
           {
-            label: 'Ukupan prihod',
+            label: 'Total Revenue',
             value: kpi.income.total,
             change: kpi.income.change,
             type: 'income',
           },
           {
-            label: 'Aktivne prodavnice',
+            label: 'Active Stores',
             value: kpi.activeSt.total,
             change: kpi.activeSt.change,
             type: 'activeStores',
           },
           {
-            label: 'Odobreni korisnici',
+            label: 'Approved Users',
             value: kpi.approvedUs.total,
             change: kpi.approvedUs.change,
             type: 'approvedUsers',
           },
           {
-            label: 'Nove registracije',
+            label: 'New Registrations',
             value: kpi.newUsers.total,
             change: kpi.newUsers.change,
             type: 'newUsers',
