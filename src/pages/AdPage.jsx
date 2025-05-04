@@ -5,7 +5,7 @@ import AdsManagementHeader from '@sections/AdsManagementHeader';
 import UserManagementPagination from '@components/UserManagementPagination';
 import AddAdModal from '@components/AddAdModal'; 
 import AdvertisementDetailsModal from '@components/AdvertisementDetailsModal';
-import { apiCreateAdAsync, apiGetAllAdsAsync } from '../api/api';
+import { apiCreateAdAsync, apiGetAllAdsAsync, apiDeleteAdAsync } from '../api/api';
 const generateMockAds = () => {
   return Array.from({ length: 26 }, (_, i) => ({
     id: i + 1,
@@ -55,8 +55,11 @@ const AdPage = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    console.log('Deleting ad with id:', id);
-    setAds((prev) => prev.filter((ad) => ad.id !== id));
+    const response = await apiDeleteAdAsync(id);
+      console.log("nesto");
+      const res = await apiGetAllAdsAsync();
+      setAds(res.data);
+    
   };
 
   const handleEdit = async (updatedAd) => {

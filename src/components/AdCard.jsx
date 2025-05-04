@@ -60,7 +60,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
 
   const handleDelete = async () => {
     try {
-      await apiDeleteAdAsync(ad.id);
+      await onDelete(ad.id);
       toast.success('Ad deleted successfully');
     } catch (err) {
       toast.error(err.message || 'Failed to delete ad');
@@ -118,11 +118,11 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
         >
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-            {adItem?.image && (
+            {adItem?.Image && (
               <Box
                 component="img"
-                src={adItem.image}
-                alt={adItem.description || 'Ad Image'}
+                src={adItem.Image}
+                alt={adItem.Description || 'Ad Image'}
                 sx={{
                   width: 70,
                   height: 70,
@@ -150,13 +150,13 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                 </Typography>
               </Box>
               <Typography variant="subtitle1" fontWeight={600}>
-                {adItem?.description || 'No Description'}
+                {adItem?.Description || 'No Description'}
               </Typography>
               <Box sx={{ mt: 0.5 }}>
                 {adItem?.ProductLink && (
                   <Tooltip title="Product Link">
                     <a
-                      href={adItem.productId}
+                      href={adItem.ProductLink}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -173,7 +173,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                 {adItem?.StoreLink && (
                   <Tooltip title="Store Link">
                     <a
-                      href={adItem.storeId}
+                      href={adItem.StoreLink}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -202,13 +202,13 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
             <Stack direction="row" spacing={2} alignItems="center">
               <IconStat
                 icon={<Eye size={20} color="#fff" />}
-                value={ad.views}
+                value={ad.Views}
                 label="Views"
                 bg="#0284c7"
               />
               <IconStat
                 icon={<Hand size={20} color="#fff" />}
-                value={ad.clicks}
+                value={ad.Clicks}
                 label="Clicks"
                 bg="#0d9488"
               />
