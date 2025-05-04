@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -9,37 +9,140 @@ import {
   LinearProgress,
 } from '@mui/material';
 import Flag from 'react-world-flags';
-
-const mockData = {
-  revenue: [
-    { code: 'DE', country: 'Germany', value: 32800, percent: 24.5 },
-    { code: 'FR', country: 'France', value: 29100, percent: 21.7 },
-    { code: 'US', country: 'USA', value: 25800, percent: 19.3 },
-    { code: 'HR', country: 'Croatia', value: 19900, percent: 14.9 },
-  ],
-  orders: [
-    { code: 'US', country: 'USA', value: 1234, percent: 28.3 },
-    { code: 'DE', country: 'Germany', value: 1100, percent: 25.3 },
-    { code: 'ES', country: 'Spain', value: 950, percent: 19.5 },
-    { code: 'BA', country: 'Bosnia', value: 810, percent: 18.7 },
-  ],
-  users: [
-    { code: 'BA', country: 'Bosnia', value: 634, percent: 22.8 },
-    { code: 'RS', country: 'Serbia', value: 589, percent: 21.1 },
-    { code: 'HR', country: 'Croatia', value: 562, percent: 19.5 },
-    { code: 'DE', country: 'Germany', value: 453, percent: 16.3 },
-  ],
-};
+import {
+  apiGetAllStoresAsync,
+  apiFetchOrdersAsync,
+  apiGetGeographyAsync,
+} from '../api/api.js';
 
 const CountryStatsPanel = () => {
   const [tab, setTab] = useState(0);
-  const labels = [
-    'Revenue by Country',
-    'Orders by Country',
-    'Users by Country',
-  ];
-  const keys = ['revenue', 'orders', 'users'];
-  const data = mockData[keys[tab]];
+  const [data, setData] = useState({ revenue: [], orders: [] });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [stores, orders, geography] = await Promise.all([
+        apiGetAllStoresAsync(),
+        apiFetchOrdersAsync(),
+        apiGetGeographyAsync(),
+      ]);
+
+      const { regions, places } = geography;
+
+      const regionMap = {};
+      regions.forEach((r) => {
+        regionMap[r.id] = {
+          name: r.name,
+          code: r.countryCode?.toUpperCase() || 'BA',
+        };
+      });
+
+      const placeNameToRegionId = {};
+      places.forEach((p) => {
+        placeNameToRegionId[p.name] = p.regionId;
+      });
+
+      const storeMap = {};
+      stores.forEach((store) => {
+        storeMap[store.id] = store;
+      });
+
+      const revenueByRegion = {};
+      let totalRevenue = 0;
+
+      const ordersByRegion = {};
+      let totalOrders = 0;
+
+      orders.forEach((order) => {
+        const store = storeMap[order.storeName];
+        if (!store) return;
+
+        const regionId = placeNameToRegionId[store.placeName];
+        const region = regionMap[regionId];
+
+        const targetId = region ? regionId : 'others';
+        const targetRegion = region || { name: 'Others', code: 'BA' };
+
+        if (!revenueByRegion[targetId]) {
+          revenueByRegion[targetId] = {
+            name: targetRegion.name,
+            code: targetRegion.code,
+            value: 0,
+            count: 0,
+          };
+        }
+        revenueByRegion[targetId].value += order.totalPrice || 0;
+        revenueByRegion[targetId].count += 1;
+        totalRevenue += order.totalPrice || 0;
+
+        if (!ordersByRegion[targetId]) {
+          ordersByRegion[targetId] = {
+            name: targetRegion.name,
+            code: targetRegion.code,
+            value: 0,
+          };
+        }
+        ordersByRegion[targetId].value += 1;
+        totalOrders += 1;
+      });
+
+      const revenueSorted = Object.values(revenueByRegion).sort(
+        (a, b) => b.value - a.value
+      );
+      const ordersSorted = Object.values(ordersByRegion).sort(
+        (a, b) => b.value - a.value
+      );
+
+      const topRevenue = revenueSorted.slice(0, 4);
+      const otherRevenue = revenueSorted.slice(4).reduce(
+        (acc, r) => {
+          acc.value += r.value;
+          acc.count += r.count;
+          return acc;
+        },
+        { name: 'Others', code: 'BA', value: 0, count: 0 }
+      );
+      const revenueArr = [...topRevenue];
+      if (otherRevenue.value > 0) {
+        revenueArr.push({
+          ...otherRevenue,
+          percent: Number(
+            ((otherRevenue.value / totalRevenue) * 100).toFixed(1)
+          ),
+        });
+      }
+      revenueArr.forEach((r) => {
+        r.percent = Number(((r.value / totalRevenue) * 100).toFixed(1));
+      });
+
+      const topOrders = ordersSorted.slice(0, 4);
+      const otherOrders = ordersSorted.slice(4).reduce(
+        (acc, o) => {
+          acc.value += o.value;
+          return acc;
+        },
+        { name: 'Others', code: 'BA', value: 0 }
+      );
+      const ordersArr = [...topOrders];
+      if (otherOrders.value > 0) {
+        ordersArr.push({
+          ...otherOrders,
+          percent: Number(((otherOrders.value / totalOrders) * 100).toFixed(1)),
+        });
+      }
+      ordersArr.forEach((o) => {
+        o.percent = Number(((o.value / totalOrders) * 100).toFixed(1));
+      });
+
+      setData({ revenue: revenueArr, orders: ordersArr });
+    };
+
+    fetchData();
+  }, []);
+
+  const labels = ['Revenue by Regions', 'Orders by Regions'];
+  const keys = ['revenue', 'orders'];
+  const currentData = data[keys[tab]] || [];
 
   return (
     <Card sx={{ borderRadius: 4, boxShadow: 3, height: '100%' }}>
@@ -47,7 +150,6 @@ const CountryStatsPanel = () => {
         <Typography fontWeight={600} mb={1}>
           {labels[tab]}
         </Typography>
-
         <Tabs
           value={tab}
           onChange={(e, newVal) => setTab(newVal)}
@@ -58,10 +160,9 @@ const CountryStatsPanel = () => {
         >
           <Tab label='Revenue' />
           <Tab label='Orders' />
-          <Tab label='Users' />
         </Tabs>
 
-        {data.map((item, index) => (
+        {currentData.map((item, index) => (
           <Box key={index} mt={2}>
             <Box
               display='flex'
@@ -70,15 +171,19 @@ const CountryStatsPanel = () => {
             >
               <Box display='flex' alignItems='center' gap={1}>
                 <Flag
-                  code={item.code}
+                  code='BA'
                   style={{ width: 24, height: 16, borderRadius: 2 }}
                 />
                 <Typography fontSize={14} color='text.secondary'>
-                  {item.country}
+                  {item.name}
                 </Typography>
               </Box>
               <Typography fontSize={14} fontWeight={600}>
-                {item.value.toLocaleString()} • {item.percent}%
+                {item.value.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{' '}
+                • {item.percent}%
               </Typography>
             </Box>
             <LinearProgress
