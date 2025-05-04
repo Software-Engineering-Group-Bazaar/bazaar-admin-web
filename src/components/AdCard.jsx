@@ -60,7 +60,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
 
   const handleDelete = async () => {
     try {
-      await onDelete(ad.id);
+      await apiDeleteAdAsync(ad.id);
       toast.success('Ad deleted successfully');
     } catch (err) {
       toast.error(err.message || 'Failed to delete ad');

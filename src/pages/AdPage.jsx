@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import AdCard from '@components/AdCard';
 import AdsManagementHeader from '@sections/AdsManagementHeader';
