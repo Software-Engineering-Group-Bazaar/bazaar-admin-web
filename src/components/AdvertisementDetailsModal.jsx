@@ -169,15 +169,18 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
             }}
           >
             <HorizontalScroll>
-              {ad.adData.map((item, index) => (
-                <AdContentCard
-                  key={index}
-                  imageUrl={item.imageUrl}
-                  storeName={`Store #${item.storeId}`}
-                  productName={`Product #${item.productId}`}
-                  description={item.advertisment}
-                />
-              ))}
+              {ad.adData.map((item, index) => {
+                console.log('AdContentCard item:', item);
+                return (
+                  <AdContentCard
+                    key={index}
+                    imageUrl={item.imageUrl}
+                    storeName={`Store #${item.storeId}`}
+                    productName={`Product #${item.productId}`}
+                    description={item.advertisment}
+                  />
+                );
+              })}
             </HorizontalScroll>
           </Box>
         </Box>

@@ -34,11 +34,15 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     if (open) {
       apiGetAllStoresAsync().then(setStores);
       apiFetchApprovedUsersAsync().then((users) => {
-        const sellersOnly = users.filter(u => u.roles[0].toLowerCase() === 'seller');
+        const sellersOnly = users.filter((u) => {
+          const role = (u.roles?.[0] || 'buyer').toLowerCase();
+          return role === 'seller';
+        });
         setSellers(sellersOnly);
       });
     }
   }, [open]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

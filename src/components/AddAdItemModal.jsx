@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Modal, Box, TextField, MenuItem, Typography, Button,
+  Modal,
+  Box,
+  TextField,
+  MenuItem,
+  Typography,
+  Button,
 } from '@mui/material';
-import ImageUploader from './ImageUploader'; 
+import ImageUploader from './ImageUploader';
 import { apiGetStoreProductsAsync } from '@api/api';
-const AddAdItemModal = ({ open, onClose, onAddItem, stores}) => {
+const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
   const [formData, setFormData] = useState({
     Image: '',
     StoreLink: '',
@@ -34,13 +39,12 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores}) => {
   };
 
   const handleImageUpload = (files) => {
-    // Store the first file (or its preview URL)
     const file = files[0];
     if (file) {
-      const previewUrl = URL.createObjectURL(file); // Optional: for preview
-      setFormData((prev) => ({ ...prev, Image: previewUrl }));
+      setFormData((prev) => ({ ...prev, Image: file }));
     }
   };
+
 
   const handleSubmit = () => {
     const err = {};
@@ -58,77 +62,91 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores}) => {
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box sx={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 800,
-        bgcolor: 'background.paper',
-        p: 4,
-        borderRadius: 2,
-        display: 'flex',
-        gap: 4,
-      }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 800,
+          bgcolor: 'background.paper',
+          p: 4,
+          borderRadius: 2,
+          display: 'flex',
+          gap: 4,
+        }}
+      >
         {/* Left: Image Uploader */}
         <Box sx={{ width: '40%' }}>
           <ImageUploader onFilesSelected={handleImageUpload} />
           {errors.Image && (
-            <Typography color="error" variant="caption">{errors.Image}</Typography>
+            <Typography color='error' variant='caption'>
+              {errors.Image}
+            </Typography>
           )}
         </Box>
 
         {/* Right: Form Fields */}
         <Box sx={{ width: '60%', display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="h6" mb={2}>Add Ad Item</Typography>
+          <Typography variant='h6' mb={2}>
+            Add Ad Item
+          </Typography>
 
           <TextField
-            name="Description"
-            label="Ad Description"
+            name='Description'
+            label='Ad Description'
             fullWidth
             value={formData.Description}
             onChange={handleChange}
-            margin="dense"
+            margin='dense'
             error={!!errors.Description}
             helperText={errors.Description}
           />
 
           <TextField
             select
-            name="ProductLink"
-            label="Product"
+            name='ProductLink'
+            label='Product'
             value={formData.ProductLink}
             onChange={handleChange}
             fullWidth
-            margin="dense"
+            margin='dense'
             error={!!errors.ProductLink}
             helperText={errors.ProductLink}
           >
-            {products.map(p => (
-              <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+            {products.map((p) => (
+              <MenuItem key={p.id} value={p.id}>
+                {p.name}
+              </MenuItem>
             ))}
           </TextField>
 
           <TextField
             select
-            name="StoreLink"
-            label="Store"
+            name='StoreLink'
+            label='Store'
             value={formData.StoreLink}
             onChange={handleStoreChange}
             fullWidth
-            margin="dense"
+            margin='dense'
             error={!!errors.StoreLink}
             helperText={errors.StoreLink}
           >
-            {stores.map(s => (
-              <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+            {stores.map((s) => (
+              <MenuItem key={s.id} value={s.id}>
+                {s.name}
+              </MenuItem>
             ))}
           </TextField>
 
           {/* Buttons */}
-          <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
-            <Button onClick={onClose} variant="outlined">Cancel</Button>
-            <Button onClick={handleSubmit} variant="contained">Add</Button>
+          <Box mt={3} display='flex' justifyContent='flex-end' gap={2}>
+            <Button onClick={onClose} variant='outlined'>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} variant='contained'>
+              Add
+            </Button>
           </Box>
         </Box>
       </Box>
