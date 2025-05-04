@@ -8,36 +8,33 @@ import {
   MenuItem,
 } from '@mui/material';
 import SellIcon from '@mui/icons-material/Sell';
-import ImageUploader from './ImageUploader';
 import AddAdItemModal from './AddAdItemModal';
 import {
   apiGetAllStoresAsync,
   apiFetchApprovedUsersAsync,
-  apiGetStoreProductsAsync,
 } from '@api/api';
 
 const AddAdModal = ({ open, onClose, onAddAd }) => {
   const [formData, setFormData] = useState({
     sellerId: '',
-    views: 0,
-    clicks: 0,
+    Views: 0,
+    Clicks: 0,
     startTime: '',
     endTime: '',
     isActive: true,
-    adData: [],
+    AdData: [],
   });
 
   const [stores, setStores] = useState([]);
-  const [products, setProducts] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [adItemModalOpen, setAdItemModalOpen] = useState(false);
-
+  
   useEffect(() => {
     if (open) {
       apiGetAllStoresAsync().then(setStores);
       apiFetchApprovedUsersAsync().then((users) => {
-        const sellersOnly = users.filter(u => u.role.toLowerCase() === 'seller');
+        const sellersOnly = users.filter(u => u.roles[0].toLowerCase() === 'seller');
         setSellers(sellersOnly);
       });
     }
@@ -51,24 +48,11 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     }));
   };
 
-  const handleSellerChange = async (e) => {
-    const selectedSellerId = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      sellerId: selectedSellerId,
-    }));
-    try {
-      const result = await apiGetStoreProductsAsync(selectedSellerId);
-      setProducts(result || []);
-    } catch (err) {
-      console.error('Failed to fetch products for seller:', err);
-    }
-  };
 
   const handleAddAdItem = (item) => {
     setFormData((prev) => ({
       ...prev,
-      adData: [...prev.adData, item],
+      AdData: [...prev.AdData, item],
     }));
   };
 
@@ -83,8 +67,8 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
       errors.endTime = 'End time must be after start time';
     }
 
-    if (formData.adData.length === 0) {
-      errors.adData = 'At least one ad item is required';
+    if (formData.AdData.length === 0) {
+      errors.AdData = 'At least one ad item is required';
     }
 
     setFormErrors(errors);
@@ -131,20 +115,17 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
         {/* Content */}
         <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mb: 2 }}>
-          {/* Left: Image */}
-          <Box sx={{ width: '50%' }}>
-            <ImageUploader onFilesSelected={(files) => {}} />
-          </Box>
+
 
           {/* Right: Form */}
-          <Box sx={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
             <TextField
               select
               size="small"
               name="sellerId"
               label="Seller"
               value={formData.sellerId}
-              onChange={handleSellerChange}
+              onChange={handleChange}
               error={!!formErrors.sellerId}
               helperText={formErrors.sellerId}
               sx={{ mb: 1.2 }}
@@ -152,7 +133,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             >
               {sellers.map((seller) => (
                 <MenuItem key={seller.id} value={seller.id}>
-                  {seller.name}
+                  {seller.userName}
                 </MenuItem>
               ))}
             </TextField>
@@ -200,14 +181,14 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             </Button>
 
             {/* Error message if no items */}
-            {formErrors.adData && (
+            {formErrors.AdData && (
               <Typography color="error" variant="body2" sx={{ mb: 1 }}>
-                {formErrors.adData}
+                {formErrors.AdData}
               </Typography>
             )}
 
             {/* Display added ad items */}
-            {formData.adData.map((item, index) => (
+            {formData.AdData.map((item, index) => (
               <Box key={index} sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}>
                 <Typography variant="body2"><strong>Ad Text:</strong> {item.advertisment}</Typography>
                 <Typography variant="body2"><strong>Store:</strong> {item.storeId}</Typography>
@@ -257,7 +238,6 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           onClose={() => setAdItemModalOpen(false)}
           onAddItem={handleAddAdItem}
           stores={stores}
-          products={products}
         />
       </Box>
     </Modal>
