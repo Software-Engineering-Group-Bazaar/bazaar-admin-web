@@ -22,7 +22,8 @@ import {
 import { toast } from 'react-hot-toast';
 import DeleteConfirmationModal from './DeleteAdConfirmation';
 import EditAdModal from './EditAdModal';
-import { apiFetchApprovedUsersAsync } from '../api/api';const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
+import { apiFetchApprovedUsersAsync } from '../api/api';
+const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const IconStat = ({ icon, value, label, bg }) => (
   <Stack

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs, Tab, Box, Typography } from '@mui/material';
 import {
   LineChart,
@@ -10,48 +10,125 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import {
+  apiFetchOrdersAsync,
+  apiFetchAllUsersAsync,
+} from '../api/api.js';
 
-const sampleData = {
-  revenue: [
-    { month: 'Mar 2023', revenue: 18000, target: 15000 },
-    { month: 'Apr 2023', revenue: 16500, target: 16000 },
-    { month: 'May 2023', revenue: 14200, target: 16000 },
-    { month: 'Jun 2023', revenue: 12000, target: 15500 },
-    { month: 'Jul 2023', revenue: 11000, target: 15500 },
-    { month: 'Aug 2023', revenue: 12800, target: 15000 },
-    { month: 'Sep 2023', revenue: 13500, target: 15200 },
-    { month: 'Oct 2023', revenue: 14300, target: 15200 },
-    { month: 'Nov 2023', revenue: 15500, target: 15200 },
-    { month: 'Dec 2023', revenue: 17000, target: 16000 },
-  ],
-  orders: [
-    { month: 'Mar 2023', orders: 200 },
-    { month: 'Apr 2023', orders: 180 },
-    { month: 'May 2023', orders: 150 },
-    { month: 'Jun 2023', orders: 130 },
-    { month: 'Jul 2023', orders: 120 },
-    { month: 'Aug 2023', orders: 140 },
-    { month: 'Sep 2023', orders: 160 },
-    { month: 'Oct 2023', orders: 170 },
-    { month: 'Nov 2023', orders: 185 },
-    { month: 'Dec 2023', orders: 190 },
-  ],
-  registrations: [
-    { month: 'Mar 2023', registrations: 85 },
-    { month: 'Apr 2023', registrations: 70 },
-    { month: 'May 2023', registrations: 60 },
-    { month: 'Jun 2023', registrations: 50 },
-    { month: 'Jul 2023', registrations: 45 },
-    { month: 'Aug 2023', registrations: 55 },
-    { month: 'Sep 2023', registrations: 65 },
-    { month: 'Oct 2023', registrations: 80 },
-    { month: 'Nov 2023', registrations: 95 },
-    { month: 'Dec 2023', registrations: 110 },
-  ],
-};
+function getLast12Months() {
+  const months = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(
+      d.toLocaleString('default', { month: 'short', year: 'numeric' })
+    );
+  }
+  return months;
+}
+
+function generateTargets(realValues, minOffset = -0.1, maxOffset = 0.15) {
+  // Generiši targete koji su blizu stvarnih vrijednosti, ali malo variraju
+  return realValues.map((item) => {
+    const offset =
+      minOffset +
+      Math.random() * (maxOffset - minOffset); // npr. -10% do +15%
+    return Math.round(item * (1 + offset));
+  });
+}
 
 const AnalyticsChart = () => {
   const [tab, setTab] = useState(0);
+  const [chartData, setChartData] = useState({
+    revenue: [],
+    orders: [],
+    registrations: [],
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const months = getLast12Months();
+
+      // 1. Orders
+      const orders = await apiFetchOrdersAsync();
+      // 2. Users
+      const response  = await apiFetchAllUsersAsync();
+      const users = response.data;
+
+      // 3. Revenue po mjesecima
+      const revenueByMonth = months.map((monthLabel, idx) => {
+        // Pronađi početak i kraj mjeseca
+        const d = new Date();
+        d.setMonth(d.getMonth() - (11 - idx), 1);
+        const start = new Date(d.getFullYear(), d.getMonth(), 1);
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+
+        const monthOrders = orders.filter(
+          (o) =>
+            new Date(o.createdAt) >= start && new Date(o.createdAt) < end
+        );
+        const revenue = monthOrders.reduce(
+          (sum, o) => sum + (o.totalPrice || 0),
+          0
+        );
+        return revenue;
+      });
+
+      // 4. Orders po mjesecima
+      const ordersByMonth = months.map((monthLabel, idx) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (11 - idx), 1);
+        const start = new Date(d.getFullYear(), d.getMonth(), 1);
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+
+        const monthOrders = orders.filter(
+          (o) =>
+            new Date(o.createdAt) >= start && new Date(o.createdAt) < end
+        );
+        return monthOrders.length;
+      });
+
+      // 5. Registrations po mjesecima
+      const registrationsByMonth = months.map((monthLabel, idx) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (11 - idx), 1);
+        const start = new Date(d.getFullYear(), d.getMonth(), 1);
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+
+        const monthUsers = users.filter(
+          (u) =>
+            new Date(u.createdAt) >= start && new Date(u.createdAt) < end
+        );
+        return monthUsers.length;
+      });
+
+      // 6. Generiši targete
+      const revenueTargets = generateTargets(revenueByMonth, -0.05, 0.12);
+      const ordersTargets = generateTargets(ordersByMonth, -0.08, 0.15);
+      const registrationsTargets = generateTargets(registrationsByMonth, -0.1, 0.2);
+
+      // 7. Pripremi podatke za graf
+      setChartData({
+        revenue: months.map((month, i) => ({
+          month,
+          revenue: revenueByMonth[i],
+          target: revenueTargets[i],
+        })),
+        orders: months.map((month, i) => ({
+          month,
+          orders: ordersByMonth[i],
+          target: ordersTargets[i],
+        })),
+        registrations: months.map((month, i) => ({
+          month,
+          registrations: registrationsByMonth[i],
+          target: registrationsTargets[i],
+        })),
+      });
+    };
+
+    fetchData();
+  }, []);
 
   const handleChange = (event, newValue) => {
     setTab(newValue);
@@ -95,10 +172,10 @@ const AnalyticsChart = () => {
 
       <ResponsiveContainer width='100%' height={300}>
         {tab === 0 && (
-          <LineChart data={sampleData.revenue}>
+          <LineChart data={chartData.revenue}>
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='month' />
-            <YAxis tickFormatter={(v) => `$${v / 1000}K`} />
+            <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}K`} />
             <Tooltip formatter={(val) => `$${val}`} />
             <Legend />
             <Line
@@ -114,11 +191,12 @@ const AnalyticsChart = () => {
               stroke='#f59e0b'
               strokeWidth={2}
               name='Target'
+              strokeDasharray="5 5"
             />
           </LineChart>
         )}
         {tab === 1 && (
-          <LineChart data={sampleData.orders}>
+          <LineChart data={chartData.orders}>
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='month' />
             <YAxis />
@@ -131,10 +209,18 @@ const AnalyticsChart = () => {
               strokeWidth={2}
               name='Orders'
             />
+            <Line
+              type='monotone'
+              dataKey='target'
+              stroke='#f59e0b'
+              strokeWidth={2}
+              name='Target'
+              strokeDasharray="5 5"
+            />
           </LineChart>
         )}
         {tab === 2 && (
-          <LineChart data={sampleData.registrations}>
+          <LineChart data={chartData.registrations}>
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='month' />
             <YAxis />
@@ -146,6 +232,14 @@ const AnalyticsChart = () => {
               stroke='#0f766e'
               strokeWidth={2}
               name='Registrations'
+            />
+            <Line
+              type='monotone'
+              dataKey='target'
+              stroke='#f59e0b'
+              strokeWidth={2}
+              name='Target'
+              strokeDasharray="5 5"
             />
           </LineChart>
         )}
