@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import AdCard from '@components/AdCard';
 import AdsManagementHeader from '@sections/AdsManagementHeader';
 import UserManagementPagination from '@components/UserManagementPagination';
 import AddAdModal from '@components/AddAdModal'; 
 import AdvertisementDetailsModal from '@components/AdvertisementDetailsModal';
-
+import { apiCreateAdAsync, apiGetAllAdsAsync, apiDeleteAdAsync } from '../api/api';
 const generateMockAds = () => {
   return Array.from({ length: 26 }, (_, i) => ({
     id: i + 1,
@@ -30,13 +30,13 @@ const AdPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [ads, setAds] = useState(generateMockAds());
+  const [ads, setAds] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
 
   const adsPerPage = 5;
 
   const filteredAds = ads.filter((ad) =>
-    ad.AdData[0].Description.toLowerCase().includes(searchTerm.toLowerCase())
+    ad.adData[0].description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredAds.length / adsPerPage);
@@ -45,9 +45,21 @@ const AdPage = () => {
     currentPage * adsPerPage
   );
 
+  useEffect(() => {
+    const fetchAds = async () => {
+      const rez = await apiGetAllAdsAsync();
+      console.log(rez);
+      setAds(rez.data);
+    };
+    fetchAds();
+  }, []);
+
   const handleDelete = async (id) => {
-    console.log('Deleting ad with id:', id);
-    setAds((prev) => prev.filter((ad) => ad.id !== id));
+    const response = await apiDeleteAdAsync(id);
+      console.log("nesto");
+      const res = await apiGetAllAdsAsync();
+      setAds(res.data);
+    
   };
 
   const handleEdit = async (updatedAd) => {
@@ -66,9 +78,15 @@ const AdPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleAddAd = (newAd) => {
+  const handleAddAd = async (newAd) => {
     const nextId = Math.max(...ads.map((a) => a.id)) + 1;
     setAds((prev) => [...prev, { ...newAd, id: nextId }]);
+
+    const response = await apiCreateAdAsync(newAd);
+        if (response.status < 400) {
+          const res = await apiGetAllAdsAsync();
+          setAds(res.data);
+        }
   };
 
   const handlePageChange = (page) => {

@@ -9,7 +9,7 @@ import HorizontalScroll from './HorizontalScroll';
 const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
-    adData: ad?.AdData || [],
+    adData: ad?.adData || [],
     startTime: ad?.startTime || '',
     endTime: ad?.endTime || '',
     isActive: ad?.isActive || false,
@@ -42,20 +42,20 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
     {
       icon: <BarChart2 size={24} color='#0284c7' />,
       label: 'Views',
-      value: ad.Views.toLocaleString(),
+      value: ad.views.toLocaleString(),
       bg: '#e0f2fe',
     },
     {
       icon: <MousePointerClick size={24} color='#0d9488' />,
       label: 'Clicks',
-      value: ad.Clicks.toLocaleString(),
+      value: ad.clicks.toLocaleString(),
       bg: '#ccfbf1',
     },
     {
       icon: <Percent size={24} color='#f59e0b' />,
       label: 'CTR',
       value:
-        ad.Views > 0 ? ((ad.Clicks / ad.Views) * 100).toFixed(1) + '%' : '0%',
+        ad.views > 0 ? ((ad.clicks / ad.views) * 100).toFixed(1) + '%' : '0%',
       bg: '#fef9c3',
     },
     {
@@ -169,7 +169,7 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
             }}
           >
             <HorizontalScroll>
-              {ad.AdData.map((item, index) => (
+              {ad.adData.map((item, index) => (
                 <AdContentCard
                   key={index}
                   imageUrl={item.imageUrl}

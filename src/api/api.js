@@ -1019,31 +1019,29 @@ export const apiCreateAdAsync = async (adData) => {
 
       // Create FormData if there are image files to upload
       const formData = new FormData();
-      formData.append('sellerId', adData.sellerId);
-      formData.append('startTime', new Date(adData.startTime).toISOString());
-      formData.append('endTime', new Date(adData.endTime).toISOString());
-
+      formData.append('SellerId', adData.sellerId);
+      formData.append('Views', adData.Views);
+      formData.append('Clicks', adData.Clicks);
+      formData.append('StartTime', new Date(adData.startTime).toISOString());
+      formData.append('EndTime', new Date(adData.endTime).toISOString());
+      formData.append('IsActive', adData.isActive);
       // Handle the AdData array
       adData.AdData.forEach((item, index) => {
-        formData.append(`AdData[${index}].Description`, item.Description);
-        formData.append(`AdData[${index}].ProductLink`, item.ProductLink);
-        formData.append(`AdData[${index}].StoreLink`, item.StoreLink);
-
         // Handle image file if it exists
         if (item.Image instanceof File) {
-          formData.append(
-            `AdData[${index}].Image`,
-            item.Image,
-            item.Image.name
-          );
+          formData.append(`AdData[${index}].ImageUrl`, item.Image, item.Image.name);
         } else if (typeof item.Image === 'string') {
           // If it's just a path string, you might need special handling
-          formData.append(`AdData[${index}].ImagePath`, item.Image);
+          formData.append(`AdDataItems[${index}].ImagePath`, item.Image);
         }
+        formData.append(`AdDataItems[${index}].StoreId`, item.StoreLink);
+        formData.append(`AdDataItems[${index}].ProductId`, item.ProductLink);
+        formData.append(`AdDataItems[${index}].Description`, item.Description);
+      
       });
 
       const response = await axios.post(
-        `${baseApiUrl}/api/Admin/ads/create`,
+        `${baseApiUrl}/api/AdminAnalytics/advertisements`,
         formData,
         {
           headers: {
@@ -1073,7 +1071,7 @@ export const apiGetAllAdsAsync = async () => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.get(`${baseApiUrl}/api/Admin/ads`);
+      const response = await axios.get(`${baseApiUrl}/api/AdminAnalytics/advertisements`);
       return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Error fetching advertisements:', error);
@@ -1094,9 +1092,7 @@ export const apiDeleteAdAsync = async (adId) => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.delete(
-        `${baseApiUrl}/api/Admin/ads/${adId}`
-      );
+      const response = await axios.delete(`${baseApiUrl}/api/AdminAnalytics/advertisements/${adId}`);
       return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Error deleting advertisement:', error);
@@ -1132,10 +1128,9 @@ export const apiUpdateAdAsync = async (adData) => {
 
       // Handle the AdData array
       adData.AdData.forEach((item, index) => {
-        formData.append(`AdData[${index}].Description`, item.Description);
-        formData.append(`AdData[${index}].ProductLink`, item.ProductLink);
-        formData.append(`AdData[${index}].StoreLink`, item.StoreLink);
-
+        formData.append(`AdDataItems[${index}].Description`, item.Description);
+        formData.append(`AdDataItems[${index}].ProductLink`, item.ProductLink);
+        formData.append(`AdDataItems[${index}].StoreLink`, item.StoreLink);
         // Handle image file if it exists
         if (item.Image instanceof File) {
           formData.append(
@@ -1149,7 +1144,7 @@ export const apiUpdateAdAsync = async (adData) => {
       });
 
       const response = await axios.put(
-        `${baseApiUrl}/api/Admin/ads/${adData.id}`,
+        `${baseApiUrl}/api/AdminAnalytics/advertisements/${adData.id}`,
         formData,
         {
           headers: {

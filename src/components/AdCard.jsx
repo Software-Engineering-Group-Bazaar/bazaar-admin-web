@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -22,7 +22,7 @@ import {
 import { toast } from 'react-hot-toast';
 import DeleteConfirmationModal from './DeleteAdConfirmation';
 import EditAdModal from './EditAdModal';
-
+import { apiFetchApprovedUsersAsync } from '../api/api';
 const IconStat = ({ icon, value, label, bg }) => (
   <Stack
     direction="row"
@@ -57,7 +57,16 @@ const IconStat = ({ icon, value, label, bg }) => (
 const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [sellers, setSellers] = useState([]);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const rez = await apiFetchApprovedUsersAsync();
+      console.log(rez[0].userName)
+      setSellers(rez);
+    };
+    fetchUsers();
+  }, []);
   const handleDelete = async () => {
     try {
       await onDelete(ad.id);
@@ -88,7 +97,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
     }
   };
 
-  const adItem = ad.AdData[0];
+  const adItem = ad.adData[0];
   const dateRange = `${new Date(ad.startTime).toLocaleDateString()} - ${new Date(ad.endTime).toLocaleDateString()}`;
 
   return (
@@ -118,11 +127,11 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
         >
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-            {adItem?.Image && (
+            {adItem?.imageUrl && (
               <Box
                 component="img"
-                src={adItem.Image}
-                alt={adItem.Description || 'Ad Image'}
+                src={adItem.imageUrl}
+                alt={adItem.description || 'Ad Image'}
                 sx={{
                   width: 70,
                   height: 70,
@@ -146,17 +155,19 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                 }}
               >
                 <Typography variant="caption" fontWeight={500} color="#9333ea">
-                  #{ad.id.toString().padStart(6, '0')} | Seller: {ad.sellerId}
+                  #{ad.id.toString().padStart(6, '0')} | Seller: {
+                  (sellers.find(s => s.id == ad.sellerId)?.userName || 'Unknown')
+                }
                 </Typography>
               </Box>
               <Typography variant="subtitle1" fontWeight={600}>
-                {adItem?.Description || 'No Description'}
+                {adItem?.description || 'No Description'}
               </Typography>
               <Box sx={{ mt: 0.5 }}>
-                {adItem?.ProductLink && (
+                {adItem?.productId && (
                   <Tooltip title="Product Link">
                     <a
-                      href={adItem.ProductLink}
+                      href={adItem.productId}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -202,13 +213,13 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
             <Stack direction="row" spacing={2} alignItems="center">
               <IconStat
                 icon={<Eye size={20} color="#fff" />}
-                value={ad.Views}
+                value={ad.views}
                 label="Views"
                 bg="#0284c7"
               />
               <IconStat
                 icon={<Hand size={20} color="#fff" />}
-                value={ad.Clicks}
+                value={ad.clicks}
                 label="Clicks"
                 bg="#0d9488"
               />
