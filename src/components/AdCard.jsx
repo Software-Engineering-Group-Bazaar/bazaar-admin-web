@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -22,7 +22,7 @@ import {
 import { toast } from 'react-hot-toast';
 import DeleteConfirmationModal from './DeleteAdConfirmation';
 import EditAdModal from './EditAdModal';
-
+import { apiFetchApprovedUsersAsync } from '../api/api';
 const IconStat = ({ icon, value, label, bg }) => (
   <Stack
     direction="row"
@@ -57,7 +57,16 @@ const IconStat = ({ icon, value, label, bg }) => (
 const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [sellers, setSellers] = useState([]);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const rez = await apiFetchApprovedUsersAsync();
+      console.log(rez[0].userName)
+      setSellers(rez);
+    };
+    fetchUsers();
+  }, []);
   const handleDelete = async () => {
     try {
       await onDelete(ad.id);
@@ -146,7 +155,9 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                 }}
               >
                 <Typography variant="caption" fontWeight={500} color="#9333ea">
-                  #{ad.id.toString().padStart(6, '0')} | Seller: {ad.sellerId}
+                  #{ad.id.toString().padStart(6, '0')} | Seller: {
+                  (sellers.find(s => s.id == ad.sellerId)?.userName || 'Unknown')
+                }
                 </Typography>
               </Box>
               <Typography variant="subtitle1" fontWeight={600}>
