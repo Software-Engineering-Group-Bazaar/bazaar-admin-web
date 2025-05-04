@@ -1,13 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography } from '@mui/material';
 import CountUp from 'react-countup';
 import { Pencil, Trash2, Link, Store, Save, X } from 'lucide-react';
 import { BarChart2, MousePointerClick, Percent, Activity } from 'lucide-react';
 import AdContentCard from '@components/AdContentCard';
 import HorizontalScroll from './HorizontalScroll';
-
+import {apiGetAllStoresAsync,apiFetchApprovedUsersAsync, apiGetStoreByIdAsync, apiGetStoreProductsAsync} from '../api/api';
 const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
+
   const [isEditing, setIsEditing] = useState(false);
+  const [stores, setStores] = useState();
+  const [products, setProducts] = useState();
+  const [seller, setSeller] = useState();
+
+  useEffect(() => {
+    const fetchStoresAndProducts = async () => {
+      if (!ad?.adData) return;
+  
+      // 1. Dohvati jedinstvene storeId vrijednosti
+      const uniqueStoreIds = [...new Set(ad.adData.map(item => item.storeId))];
+  
+      // 2. Dohvati sve prodavnice
+      const storePromises = uniqueStoreIds.map(storeId =>
+        apiGetStoreByIdAsync(storeId).then(store => ({ storeId, store }))
+      );
+      const storeResults = await Promise.all(storePromises);
+  
+      // 3. Mapa storeId → store
+      const storesMap = {};
+      storeResults.forEach(({ storeId, store }) => {
+        storesMap[storeId] = store;
+      });
+      setStores(storesMap);
+  
+      // 4. Dohvati sve proizvode za svaki storeId
+      const productPromises = uniqueStoreIds.map(storeId =>
+        apiGetStoreProductsAsync(storeId).then(result => {
+          const productList = result.data; // izvući pravi niz
+          if (!Array.isArray(productList)) {
+            console.warn(`Expected array but got:`, productList);
+            return [];
+          }
+          return productList.map(product => ({ ...product, storeId }));
+        })
+      );
+      const productResults = await Promise.all(productPromises);
+  
+      // 5. Kreiraj mapu productId → product
+      const productsMap = {};
+      productResults.flat().forEach(product => {
+        productsMap[product.id] = product;
+      });
+      setProducts(productsMap);
+  
+      // 6. Dohvati korisnika
+      const us = await apiFetchApprovedUsersAsync();
+      const korisnik = us.find(u => u.id === ad.sellerId);
+      setSeller(korisnik);
+    };
+  
+    fetchStoresAndProducts();
+  }, [ad]);
+
+
   const [editedData, setEditedData] = useState({
     adData: ad?.adData || [],
     startTime: ad?.startTime || '',
@@ -79,7 +134,7 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
               Advertisement {ad.id}
             </Typography>
             <Typography variant='body2' color='text.secondary'>
-              Seller ID: {ad.sellerId}
+              Seller Username: {seller?.userName || "Unknown"}
             </Typography>
           </Box>
           <Box sx={styles.headerAccent} />
@@ -173,9 +228,9 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
                 <AdContentCard
                   key={index}
                   imageUrl={item.imageUrl}
-                  storeName={`Store #${item.storeId}`}
-                  productName={`Product #${item.productId}`}
-                  description={item.advertisment}
+                  storeName={stores?.[item.storeId]?.name || 'Unknown'}
+                  productName={products?.[item.productId]?.name || 'Unknown'}
+                  description={item.description}
                 />
               ))}
             </HorizontalScroll>
