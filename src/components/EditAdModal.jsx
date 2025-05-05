@@ -53,7 +53,10 @@ const EditAdModal = ({ open, onClose, ad, onSave }) => {
   const handleRemoveItem = async (index) => {
     const updatedItems = [...adContentItems];
     updatedItems.splice(index, 1);
-    const res = await apiRemoveAdItemAsync(index);
+
+    const id = ad.adData[index].id;
+    const res = await apiRemoveAdItemAsync(id);
+
     setAdContentItems(updatedItems);
   };
 
