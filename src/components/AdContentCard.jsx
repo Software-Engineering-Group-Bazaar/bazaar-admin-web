@@ -27,7 +27,7 @@ const AdContentCard = ({ imageUrl, storeName, productName, description }) => {
         }}
       >
         <img
-          src={`${baseApiUrl}${imageUrl}`}
+          src={`${imageUrl}`}
           alt='ad'
           style={{
             width: '100%',
