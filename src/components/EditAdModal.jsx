@@ -10,7 +10,11 @@ import {
   Stack,
 } from '@mui/material';
 import { Edit3, Trash2 } from 'lucide-react';
-import { apiFetchAllUsersAsync, apiGetAllStoresAsync } from '../api/api';
+import {
+  apiFetchAllUsersAsync,
+  apiGetAllStoresAsync,
+  apiRemoveAdItemAsync,
+} from '../api/api';
 
 const EditAdModal = ({ open, onClose, ad, onSave }) => {
   const [startTime, setStartTime] = useState('');
