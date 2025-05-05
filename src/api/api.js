@@ -1109,7 +1109,6 @@ export const apiDeleteAdAsync = async (adId) => {
   }
 };
 
-
 /**
  * Updates an existing advertisement
  * @param {Object} adData - Advertisement data to update
@@ -1184,9 +1183,16 @@ export const apiUpdateAdAsync = async (advertisementId, adData) => {
     adData.newAdDataItems.forEach((item, index) => {
       formData.append(`NewAdDataItems[${index}].storeId`, item.storeId);
       formData.append(`NewAdDataItems[${index}].productId`, item.productId);
-      formData.append(`NewAdDataItems[${index}].description`, item.description || '');
+      formData.append(
+        `NewAdDataItems[${index}].description`,
+        item.description || ''
+      );
       if (item.imageFile instanceof File) {
-        formData.append(`NewAdDataItems[${index}].imageFile`, item.imageFile, item.imageFile.name);
+        formData.append(
+          `NewAdDataItems[${index}].imageFile`,
+          item.imageFile,
+          item.imageFile.name
+        );
       }
     });
 
@@ -1205,8 +1211,10 @@ export const apiUpdateAdAsync = async (advertisementId, adData) => {
   }
 };
 
-
-
+export const apiRemoveAdItemAsync = async (id) => {
+  apiSetAuthHeader();
+  return axios.delete(`${baseApiUrl}/api/AdminAnalytics/data/${id}`);
+};
 
 export const apiGetRegionsAsync = async () => {
   apiSetAuthHeader();
