@@ -10,6 +10,7 @@ import {
   Stack,
 } from '@mui/material';
 import { Edit3, Trash2 } from 'lucide-react';
+import { apiFetchAllUsersAsync, apiGetAllStoresAsync } from '../api/api';
 
 const EditAdModal = ({ open, onClose, ad, onSave }) => {
   const [startTime, setStartTime] = useState('');
@@ -18,6 +19,7 @@ const EditAdModal = ({ open, onClose, ad, onSave }) => {
   const [adContentItems, setAdContentItems] = useState([]);
 
   useEffect(() => {
+    console.log(ad);
     if (ad) {
       setStartTime(ad.startTime || '');
       setEndTime(ad.endTime || '');
@@ -32,7 +34,6 @@ const EditAdModal = ({ open, onClose, ad, onSave }) => {
     }
   }, [ad]);
 
-
   const handleFieldChange = (index, field, value) => {
     const updatedItems = [...adContentItems];
     updatedItems[index][field] = value;
@@ -45,9 +46,10 @@ const EditAdModal = ({ open, onClose, ad, onSave }) => {
     setAdContentItems(updatedItems);
   };
 
-  const handleRemoveItem = (index) => {
+  const handleRemoveItem = async (index) => {
     const updatedItems = [...adContentItems];
     updatedItems.splice(index, 1);
+    const res = await apiRemoveAdItemAsync(index);
     setAdContentItems(updatedItems);
   };
 
@@ -68,8 +70,6 @@ const EditAdModal = ({ open, onClose, ad, onSave }) => {
 
     onClose();
   };
-
-
 
   return (
     <Modal open={open} onClose={onClose}>
