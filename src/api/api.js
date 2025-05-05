@@ -1114,6 +1114,7 @@ export const apiDeleteAdAsync = async (adId) => {
  * @param {Object} adData - Advertisement data to update
  * @returns {Promise<{status: number, data: Object}>} Updated advertisement
  */
+/*
 export const apiUpdateAdAsync = async (adData) => {
   if (API_ENV_DEV === API_FLAG) {
     // Mock update for development
@@ -1167,6 +1168,52 @@ export const apiUpdateAdAsync = async (adData) => {
       return { status: error.response?.status || 500, data: null };
     }
   }
+};
+*/
+
+export const apiUpdateAdAsync = async (advertisementId, adData) => {
+  try {
+    apiSetAuthHeader();
+
+    const formData = new FormData();
+    formData.append('StartTime', new Date(adData.startTime).toISOString());
+    formData.append('EndTime', new Date(adData.endTime).toISOString());
+    formData.append('IsActive', adData.isActive);
+
+    adData.newAdDataItems.forEach((item, index) => {
+      formData.append(`NewAdDataItems[${index}].storeId`, item.storeId);
+      formData.append(`NewAdDataItems[${index}].productId`, item.productId);
+      formData.append(
+        `NewAdDataItems[${index}].description`,
+        item.description || ''
+      );
+      if (item.imageFile instanceof File) {
+        formData.append(
+          `NewAdDataItems[${index}].imageFile`,
+          item.imageFile,
+          item.imageFile.name
+        );
+      }
+    });
+
+    const response = await axios.put(
+      `${baseApiUrl}/api/AdminAnalytics/advertisements/${advertisementId}`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
+
+    return { status: response.status, data: response.data };
+  } catch (error) {
+    console.error('Error updating advertisement:', error);
+    return { status: error.response?.status || 500, data: null };
+  }
+};
+
+export const apiRemoveAdItemAsync = async (id) => {
+  apiSetAuthHeader();
+  return axios.delete(`${baseApiUrl}/api/AdminAnalytics/data/${id}`);
 };
 
 export const apiGetRegionsAsync = async () => {

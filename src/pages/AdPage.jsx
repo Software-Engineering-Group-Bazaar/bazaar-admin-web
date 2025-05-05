@@ -5,7 +5,12 @@ import AdsManagementHeader from '@sections/AdsManagementHeader';
 import UserManagementPagination from '@components/UserManagementPagination';
 import AddAdModal from '@components/AddAdModal'; 
 import AdvertisementDetailsModal from '@components/AdvertisementDetailsModal';
-import { apiCreateAdAsync, apiGetAllAdsAsync, apiDeleteAdAsync } from '../api/api';
+import {
+  apiCreateAdAsync,
+  apiGetAllAdsAsync,
+  apiDeleteAdAsync,
+  apiUpdateAdAsync,
+} from '../api/api';
 const generateMockAds = () => {
   return Array.from({ length: 26 }, (_, i) => ({
     id: i + 1,
@@ -62,12 +67,19 @@ const AdPage = () => {
     
   };
 
-  const handleEdit = async (updatedAd) => {
-    console.log('Edited ad:', updatedAd);
-    setAds((prev) =>
-      prev.map((ad) => (ad.id === updatedAd.id ? updatedAd : ad))
-    );
-  };
+ const handleEdit = async (adId, payload) => {
+   try {
+     const response = await apiUpdateAdAsync(adId, payload);
+     if (response.status < 400) {
+       const updated = await apiGetAllAdsAsync();
+       setAds(updated.data);
+     } else {
+       console.error('Failed to update advertisement');
+     }
+   } catch (error) {
+     console.error('Error updating ad:', error);
+   }
+ };
 
   const handleViewDetails = (id) => {
     const found = ads.find((a) => a.id === id);
