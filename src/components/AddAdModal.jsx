@@ -112,28 +112,28 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           }}
         >
           <SellIcon sx={{ fontSize: 28, color: '#fbbc05' }} />
-          <Typography variant="h5" fontWeight={700}>
+          <Typography variant='h5' fontWeight={700}>
             Create Ad
           </Typography>
         </Box>
 
         {/* Content */}
         <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mb: 2 }}>
-
-
           {/* Right: Form */}
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
             <TextField
               select
-              size="small"
-              name="sellerId"
-              label="Seller"
+              size='small'
+              name='sellerId'
+              label='Seller'
               value={formData.sellerId}
               onChange={handleChange}
               error={!!formErrors.sellerId}
               helperText={formErrors.sellerId}
               sx={{ mb: 1.2 }}
-              InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+              }}
             >
               {sellers.map((seller) => (
                 <MenuItem key={seller.id} value={seller.id}>
@@ -143,35 +143,39 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             </TextField>
 
             <TextField
-              name="startTime"
-              label="Start time"
-              type="datetime-local"
-              size="small"
+              name='startTime'
+              label='Start time'
+              type='datetime-local'
+              size='small'
               value={formData.startTime}
               onChange={handleChange}
               error={!!formErrors.startTime}
               helperText={formErrors.startTime}
               sx={{ mb: 1.2 }}
               InputLabelProps={{ shrink: true }}
-              InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+              }}
             />
 
             <TextField
-              name="endTime"
-              label="End time"
-              type="datetime-local"
-              size="small"
+              name='endTime'
+              label='End time'
+              type='datetime-local'
+              size='small'
               value={formData.endTime}
               onChange={handleChange}
               error={!!formErrors.endTime}
               helperText={formErrors.endTime}
               sx={{ mb: 1.2 }}
               InputLabelProps={{ shrink: true }}
-              InputProps={{ sx: { borderRadius: 2, backgroundColor: '#f9f9f9' } }}
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+              }}
             />
 
             <Button
-              variant="outlined"
+              variant='outlined'
               onClick={() => setAdItemModalOpen(true)}
               sx={{
                 mb: 1.2,
@@ -186,24 +190,33 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
             {/* Error message if no items */}
             {formErrors.AdData && (
-              <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+              <Typography color='error' variant='body2' sx={{ mb: 1 }}>
                 {formErrors.AdData}
               </Typography>
             )}
 
             {/* Display added ad items */}
             {formData.AdData.map((item, index) => (
-              <Box key={index} sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}>
-                <Typography variant="body2"><strong>Ad Text:</strong> {item.advertisment}</Typography>
-                <Typography variant="body2"><strong>Store:</strong> {item.storeId}</Typography>
-                <Typography variant="body2"><strong>Product:</strong> {item.productId}</Typography>
+              <Box
+                key={index}
+                sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}
+              >
+                <Typography variant='body2'>
+                  <strong>Ad Text:</strong> {item.Description}
+                </Typography>
+                <Typography variant='body2'>
+                  <strong>Store:</strong> {item.StoreLink}
+                </Typography>
+                <Typography variant='body2'>
+                  <strong>Product:</strong> {item.ProductLink}
+                </Typography>
               </Box>
             ))}
 
             {/* Buttons */}
-            <Box display="flex" gap="1.2px" justifyContent="flex-end" mt={2}>
+            <Box display='flex' gap='1.2px' justifyContent='flex-end' mt={2}>
               <Button
-                variant="outlined"
+                variant='outlined'
                 onClick={onClose}
                 sx={{
                   mr: 1.2,
@@ -217,7 +230,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
                 Cancel
               </Button>
               <Button
-                variant="contained"
+                variant='contained'
                 onClick={handleSubmit}
                 sx={{
                   backgroundColor: '#4a0404',

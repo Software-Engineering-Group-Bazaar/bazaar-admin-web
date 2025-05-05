@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography } from '@mui/material';
 import CountUp from 'react-countup';
 import { Pencil, Trash2, Link, Store, Save, X } from 'lucide-react';
 import { BarChart2, MousePointerClick, Percent, Activity } from 'lucide-react';
 import AdContentCard from '@components/AdContentCard';
 import HorizontalScroll from './HorizontalScroll';
+import { apiGetAllStoresAsync, apiGetStoreProductsAsync } from '@api/api';
 
 const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -14,6 +15,33 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
     endTime: ad?.endTime || '',
     isActive: ad?.isActive || false,
   });
+
+  const [stores, setStores] = useState([]);
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    if (open) {
+      const fetchData = async () => {
+        const fetchedStores = await apiGetAllStoresAsync();
+        setStores(fetchedStores);
+
+        const allProducts = [];
+        for (const store of fetchedStores) {
+          const { data } = await apiGetStoreProductsAsync(store.id);
+          allProducts.push(...data);
+        }
+        setProducts(allProducts);
+      };
+
+      fetchData();
+    }
+  }, [open]);
+
+  const getStoreName = (storeId) =>
+    stores.find((s) => s.id === storeId)?.name || `Unknown store`;
+
+  const getProductName = (productId) =>
+    products.find((p) => p.id === productId)?.name || `Unknown product`;
 
   const handleSave = () => {
     onSave?.(ad.id, editedData);
@@ -175,9 +203,9 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
                   <AdContentCard
                     key={index}
                     imageUrl={item.imageUrl}
-                    storeName={`Store #${item.storeId}`}
-                    productName={`Product #${item.productId}`}
-                    description={item.advertisment}
+                    storeName={getStoreName(item.storeId)}
+                    productName={getProductName(item.productId)}
+                    description={item.description}
                   />
                 );
               })}
