@@ -15,6 +15,8 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
     StoreLink: '',
     ProductLink: '',
     Description: '',
+    AdType: [],
+    Triggers: [],
   });
 
   const [errors, setErrors] = useState({});
@@ -45,18 +47,49 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
     }
   };
 
-
+  const handleAdType = (e) => {
+    const value = e.target.value;
+    if (!formData.AdType.includes(value) && !formData.Triggers.includes(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        AdType: [...prev.AdType, value],
+      }));
+    }
+  };
+  
+  const handleTriggers = (e) => {
+    const value = e.target.value;
+    if (!formData.Triggers.includes(value) && !formData.AdType.includes(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        Triggers: [...prev.Triggers, value],
+      }));
+    }
+  };
   const handleSubmit = () => {
     const err = {};
     if (!formData.Description.trim()) err.Description = 'Required';
     if (!formData.ProductLink) err.ProductLink = 'Required';
     if (!formData.StoreLink) err.StoreLink = 'Required';
     if (!formData.Image) err.Image = 'Image is required';
-
+    if (formData.AdType.length === 0 && formData.Triggers.length === 0) {
+      err.AdType = 'Select at least one in AdType or Triggers';
+      err.Triggers = 'Select at least one in AdType or Triggers';
+    }
     setErrors(err);
     if (Object.keys(err).length > 0) return;
 
     onAddItem(formData);
+
+    setFormData({
+      Image: '',
+      StoreLink: '',
+      ProductLink: '',
+      Description: '',
+      AdType: [],
+      Triggers: [],
+    });
+
     onClose();
   };
 
@@ -137,6 +170,43 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
                 {s.name}
               </MenuItem>
             ))}
+          </TextField>
+
+          <TextField
+            select
+            name='AdType'
+            label='Ad Type'
+            value={formData.AdType}
+            onChange={handleAdType}
+            fullWidth
+            margin='dense'
+          >
+              <MenuItem key="PopUp" value="PopUp">
+                PopUp
+              </MenuItem>
+              <MenuItem key="Fixed" value="Fixed">
+                Fixed
+              </MenuItem>
+          </TextField>
+
+          <TextField
+            select
+            name='Triggers'
+            label='Triggers'
+            value={formData.Triggers}
+            onChange={handleTriggers}
+            fullWidth
+            margin='dense'
+          >
+              <MenuItem key="Search" value="Search">
+                Search
+              </MenuItem>
+              <MenuItem key="Buy" value="Buy">
+                Buy
+              </MenuItem>
+              <MenuItem key="View" value="View">
+                View
+              </MenuItem>
           </TextField>
 
           {/* Buttons */}

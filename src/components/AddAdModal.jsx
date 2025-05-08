@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { InputAdornment } from '@mui/material';
 import {
   Modal,
   Box,
@@ -19,6 +20,10 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     sellerId: '',
     Views: 0,
     Clicks: 0,
+    Conversions: 0,
+    clickPrice: '',
+    viewPrice: '',
+    conversionPrice: '',
     startTime: '',
     endTime: '',
     isActive: true,
@@ -71,14 +76,27 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
       errors.endTime = 'End time must be after start time';
     }
 
+    if(!formData.clickPrice) errors.clickPrice = 'Price per click is required';
+    if(!formData.viewPrice) errors.viewPrice = 'Price per view is required';
+    if(!formData.conversionPrice) errors.conversionPrice = 'Price per conversion is required'; 
+
     if (formData.AdData.length === 0) {
       errors.AdData = 'At least one ad item is required';
     }
+
 
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     onAddAd(formData);
+
+    setFormData({
+      sellerId: '',
+      startTime: '',
+      endTime: '',
+      AdData: []
+    });
+
     onClose();
   };
 
@@ -174,20 +192,6 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
               }}
             />
 
-            <Button
-              variant='outlined'
-              onClick={() => setAdItemModalOpen(true)}
-              sx={{
-                mb: 1.2,
-                color: '#444',
-                borderColor: '#bbb',
-                textTransform: 'none',
-                borderRadius: 2,
-              }}
-            >
-              Add Item
-            </Button>
-
             {/* Error message if no items */}
             {formErrors.AdData && (
               <Typography color='error' variant='body2' sx={{ mb: 1 }}>
@@ -212,7 +216,74 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
                 </Typography>
               </Box>
             ))}
+<TextField
+  name="clickPrice"
+  label="Click Price"
+  type="number"
+  size="small"
+  value={formData.clickPrice}
+  onChange={handleChange}
+  error={!!formErrors.clickPrice}
+  helperText={formErrors.clickPrice}
+  sx={{ mb: 1.2 }}
+  InputProps={{
+    sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+    inputProps: { min: 0 },
+    endAdornment: <InputAdornment position="end">KM</InputAdornment>,
+  }}
+/>
 
+<TextField
+  name="viewPrice"
+  label="View Price"
+  type="number"
+  size="small"
+  value={formData.viewPrice}
+  onChange={handleChange}
+  error={!!formErrors.viewPrice}
+  helperText={formErrors.viewPrice}
+  sx={{ mb: 1.2 }}
+  InputProps={{
+    sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+    inputProps: { min: 0 },
+    endAdornment: <InputAdornment position="end">KM</InputAdornment>,
+  }}
+/>
+
+<TextField
+  name="conversionPrice"
+  label="Conversion Price"
+  type="number"
+  size="small"
+  value={formData.conversionPrice}
+  onChange={handleChange}
+  error={!!formErrors.conversionPrice}
+  helperText={formErrors.conversionPrice}
+  sx={{ mb: 1.2 }}
+  InputProps={{
+    sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+    inputProps: { min: 0 },
+    endAdornment: <InputAdornment position="end">KM</InputAdornment>,
+  }}
+/>
+             <Button
+              variant='outlined'
+              onClick={() => setAdItemModalOpen(true)}
+              sx={{
+                mb: 1.2,
+                color: '#444',
+                borderColor: '#bbb',
+                textTransform: 'none',
+                borderRadius: 2,
+              }}
+            >
+              Add Item
+            </Button>
+            {formErrors.AdData && (
+            <Typography color='error' variant='body2' sx={{ mb: 1 }}>
+            {formErrors.AdData}
+            </Typography>
+            )}
             {/* Buttons */}
             <Box display='flex' gap='1.2px' justifyContent='flex-end' mt={2}>
               <Button
