@@ -1,37 +1,44 @@
-import React from "react";
-import { Card, Typography, Box } from "@mui/material";
+import React from 'react';
+import { Card, Typography, Box } from '@mui/material';
 
 const data = [
-  { year: "2014", a: 50, b: 40, c: 30, d: 20 },
-  { year: "2015", a: 60, b: 30, c: 20, d: 20 },
-  { year: "2016", a: 80, b: 40, c: 30, d: 20 },
-  { year: "2017", a: 100, b: 50, c: 40, d: 30 },
+  { year: '2014', a: 50, b: 40, c: 30, d: 20 },
+  { year: '2015', a: 60, b: 30, c: 20, d: 20 },
+  { year: '2016', a: 80, b: 40, c: 30, d: 20 },
+  { year: '2017', a: 100, b: 50, c: 40, d: 30 },
 ];
 
 const colors = [
-  "rgba(251,191,36,1)",
-  "rgb(167, 133, 21)",
-  "rgba(239,68,68,1)",
-  "rgba(162,28,175,1)",
+  'rgba(251,191,36,1)',
+  'rgb(167, 133, 21)',
+  'rgba(239,68,68,1)',
+  'rgba(162,28,175,1)',
 ];
-const labels = ["Label 1", "Label 2", "Label 3", "Label 4"];
+const labels = ['Label 1', 'Label 2', 'Label 3', 'Label 4'];
 
-const barHeight = 60;
-const barGap = 48;
-const chartWidth = 350;
+const barHeight = 50;
+const barGap = 30;
+const chartWidth = 200;
 const yAxisWidth = 70;
 
 // --- Podesivo ---
-const overlapRadius = 30; //  PREKLAPANJE
-const framePadding = 15; // RAZMAK OKVIRA OD BARA
+const overlapRadius = 20; //  PREKLAPANJE
+const framePadding = 10; // RAZMAK OKVIRA OD BARA
 // ---------------
 
-const keys = ["a", "b", "c", "d"];
+const keys = ['a', 'b', 'c', 'd'];
 const totals = data.map((row) => keys.reduce((sum, k) => sum + row[k], 0));
 const maxTotal = Math.max(...totals);
 
-
-function StackedBarRow({ row, y, maxTotal, chartWidth, overlapRadius, framePadding , strokeWidth = 4}) {
+function StackedBarRow({
+  row,
+  y,
+  maxTotal,
+  chartWidth,
+  overlapRadius,
+  framePadding,
+  strokeWidth = 4,
+}) {
   const total = keys.reduce((sum, k) => sum + row[k], 0);
   const barWidth = (total / maxTotal) * chartWidth;
   let acc = 0;
@@ -48,16 +55,16 @@ function StackedBarRow({ row, y, maxTotal, chartWidth, overlapRadius, framePaddi
 
   return (
     <g>
-              <rect
+      <rect
         x={yAxisWidth - framePadding}
         y={y - framePadding}
         width={barWidth + overlapRadius + framePadding * 2}
         height={barHeight + framePadding * 2}
         rx={overlapRadius + framePadding}
-        fill="none"
-        stroke="#64748b"
-        strokeWidth={2}
-        strokeDasharray="8 6"
+        fill='none'
+        stroke='#64748b'
+        strokeWidth={2.5}
+        strokeDasharray='8 6'
       />
       {/* Segmenti sa bijelim okvirom */}
       {keys
@@ -72,7 +79,7 @@ function StackedBarRow({ row, y, maxTotal, chartWidth, overlapRadius, framePaddi
               height={barHeight}
               rx={overlapRadius}
               fill={colors[idx]}
-              stroke="#fff"
+              stroke='#fff'
               strokeWidth={strokeWidth}
             />
           );
@@ -82,8 +89,6 @@ function StackedBarRow({ row, y, maxTotal, chartWidth, overlapRadius, framePaddi
   );
 }
 
-  
-
 export default function CustomStackedBarChart() {
   const chartHeight = data.length * (barHeight + barGap);
   return (
@@ -92,13 +97,23 @@ export default function CustomStackedBarChart() {
         p: 3,
         borderRadius: 4,
         boxShadow: 3,
-        maxWidth: 540,
-        margin: "2rem auto",
-        bgcolor: "#e3dcdc"
+        bgcolor: '#fff',
+        width: '585px', // Pola od 1190px sa razmakom
+        height: '480px', // Konzistentna visina
+        margin: '0 10px', // Razmak između grafova
       }}
     >
-      <Typography variant="h6" fontWeight={880} mb={3}>
-        Combination Charts
+      <Typography
+        variant='h6'
+        sx={{
+          fontSize: '24px',
+          fontWeight: 700,
+          color: '#333',
+          marginBottom: '20px',
+          textAlign: 'center',
+        }}
+      >
+        Combinations Chart
       </Typography>
       <svg
         width={chartWidth + yAxisWidth + framePadding * 2 + 20}
@@ -110,12 +125,12 @@ export default function CustomStackedBarChart() {
             key={row.year}
             x={yAxisWidth - 22}
             y={i * (barHeight + barGap) + barHeight / 2 + 16}
-            textAnchor="end"
-            fontSize="16"
-            fontWeight="bold"
-            fill="#222"
-            alignmentBaseline="middle"
-            dominantBaseline="middle"
+            textAnchor='end'
+            fontSize='16'
+            fontWeight='bold'
+            fill='#222'
+            alignmentBaseline='middle'
+            dominantBaseline='middle'
           >
             {row.year}
           </text>
@@ -136,27 +151,26 @@ export default function CustomStackedBarChart() {
       </svg>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "center",
-          mt: 2,
-          flexWrap: "wrap",
+          display: 'flex',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
         }}
       >
         {labels.map((label, idx) => (
           <Box
             key={label}
-            sx={{ display: "flex", alignItems: "center", mr: 3, mb: 1 }}
+            sx={{ display: 'flex', alignItems: 'center', mr: 3, mb: 1 }}
           >
             <Box
               sx={{
                 width: 18,
                 height: 18,
                 bgcolor: colors[idx],
-                borderRadius: "50%",
+                borderRadius: '50%',
                 mr: 1,
               }}
             />
-            <Typography variant="caption">{label}</Typography>
+            <Typography variant='caption'>{label}</Typography>
           </Box>
         ))}
       </Box>
