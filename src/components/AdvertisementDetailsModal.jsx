@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography } from '@mui/material';
 import CountUp from 'react-countup';
-import { Pencil, Trash2, Link, Store, Save, X } from 'lucide-react';
-import { BarChart2, MousePointerClick, Percent, Activity } from 'lucide-react';
+import {
+  Eye,
+  Hand,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Link as LucideLink,
+  Store,
+  Info,
+  Pencil,
+  Trash2,
+} from 'lucide-react';import { BarChart2, MousePointerClick, Percent, Activity } from 'lucide-react';
 import AdContentCard from '@components/AdContentCard';
 import HorizontalScroll from './HorizontalScroll';
 import { apiGetAllStoresAsync, apiGetStoreProductsAsync } from '@api/api';
@@ -169,6 +179,45 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
               {new Date(ad.endTime).toLocaleTimeString()}
             </Typography>
           </Box>
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 5,
+            mb: -2,
+            background: '#f3f4f6',
+            borderRadius: 2,
+            p: 1.5,
+            mt: 5,
+          }}
+        >
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <Hand size={25} color='#0d9488' /> Click Price:{' '}
+            <b style={{ marginLeft: 5 }}>{ad.clickPrice ?? '1000'}</b>
+          </Typography>
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <Eye size={25} color='#0284c7' /> View Price:{' '}
+            <b style={{ marginLeft: 2 }}>{ad.viewPrice ?? '1000'}</b>
+          </Typography>
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <CheckCircle size={25} color='#f59e0b' /> Conversion Price:{' '}
+            <b style={{ marginLeft: 2 }}>{ad.conversionPrice ?? '1000'}</b>
+          </Typography>
         </Box>
 
         {/* Content */}
