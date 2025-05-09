@@ -6,22 +6,22 @@ import CountryStatsPanel from '@components/CountryStatsPanel';
 import OrdersByStatus from '@components/OrdersByStatus';
 import UserDistribution from '@components/UserDistribution';
 import RevenueByStore from '@components/RevenueByStore';
-import { useState, useEffect } from "react";
+import ParetoChart from '@components/ParetoChart';
+import AdFunnelChart from '@components/AdFunnelChart';
+import AdStackedBarChart from '@components/AdStackedBarChart';
+import { useState, useEffect } from 'react';
 import {
   apiFetchOrdersAsync,
   apiFetchAllUsersAsync,
   apiGetAllStoresAsync,
   apiGetStoreProductsAsync,
 } from '../api/api.js';
-import { subMonths} from 'date-fns';
-
+import { subMonths } from 'date-fns';
 
 const AnalyticsPage = () => {
-
   useEffect(() => {
     fetchKpis();
   }, []);
-
 
   const fetchKpis = async () => {
     // 1. Narudžbe
@@ -29,45 +29,54 @@ const AnalyticsPage = () => {
     const now = new Date();
     const lastMonth = subMonths(now, 1);
     const prevMonth = subMonths(now, 2);
-  
+
     const ordersThisMonth = orders.filter(
-      o => new Date(o.createdAt) >= lastMonth
+      (o) => new Date(o.createdAt) >= lastMonth
     );
     const ordersPrevMonth = orders.filter(
-      o => new Date(o.createdAt) >= prevMonth && new Date(o.createdAt) < lastMonth
+      (o) =>
+        new Date(o.createdAt) >= prevMonth && new Date(o.createdAt) < lastMonth
     );
     const ordersChange = ordersPrevMonth.length
-      ? ((ordersThisMonth.length - ordersPrevMonth.length) / ordersPrevMonth.length) * 100
+      ? ((ordersThisMonth.length - ordersPrevMonth.length) /
+          ordersPrevMonth.length) *
+        100
       : 100;
-  
+
     // 2. Korisnici
     const response = await apiFetchAllUsersAsync();
-    console.log("RESPONSE: ", response);
+    console.log('RESPONSE: ', response);
     const users = response.data;
-    console.log("users: ", users);
+    console.log('users: ', users);
 
     const usersThisMonth = users.filter(
-      u => new Date(u.createdAt) >= lastMonth
+      (u) => new Date(u.createdAt) >= lastMonth
     );
     const usersPrevMonth = users.filter(
-      u => new Date(u.createdAt) >= prevMonth && new Date(u.createdAt) < lastMonth
+      (u) =>
+        new Date(u.createdAt) >= prevMonth && new Date(u.createdAt) < lastMonth
     );
     const usersChange = usersPrevMonth.length
-      ? ((usersThisMonth.length - usersPrevMonth.length) / usersPrevMonth.length) * 100
+      ? ((usersThisMonth.length - usersPrevMonth.length) /
+          usersPrevMonth.length) *
+        100
       : 100;
-  
+
     // 3. Prodavnice
     const stores = await apiGetAllStoresAsync();
     const storesThisMonth = stores.filter(
-      s => new Date(s.createdAt) >= lastMonth
+      (s) => new Date(s.createdAt) >= lastMonth
     );
     const storesPrevMonth = stores.filter(
-      s => new Date(s.createdAt) >= prevMonth && new Date(s.createdAt) < lastMonth
+      (s) =>
+        new Date(s.createdAt) >= prevMonth && new Date(s.createdAt) < lastMonth
     );
     const storesChange = storesPrevMonth.length
-      ? ((storesThisMonth.length - storesPrevMonth.length) / storesPrevMonth.length) * 100
+      ? ((storesThisMonth.length - storesPrevMonth.length) /
+          storesPrevMonth.length) *
+        100
       : 100;
-  
+
     // 4. Proizvodi
     let totalProducts = 0;
     let productsThisMonth = 0;
@@ -76,92 +85,100 @@ const AnalyticsPage = () => {
       const { data: products } = await apiGetStoreProductsAsync(store.id);
       totalProducts += products.length;
       productsThisMonth += products.filter(
-        p => new Date(p.createdAt) >= lastMonth
+        (p) => new Date(p.createdAt) >= lastMonth
       ).length;
       productsPrevMonth += products.filter(
-        p => new Date(p.createdAt) >= prevMonth && new Date(p.createdAt) < lastMonth
+        (p) =>
+          new Date(p.createdAt) >= prevMonth &&
+          new Date(p.createdAt) < lastMonth
       ).length;
     }
     const productsChange = productsPrevMonth
       ? ((productsThisMonth - productsPrevMonth) / productsPrevMonth) * 100
       : 100;
-  
+
     // 5. Prihod
     const totalIncome = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-    const incomeThisMonth = ordersThisMonth.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-    const incomePrevMonth = ordersPrevMonth.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+    const incomeThisMonth = ordersThisMonth.reduce(
+      (sum, o) => sum + (o.totalPrice || 0),
+      0
+    );
+    const incomePrevMonth = ordersPrevMonth.reduce(
+      (sum, o) => sum + (o.totalPrice || 0),
+      0
+    );
     const incomeChange = incomePrevMonth
       ? ((incomeThisMonth - incomePrevMonth) / incomePrevMonth) * 100
       : 100;
-  
+
     // 6. Aktivne prodavnice
-  
-  // Sadašnje aktivne prodavnice
-  const activeStores = stores.filter(s => s.isActive).length;
-  
-  // Aktivne prodavnice KREIRANE u ovom mjesecu
-  const activeStoresThisMonth = stores.filter(
-    s => s.isActive && new Date(s.createdAt) >= lastMonth
-  ).length;
-  
-  // Aktivne prodavnice KREIRANE u prošlom mjesecu
-  const activeStoresPrevMonth = stores.filter(
-    s => s.isActive &&
-         new Date(s.createdAt) >= prevMonth &&
-         new Date(s.createdAt) < lastMonth
-  ).length;
-  
-  // Promjena u odnosu na prošli mjesec
-  const activeStoresChange = activeStoresPrevMonth
-    ? ((activeStoresThisMonth - activeStoresPrevMonth) / activeStoresPrevMonth) * 100
-    : 100;
-  
-  
+
+    // Sadašnje aktivne prodavnice
+    const activeStores = stores.filter((s) => s.isActive).length;
+
+    // Aktivne prodavnice KREIRANE u ovom mjesecu
+    const activeStoresThisMonth = stores.filter(
+      (s) => s.isActive && new Date(s.createdAt) >= lastMonth
+    ).length;
+
+    // Aktivne prodavnice KREIRANE u prošlom mjesecu
+    const activeStoresPrevMonth = stores.filter(
+      (s) =>
+        s.isActive &&
+        new Date(s.createdAt) >= prevMonth &&
+        new Date(s.createdAt) < lastMonth
+    ).length;
+
+    // Promjena u odnosu na prošli mjesec
+    const activeStoresChange = activeStoresPrevMonth
+      ? ((activeStoresThisMonth - activeStoresPrevMonth) /
+          activeStoresPrevMonth) *
+        100
+      : 100;
+
     // 7. Odobreni korisnici
-  
-  // Sadašnji broj odobrenih korisnika
-  const approvedUsers = users.filter(u => u.isApproved).length;
-  
-  // Odobreni korisnici KREIRANI u ovom mjesecu
-  const approvedUsersThisMonth = users.filter(
-    u => u.isApproved && new Date(u.createdAt) >= lastMonth
-  ).length;
-  
-  // Odobreni korisnici KREIRANI u prošlom mjesecu
-  const approvedUsersPrevMonth = users.filter(
-    u => u.isApproved &&
-         new Date(u.createdAt) >= prevMonth &&
-         new Date(u.createdAt) < lastMonth
-  ).length;
-  
-  // Promjena u odnosu na prošli mjesec
-  const approvedUsersChange = approvedUsersPrevMonth
-    ? ((approvedUsersThisMonth - approvedUsersPrevMonth) / approvedUsersPrevMonth) * 100
-    : 100;
-  
-  
+
+    // Sadašnji broj odobrenih korisnika
+    const approvedUsers = users.filter((u) => u.isApproved).length;
+
+    // Odobreni korisnici KREIRANI u ovom mjesecu
+    const approvedUsersThisMonth = users.filter(
+      (u) => u.isApproved && new Date(u.createdAt) >= lastMonth
+    ).length;
+
+    // Odobreni korisnici KREIRANI u prošlom mjesecu
+    const approvedUsersPrevMonth = users.filter(
+      (u) =>
+        u.isApproved &&
+        new Date(u.createdAt) >= prevMonth &&
+        new Date(u.createdAt) < lastMonth
+    ).length;
+
+    // Promjena u odnosu na prošli mjesec
+    const approvedUsersChange = approvedUsersPrevMonth
+      ? ((approvedUsersThisMonth - approvedUsersPrevMonth) /
+          approvedUsersPrevMonth) *
+        100
+      : 100;
+
     // 8. Nove registracije
     const newUsers = usersThisMonth.length;
     const newUsersPrev = usersPrevMonth.length;
     const newUsersChange = newUsersPrev
       ? ((newUsers - newUsersPrev) / newUsersPrev) * 100
       : 100;
-  
+
     setKpi({
       orders: { total: orders.length, change: ordersChange },
       users: { total: users.length, change: usersChange },
       stores: { total: stores.length, change: storesChange },
       products: { total: totalProducts, change: productsChange },
       income: { total: totalIncome, change: incomeChange },
-      activeSt: {total: activeStores, change: activeStoresChange},
-      approvedUs: {total: approvedUsers, change: approvedUsersChange},
+      activeSt: { total: activeStores, change: activeStoresChange },
+      approvedUs: { total: approvedUsers, change: approvedUsersChange },
       newUsers: { total: newUsers, change: newUsersChange },
     });
   };
-
-
-
-
 
   const [kpi, setKpi] = useState({
     orders: { total: 0, change: 0 },
@@ -173,7 +190,7 @@ const AnalyticsPage = () => {
     approvedUs: 0,
     newUsers: 0,
   });
-  
+
   return (
     <Box
       sx={{
@@ -236,7 +253,7 @@ const AnalyticsPage = () => {
           {
             label: 'Total Stores',
             value: kpi.stores.total,
-            change: kpi.stores.change, // ispravljeno s kpi.stores.total
+            change: kpi.stores.change,
             type: 'stores',
           },
           {
@@ -313,6 +330,37 @@ const AnalyticsPage = () => {
             </Box>
           </Grid>
         </Grid>
+
+        <Box sx={{ width: "100%" }}>
+          {/* Funnel Chart (sam u jednom redu) */}
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Box
+                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+              >
+                <AdFunnelChart />
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Pareto Chart i Stacked Bar Chart (jedan do drugog) */}
+          <Grid container spacing={6} mb={2}>
+            <Grid item sx={{ width: '45%' }}>
+              <Box
+                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+              >
+                <ParetoChart />
+              </Box>
+            </Grid>
+            <Grid item sx={{ width: '45%' }}>
+              <Box
+                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+              >
+                <AdStackedBarChart />
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
     </Box>
   );
