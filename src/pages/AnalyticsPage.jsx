@@ -9,14 +9,10 @@ import RevenueByStore from '@components/RevenueByStore';
 import ParetoChart from '@components/ParetoChart';
 import AdFunnelChart from '@components/AdFunnelChart';
 import AdStackedBarChart from '@components/AdStackedBarChart';
+import AdRealtimeMonitor from '../components/AdRealtimeMonitor.jsx';
 import { useState, useEffect } from 'react';
-import {
-  apiFetchOrdersAsync,
-  apiFetchAllUsersAsync,
-  apiGetAllStoresAsync,
-  apiGetStoreProductsAsync,
-} from '../api/api.js';
-import { subMonths } from 'date-fns';
+import { apiGetAllAdsAsync } from '../api/api.js';
+import { format, parseISO } from 'date-fns';
 
 const AnalyticsPage = () => {
   useEffect(() => {
@@ -24,6 +20,31 @@ const AnalyticsPage = () => {
   }, []);
 
   const fetchKpis = async () => {
+    let ads = await apiGetAllAdsAsync();
+    ads = ads.data;
+    const totalViews = ads.reduce((sum, ad) => sum + (ad.views || 0), 0);
+    const totalClicks = ads.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
+    const totalConversionRevenue = ads.reduce(
+      (sum, ad) => sum + (ad.conversionPrice || 0),
+      0
+    );
+    const totalAds = ads.length;
+    const activeAds = ads.filter((ad) => ad.isActive).length;
+    const topAds = [...ads]
+      .sort((a, b) => (b.conversionPrice || 0) - (a.conversionPrice || 0))
+      .slice(0, 5);
+    setKpi({
+      totalViews,
+      totalClicks,
+      totalConversionRevenue,
+      totalAds,
+      activeAds,
+      topAds,
+    });
+    setAds(ads);
+  };
+
+  /* const fetchKpis = async () => {
     // 1. Narudžbe
     const orders = await apiFetchOrdersAsync();
     const now = new Date();
@@ -178,17 +199,16 @@ const AnalyticsPage = () => {
       approvedUs: { total: approvedUsers, change: approvedUsersChange },
       newUsers: { total: newUsers, change: newUsersChange },
     });
-  };
+  };*/
 
+  const [ads, setAds] = useState([]);
   const [kpi, setKpi] = useState({
-    orders: { total: 0, change: 0 },
-    users: { total: 0, change: 0 },
-    stores: { total: 0, change: 0 },
-    products: { total: 0, change: 0 },
-    income: { total: 0, change: 0 },
-    activeSt: 0,
-    approvedUs: 0,
-    newUsers: 0,
+    totalViews: 0,
+    totalClicks: 0,
+    totalConversionRevenue: 0,
+    totalAds: 0,
+    activeAds: 0,
+    topAds: [],
   });
 
   return (
@@ -237,65 +257,33 @@ const AnalyticsPage = () => {
 
       {/* KPI sekcija */}
       <Grid container spacing={3} mb={3} width={1200}>
-        {[
-          {
-            label: 'Total Orders',
-            value: kpi.orders.total,
-            change: kpi.orders.change,
-            type: 'orders',
-          },
-          {
-            label: 'Total Users',
-            value: kpi.users.total,
-            change: kpi.users.change,
-            type: 'users',
-          },
-          {
-            label: 'Total Stores',
-            value: kpi.stores.total,
-            change: kpi.stores.change,
-            type: 'stores',
-          },
-          {
-            label: 'Total Products',
-            value: kpi.products.total,
-            change: kpi.products.change,
-            type: 'products',
-          },
-          {
-            label: 'Total Revenue',
-            value: kpi.income.total,
-            change: kpi.income.change,
-            type: 'income',
-          },
-          {
-            label: 'Active Stores',
-            value: kpi.activeSt.total,
-            change: kpi.activeSt.change,
-            type: 'activeStores',
-          },
-          {
-            label: 'Approved Users',
-            value: kpi.approvedUs.total,
-            change: kpi.approvedUs.change,
-            type: 'approvedUsers',
-          },
-          {
-            label: 'New Registrations',
-            value: kpi.newUsers.total,
-            change: kpi.newUsers.change,
-            type: 'newUsers',
-          },
-        ].map((item, i) => (
-          <Grid item xs={12} md={3} key={i}>
-            <KpiCard
-              label={item.label}
-              value={item.value}
-              percentageChange={item.change}
-              type={item.type}
-            />
-          </Grid>
-        ))}
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Views (All Ads)'
+            value={kpi.totalViews}
+            type='views'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Clicks (All Ads)'
+            value={kpi.totalClicks}
+            type='clicks'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Conversion Revenue'
+            value={kpi.totalConversionRevenue}
+            type='conversionRevenue'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard label='Total Ads' value={kpi.totalAds} type='totalAds' />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard label='Active Ads' value={kpi.activeAds} type='activeAds' />
+        </Grid>
       </Grid>
 
       {/* Glavni graf + countries */}
@@ -331,12 +319,16 @@ const AnalyticsPage = () => {
           </Grid>
         </Grid>
 
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: '100%' }}>
           {/* Funnel Chart (sam u jednom redu) */}
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Box
-                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <AdFunnelChart />
               </Box>
@@ -347,14 +339,22 @@ const AnalyticsPage = () => {
           <Grid container spacing={6} mb={2}>
             <Grid item sx={{ width: '45%' }}>
               <Box
-                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <ParetoChart />
               </Box>
             </Grid>
             <Grid item sx={{ width: '45%' }}>
               <Box
-                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <AdStackedBarChart />
               </Box>
@@ -362,6 +362,7 @@ const AnalyticsPage = () => {
           </Grid>
         </Box>
       </Box>
+      <AdRealtimeMonitor/>
     </Box>
   );
 };

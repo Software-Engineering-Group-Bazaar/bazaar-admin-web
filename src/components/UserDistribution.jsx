@@ -1,45 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { apiFetchAllUsersAsync } from '../api/api.js';
+import { apiGetAllAdsAsync } from '../api/api.js';
+
+const gaugeColor = '#0F766E';
+const bgColor = '#E5E7EB';
 
 const UserDistribution = () => {
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [approved, setApproved] = useState(0);
-  const [buyers, setBuyers] = useState(0);
-  const [sellers, setSellers] = useState(0);
+  const [conversionRate, setConversionRate] = useState(0);
+  const [totalConversions, setTotalConversions] = useState(0);
+  const [totalClicks, setTotalClicks] = useState(0);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
+      const adsResponse = await apiGetAllAdsAsync();
+      const ads = adsResponse.data;
+      const conversions = ads.reduce(
+        (sum, ad) => sum + (ad.conversions || 0),
+        0
+      );
+      const clicks = ads.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
+      setTotalConversions(conversions);
+      setTotalClicks(clicks);
+      console.log('CONVersions: ', conversions);
+      console.log('clicks: ', clicks);
 
-      const response  = await apiFetchAllUsersAsync();
-      const users = response.data;
-      setTotalUsers(users.length);
-      setApproved(users.filter((u) => u.isApproved).length);
-      setBuyers(
-        users.filter(
-          (u) =>
-            Array.isArray(u.roles)
-              ? u.roles.includes('Buyer')
-              : u.roles === 'Buyer'
-        ).length
-      );
-      setSellers(
-        users.filter(
-          (u) =>
-            Array.isArray(u.roles)
-              ? u.roles.includes('Seller')
-              : u.roles === 'Seller'
-        ).length
-      );
+      setConversionRate(clicks > 0 ? (conversions / clicks) * 100 : 0);
     };
-
-    fetchUsers();
+    fetchData();
   }, []);
 
   const gaugeData = [
-    { name: 'Approved', value: approved, color: '#0F766E' },
-    { name: 'Remaining', value: totalUsers - approved, color: '#E5E7EB' },
+    { name: 'Conversion Rate', value: conversionRate, color: gaugeColor },
+    { name: 'Remaining', value: 100 - conversionRate, color: bgColor },
   ];
 
   return (
@@ -54,10 +47,10 @@ const UserDistribution = () => {
     >
       <CardContent sx={{ flexShrink: 0 }}>
         <Typography variant='h6' align='center'>
-          Approved Users
+          Conversion Rate (All Ads)
         </Typography>
         <Typography variant='body2' align='center' color='text.secondary'>
-          of {totalUsers.toLocaleString()} total users
+          {totalConversions} conversions / {totalClicks} clicks
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, position: 'relative' }}>
@@ -87,24 +80,9 @@ const UserDistribution = () => {
           }}
         >
           <Typography variant='h5' sx={{ color: 'primary.dark' }}>
-            {totalUsers > 0
-              ? Math.round((approved / totalUsers) * 100)
-              : 0}
-            %
+            {totalClicks > 0 ? conversionRate.toFixed(1) : 0}%
           </Typography>
         </Box>
-      </Box>
-      <Box
-        sx={{
-          flexShrink: 0,
-          display: 'flex',
-          justifyContent: 'space-between',
-          px: 3,
-          pb: 2,
-        }}
-      >
-        <Typography variant='body2'>Buyers: {buyers}</Typography>
-        <Typography variant='body2'>Sellers: {sellers}</Typography>
       </Box>
     </Card>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -12,21 +12,42 @@ import {
   Legend,
 } from 'recharts';
 import { Box, Typography } from '@mui/material';
+import { apiGetAllAdsAsync } from '../api/api.js';
+import { format, parseISO } from 'date-fns';
 
-const data = [
-  { time: '07.00', clicks: 100, views: 300, conversions: 150 },
-  { time: '07.30', clicks: 150, views: 350, conversions: 180 },
-  { time: '08.00', clicks: 200, views: 400, conversions: 200 },
-  { time: '08.30', clicks: 300, views: 500, conversions: 350 },
-  { time: '09.00', clicks: 250, views: 450, conversions: 300 },
-  { time: '09.30', clicks: 350, views: 550, conversions: 400 },
-  { time: '10.00', clicks: 400, views: 600, conversions: 450 },
-  { time: '10.30', clicks: 350, views: 550, conversions: 420 },
-  { time: '11.00', clicks: 300, views: 500, conversions: 400 },
-  { time: '11.30', clicks: 320, views: 520, conversions: 410 },
-];
+// Grupiraj po mjesecima (možeš promijeniti na dane/sedmice)
+function groupByMonth(ads) {
+  const byMonth = {};
+  ads.forEach((ad) => {
+    const date = ad.startTime || ad.endTime;
+    if (!date) return;
+    const month = format(parseISO(date), 'yyyy-MM');
+    if (!byMonth[month]) byMonth[month] = { month, clicks: 0, views: 0, conversions: 0 };
+    byMonth[month].clicks += ad.clicks || 0;
+    byMonth[month].views += ad.views || 0;
+    byMonth[month].conversions += ad.conversions || 0;
+  });
+  return Object.values(byMonth).sort((a, b) => a.month.localeCompare(b.month));
+}
 
 const ParetoChart = () => {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const adsResponse = await apiGetAllAdsAsync();
+      const ads = adsResponse.data;
+      const chartData = groupByMonth(ads).map((d) => ({
+        time: format(parseISO(d.month + '-01'), 'MMM yyyy'),
+        clicks: d.clicks,
+        views: d.views,
+        conversions: d.conversions,
+      }));
+      setData(chartData);
+    };
+    fetchData();
+  }, []);
+
   return (
     <Box
       sx={{
@@ -86,13 +107,15 @@ const ParetoChart = () => {
             fill='#9c88ff'
             stroke='#9c88ff'
             fillOpacity={0.2}
+            name="Views"
           />
-          <Bar dataKey='clicks' barSize={30} fill='#333333' />
+          <Bar dataKey='clicks' barSize={30} fill='#333333' name="Clicks" />
           <Line
             type='monotone'
             dataKey='conversions'
             stroke='#4A90E2'
             strokeWidth={3}
+            name="Conversions"
             dot={{ r: 6, fill: '#fff', stroke: '#4A90E2', strokeWidth: 3 }}
             activeDot={{
               r: 8,

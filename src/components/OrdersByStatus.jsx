@@ -1,51 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { apiFetchOrdersAsync } from '../api/api.js';
+import { apiGetAllAdsAsync } from '../api/api.js';
 
-// Dodijeli boje svakom statusu
-const statusColors = {
-  Confirmed: '#6366F1',
-  Delivered: '#F59E0B',
-  Cancelled: '#EF4444',
-  Ready: '#58d604',
-  Sent: '#10B981',
-  Requested: '#03e8fc',
-  Rejected: '#e01ceb',
-  // Dodaj ostale statuse po potrebi
-}; //???????????????
+// Dodijeli boje svakom triggeru
+const triggerColors = {
+  Search: '#6366F1',
+  Order: '#F59E0B',
+  View: '#10B981',
+};
 
-const OrdersByStatus = () => {
+const triggerLabels = ['Search', 'Order', 'View'];
+
+const OrdersBystatus = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      const orders = await apiFetchOrdersAsync();
-
-      // Broji po statusima
-      const counts = {};
-      orders.forEach((order) => {
-        const status = order.status;
-        if (counts[status]) {
-          counts[status]++;
-        } else {
-          counts[status] = 1;
+    const fetchAds = async () => {
+      const adsRepsonse = await apiGetAllAdsAsync();
+      const ads = adsRepsonse.data;
+      // Broji koliko reklama ima svaki trigger
+      const triggerCounts = { Search: 0, Order: 0, View: 0 };
+      ads.forEach((ad) => {
+        if (Array.isArray(ad.triggers)) {
+          ad.triggers.forEach((trigger) => {
+            if (Object.prototype.hasOwnProperty.call(triggerCounts, trigger)) {
+              triggerCounts[trigger]++;
+            }
+          });
         }
       });
-
+      console.log('TREGER: ', triggerCounts);
       // Pripremi podatke za PieChart
-      const chartData = Object.entries(counts)
-        .map(([status, value]) => ({
-          name: status,
-          value,
-          color: statusColors[status] || '#888888', // default siva ako nema boje
-        }))
-        .sort((a, b) => b.value - a.value);
+      const chartData = triggerLabels.map((trigger) => ({
+        name: trigger,
+        value: triggerCounts[trigger],
+        color: triggerColors[trigger],
+      }));
 
       setData(chartData);
     };
 
-    fetchOrders();
+    fetchAds();
   }, []);
 
   return (
@@ -53,14 +49,14 @@ const OrdersByStatus = () => {
       sx={{
         borderRadius: 3,
         boxShadow: 3,
-        height: 340, // ili više, npr. 380
+        height: 340,
         display: 'flex',
         flexDirection: 'column',
       }}
     >
       <CardContent sx={{ flexShrink: 0 }}>
         <Typography variant='h6' align='center' gutterBottom>
-          Orders by Status
+          Ad Triggers Breakdown
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, position: 'relative' }}>
@@ -106,7 +102,9 @@ const OrdersByStatus = () => {
                 mr: 0.5,
               }}
             />
-            <Typography variant='body2'>{entry.name}</Typography>
+            <Typography variant='body2'>
+              {entry.name} ({entry.value})
+            </Typography>
           </Box>
         ))}
       </Box>
@@ -114,4 +112,4 @@ const OrdersByStatus = () => {
   );
 };
 
-export default OrdersByStatus;
+export default OrdersBystatus;
