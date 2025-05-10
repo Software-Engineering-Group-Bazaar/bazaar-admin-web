@@ -9,45 +9,51 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { apiGetAllStoresAsync, apiFetchOrdersAsync } from '../api/api.js';
+import { apiGetAllStoresAsync, apiGetAllAdsAsync } from '../api/api.js';
 
 const barColor = '#6366F1';
+const TOP_N = 5;
 
 const RevenueByStore = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [stores, orders] = await Promise.all([
+      const [stores, adsResponse] = await Promise.all([
         apiGetAllStoresAsync(),
-        apiFetchOrdersAsync(),
+        apiGetAllAdsAsync(),
       ]);
+      const ads = adsResponse.data;
+      console.log('Ads: ', ads);
 
       // Mapiraj storeId na ime prodavnice
       const storeMap = {};
       stores.forEach((store) => {
         storeMap[store.id] = store.name;
       });
-
+      console.log('STOREMAP: ', storeMap);
+      // Grupiraj zaradu po storeId iz adData
       const revenueByStore = {};
-      orders.forEach((order) => {
-        const storeId = order.storeName; // order.storeName je zapravo storeId!
-        if (!storeMap[storeId]) return; // preskoči ako nema prodavnice
-        if (!revenueByStore[storeId]) {
-          revenueByStore[storeId] = 0;
-        }
-        revenueByStore[storeId] += order.totalPrice || 0;
+      ads.forEach((ad) => {
+        if (!ad.conversionPrice || ad.conversionPrice === 0) return;
+        // Za svaki adData sa storeId, dodaj cijelu conversionPrice toj prodavnici
+        ad.adData.forEach((adDataItem) => {
+          if (!adDataItem.storeId) return;
+          const storeId = adDataItem.storeId;
+          if (!storeMap[storeId]) return;
+          revenueByStore[storeId] =
+            (revenueByStore[storeId] || 0) + ad.conversionPrice;
+        });
       });
+      console.log('RevenueByStore: ', revenueByStore);
 
       const chartData = Object.entries(revenueByStore)
         .map(([storeId, value]) => ({
-          name: storeMap[storeId] || 'Unknown',
+          name: storeMap[storeId] || `Store #${storeId}`,
           value,
         }))
         .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
-
-      console.log('chartData:', chartData);
+        .slice(0, TOP_N);
 
       setData(chartData);
     };
@@ -67,7 +73,7 @@ const RevenueByStore = () => {
     >
       <CardContent sx={{ flexShrink: 0 }}>
         <Typography variant='h6' align='center'>
-          Revenue by Store
+          Top Stores by Ad Revenue
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, px: 2 }}>
@@ -76,8 +82,8 @@ const RevenueByStore = () => {
             layout='vertical'
             data={data}
             margin={{ top: 1, right: 20, left: 20, bottom: -10 }}
-            barCategoryGap={32} // ili veća vrijednost za veći razmak
-            barGap={20} // dodatni razmak između barova
+            barCategoryGap={32}
+            barGap={20}
           >
             <XAxis
               type='number'
@@ -92,7 +98,7 @@ const RevenueByStore = () => {
               type='category'
               axisLine={false}
               tickLine={false}
-              width={100} // povećaj po potrebi
+              width={120}
               tick={{ fontSize: 14, wordBreak: 'break-all' }}
             />
             <Tooltip formatter={(val) => `$${val}`} />
@@ -109,21 +115,7 @@ const RevenueByStore = () => {
           </BarChart>
         </ResponsiveContainer>
       </Box>
-      <Box sx={{ flexShrink: 0, px: 2, pb: 2, textAlign: 'right' }}>
-        {/* Prikaži vrijednosti na kraju svakog bara */}
-        {data.map((entry) => (
-          <Typography
-            key={entry.name}
-            variant='caption'
-            sx={{
-              position: 'absolute',
-              right: 16,
-            }}
-          >
-            ${entry.value.toLocaleString()}
-          </Typography>
-        ))}
-      </Box>
+      
     </Card>
   );
 };

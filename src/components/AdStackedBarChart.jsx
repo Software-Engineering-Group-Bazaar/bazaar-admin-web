@@ -1,34 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Typography, Box } from '@mui/material';
+import { apiGetAllAdsAsync } from '../api/api.js';
+import { format, parseISO } from 'date-fns';
 
-const data = [
-  { year: '2014', a: 50, b: 40, c: 30, d: 20 },
-  { year: '2015', a: 60, b: 30, c: 20, d: 20 },
-  { year: '2016', a: 80, b: 40, c: 30, d: 20 },
-  { year: '2017', a: 100, b: 50, c: 40, d: 30 },
-];
-
-const colors = [
-  'rgba(251,191,36,1)',
-  'rgb(167, 133, 21)',
-  'rgba(239,68,68,1)',
-  'rgba(162,28,175,1)',
-];
-const labels = ['Label 1', 'Label 2', 'Label 3', 'Label 4'];
+const colors = ['#6366F1', '#F59E0B'];
+const labels = ['Fixed', 'PopUp'];
 
 const barHeight = 50;
-const barGap = 30;
+const barGap = 45;
 const chartWidth = 200;
-const yAxisWidth = 70;
+const yAxisWidth = 90;
+const overlapRadius = 20;
+const framePadding = 10;
 
-// --- Podesivo ---
-const overlapRadius = 20; //  PREKLAPANJE
-const framePadding = 10; // RAZMAK OKVIRA OD BARA
-// ---------------
-
-const keys = ['a', 'b', 'c', 'd'];
-const totals = data.map((row) => keys.reduce((sum, k) => sum + row[k], 0));
-const maxTotal = Math.max(...totals);
+function groupByMonthAndType(ads) {
+  const byMonth = {};
+  ads.forEach((ad) => {
+    const date = ad.startTime || ad.endTime;
+    if (!date) return;
+    const month = format(parseISO(date), 'yyyy-MM');
+    if (!byMonth[month]) byMonth[month] = { year: month, Fixed: 0, PopUp: 0 };
+    if (ad.adType === 'Fixed') byMonth[month].Fixed += 1;
+    if (ad.adType === 'PopUp') byMonth[month].PopUp += 1;
+  });
+  return Object.values(byMonth).sort((a, b) => a.year.localeCompare(b.year));
+}
 
 function StackedBarRow({
   row,
@@ -39,8 +35,9 @@ function StackedBarRow({
   framePadding,
   strokeWidth = 4,
 }) {
+  const keys = ['Fixed', 'PopUp'];
   const total = keys.reduce((sum, k) => sum + row[k], 0);
-  const barWidth = (total / maxTotal) * chartWidth;
+  const barWidth = total > 0 ? (total / maxTotal) * chartWidth : 0;
   let acc = 0;
   const segmentPositions = [];
 
@@ -66,13 +63,12 @@ function StackedBarRow({
         strokeWidth={2.5}
         strokeDasharray='8 6'
       />
-      {/* Segmenti sa bijelim okvirom */}
-      {keys
+      {['Fixed', 'PopUp']
         .map((k, idx) => {
           const { x, w } = segmentPositions[idx];
           return (
             <rect
-              key={idx}
+              key={k}
               x={x}
               y={y}
               width={w + overlapRadius}
@@ -89,8 +85,24 @@ function StackedBarRow({
   );
 }
 
-export default function CustomStackedBarChart() {
+export default function AdStackedBarChart() {
+  const [data, setData] = useState([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const adsResponse = await apiGetAllAdsAsync();
+      const ads = adsResponse.data;
+      const grouped = groupByMonthAndType(ads);
+      setData(grouped);
+    };
+    fetchData();
+  }, []);
+
+  const keys = ['Fixed', 'PopUp'];
+  const totals = data.map((row) => keys.reduce((sum, k) => sum + row[k], 0));
+  const maxTotal = Math.max(...totals, 1); // da ne bude 0
+
   const chartHeight = data.length * (barHeight + barGap);
+
   return (
     <Card
       sx={{
@@ -98,9 +110,9 @@ export default function CustomStackedBarChart() {
         borderRadius: 4,
         boxShadow: 3,
         bgcolor: '#fff',
-        width: '585px', // Pola od 1190px sa razmakom
-        height: '480px', // Konzistentna visina
-        margin: '0 10px', // Razmak između grafova
+        width: '585px',
+        height: '480px',
+        margin: '0 10px',
       }}
     >
       <Typography
@@ -113,26 +125,26 @@ export default function CustomStackedBarChart() {
           textAlign: 'center',
         }}
       >
-        Combinations Chart
+        Combination Chart: Fixed vs PopUp Ads
       </Typography>
       <svg
         width={chartWidth + yAxisWidth + framePadding * 2 + 20}
         height={chartHeight + 20}
       >
-        {/* Godine na Y osi*/}
+        {/* Godine na Y osi */}
         {data.map((row, i) => (
           <text
             key={row.year}
             x={yAxisWidth - 22}
             y={i * (barHeight + barGap) + barHeight / 2 + 16}
             textAnchor='end'
-            fontSize='16'
+            fontSize='15'
             fontWeight='bold'
             fill='#222'
             alignmentBaseline='middle'
             dominantBaseline='middle'
           >
-            {row.year}
+            {format(parseISO(row.year + '-01'), 'MMM yyyy')}
           </text>
         ))}
         {/* Barovi */}
@@ -145,7 +157,7 @@ export default function CustomStackedBarChart() {
             chartWidth={chartWidth}
             overlapRadius={overlapRadius}
             framePadding={framePadding}
-            strokeWidth={3}
+            strokeWidth={1}
           />
         ))}
       </svg>
@@ -163,10 +175,10 @@ export default function CustomStackedBarChart() {
           >
             <Box
               sx={{
-                width: 18,
-                height: 18,
+                width: 20,
+                height: 20,
                 bgcolor: colors[idx],
-                borderRadius: '50%',
+                borderRadius: '70%',
                 mr: 1,
               }}
             />

@@ -1,77 +1,89 @@
-import React from 'react';
-import { Card, Typography, Box, Grid, Icon } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Card, Typography, Box, Grid } from '@mui/material';
 import FunnelCurved from './FunnelCurved';
 import {
   VisibilityOutlined,
+  MouseOutlined,
   CheckCircleOutline,
-  ShoppingCartOutlined,
-  CreditCardOutlined,
-  VerifiedOutlined,
 } from '@mui/icons-material';
+import { apiGetAllAdsAsync } from '../api/api.js';
 
-const funnelSteps = [
-  {
-    label: 'Viewed',
-    value: 6800,
-    percent: 100,
-    color: '#60a5fa',
-    icon: <VisibilityOutlined />,
-  },
-  {
-    label: 'Clicked',
-    value: 5750,
-    percent: 85,
-    color: '#38bdf8',
-    icon: <CheckCircleOutline />,
-  },
-  {
-    label: 'Add to Cart',
-    value: 4500,
-    percent: 66,
-    color: '#0ea5e9',
-    icon: <ShoppingCartOutlined />,
-  },
-  {
-    label: 'Checkout',
-    value: 3400,
-    percent: 50,
-    color: '#0369a1',
-    icon: <CreditCardOutlined />,
-  },
-  {
-    label: 'Purchased',
-    value: 1200,
-    percent: 18,
-    color: '#0a2540',
-    icon: <VerifiedOutlined />,
-  },
-];
+const funnelColors = ['#60a5fa', '#38bdf8', '#0ea5e9'];
 
-const stats = [
-  {
-    label: 'Weekly',
-    value: '$3,113',
-    change: '+10.3%',
-    sub: 'Compared to $1,110 last week',
-    bgColor: '#e0f7fa',
-  },
-  {
-    label: 'Monthly',
-    value: '$9,243',
-    change: '+3.7%',
-    sub: 'Compared to $6,453 last month',
-    bgColor: '#e8f5e9',
-  },
-  {
-    label: 'Yearly',
-    value: '$99,898',
-    change: '+18.3%',
-    sub: 'Compared to $79,098 last year',
-    bgColor: '#fce4ec',
-  },
+const funnelIcons = [
+  <VisibilityOutlined fontSize="large" />,
+  <MouseOutlined fontSize="large" />,
+  <CheckCircleOutline fontSize="large" />,
 ];
 
 export default function AdFunnelChart() {
+  const [funnelSteps, setFunnelSteps] = useState([
+    { label: 'Viewed', value: 0, percent: 100, color: funnelColors[0], icon: funnelIcons[0] },
+    { label: 'Clicked', value: 0, percent: 0, color: funnelColors[1], icon: funnelIcons[1] },
+    { label: 'Converted', value: 0, percent: 0, color: funnelColors[2], icon: funnelIcons[2] },
+  ]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const adsResponse = await apiGetAllAdsAsync();
+      const ads = adsResponse.data;
+      const totalViews = ads.reduce((sum, ad) => sum + (ad.views || 0), 0);
+      const totalClicks = ads.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
+      const totalConversions = ads.reduce((sum, ad) => sum + (ad.conversions || 0), 0);
+
+      setFunnelSteps([
+        {
+          label: 'Viewed',
+          value: totalViews,
+          percent: 100,
+          color: funnelColors[0],
+          icon: funnelIcons[0],
+        },
+        {
+          label: 'Clicked',
+          value: totalClicks,
+          percent: totalViews > 0 ? Math.round((totalClicks / totalViews) * 100) : 0,
+          color: funnelColors[1],
+          icon: funnelIcons[1],
+        },
+        {
+          label: 'Converted',
+          value: totalConversions,
+          percent: totalClicks > 0 ? Math.round((totalConversions / totalClicks) * 100) : 0,
+          color: funnelColors[2],
+          icon: funnelIcons[2],
+        },
+      ]);
+    };
+
+    fetchData();
+  }, []);
+
+  // Statistika za gornji dio (možeš prilagoditi)
+  const stats = [
+    {
+      label: 'Total Views',
+      value: funnelSteps[0].value.toLocaleString(),
+      change: '',
+      sub: '',
+      bgColor: '#e0f7fa',
+    },
+    {
+      label: 'Total Clicks',
+      value: funnelSteps[1].value.toLocaleString(),
+      change: '',
+      sub: '',
+      bgColor: '#e8f5e9',
+    },
+    {
+      label: 'Total Conversions',
+      value: funnelSteps[2].value.toLocaleString(),
+      change: '',
+      sub: '',
+      bgColor: '#fce4ec',
+    },
+  ];
+
   return (
     <Card
       sx={{
@@ -105,12 +117,6 @@ export default function AdFunnelChart() {
               <Typography variant='h4' fontWeight={700} color='text.primary'>
                 {stat.value}
               </Typography>
-              <Typography variant='body2' color='success.main' fontWeight={600}>
-                {stat.change}
-              </Typography>
-              <Typography variant='caption' color='text.secondary'>
-                {stat.sub}
-              </Typography>
             </Box>
           </Grid>
         ))}
@@ -131,7 +137,7 @@ export default function AdFunnelChart() {
       {/* Donja Sekcija sa Karticama */}
       <Grid container spacing={2} sx={{ px: 2, mt: 2 }}>
         {funnelSteps.map((step) => (
-          <Grid item xs={12} sm={2.4} key={step.label} sx={{ flexGrow: 1 }}>
+          <Grid item xs={12} sm={4} key={step.label} sx={{ flexGrow: 1 }}>
             <Box
               sx={{
                 borderRadius: 8,
@@ -153,8 +159,11 @@ export default function AdFunnelChart() {
               <Typography variant='h5' fontWeight={700} color='#3a0c02'>
                 {step.value.toLocaleString()}
               </Typography>
-              <Typography variant='h8' color='text.secondary'>
+              <Typography variant='body2' color='text.secondary'>
                 {step.label}
+              </Typography>
+              <Typography variant='caption' color='primary' fontWeight={600}>
+                {step.percent}% from previous
               </Typography>
             </Box>
           </Grid>
