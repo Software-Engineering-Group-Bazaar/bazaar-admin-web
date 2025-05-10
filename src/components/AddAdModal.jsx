@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { InputAdornment } from '@mui/material';
 import {
   Modal,
   Box,
@@ -7,15 +6,26 @@ import {
   TextField,
   Button,
   MenuItem,
+  InputAdornment,
 } from '@mui/material';
 import SellIcon from '@mui/icons-material/Sell';
 import AddAdItemModal from './AddAdItemModal';
 import {
   apiGetAllStoresAsync,
   apiFetchApprovedUsersAsync,
+  apiCreateAdAsync,
 } from '@api/api';
 
-const AddAdModal = ({ open, onClose, onAddAd }) => {
+const triggerArrayToBitmask = (arr) => {
+  const triggerMap = {
+    View: 1,
+    Search: 2,
+    Buy: 4,
+  };
+  return arr.reduce((sum, val) => sum | (triggerMap[val] || 0), 0);
+};
+
+const AddAdModal = ({ open, onClose }) => {
   const [formData, setFormData] = useState({
     sellerId: '',
     Views: 0,
@@ -28,13 +38,15 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     endTime: '',
     isActive: true,
     AdData: [],
+    AdType: '',
+    Triggers: [],
   });
 
   const [stores, setStores] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [adItemModalOpen, setAdItemModalOpen] = useState(false);
-  
+
   useEffect(() => {
     if (open) {
       apiGetAllStoresAsync().then(setStores);
@@ -48,7 +60,6 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     }
   }, [open]);
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -57,17 +68,18 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     }));
   };
 
-
   const handleAddAdItem = (item) => {
     setFormData((prev) => ({
       ...prev,
       AdData: [...prev.AdData, item],
+      AdType: item.AdType,
+      Triggers: item.Triggers,
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const errors = {};
-    console.log(formData);
+    console.log('[DEBUG] Raw form data before validation:', formData);
     if (!formData.sellerId) errors.sellerId = 'Seller is required';
     if (!formData.startTime) errors.startTime = 'Start time is required';
     if (!formData.endTime) {
@@ -76,28 +88,61 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
       errors.endTime = 'End time must be after start time';
     }
 
-    if(!formData.clickPrice) errors.clickPrice = 'Price per click is required';
-    if(!formData.viewPrice) errors.viewPrice = 'Price per view is required';
-    if(!formData.conversionPrice) errors.conversionPrice = 'Price per conversion is required'; 
-
-    if (formData.AdData.length === 0) {
-      errors.AdData = 'At least one ad item is required';
-    }
-
+    if (!formData.clickPrice) errors.clickPrice = 'Click price required';
+    if (!formData.viewPrice) errors.viewPrice = 'View price required';
+    if (!formData.conversionPrice) errors.conversionPrice = 'Conversion price required';
+    if (!formData.AdType) errors.AdType = 'Ad Type is required';
+    if (formData.Triggers.length === 0) errors.Triggers = 'At least one trigger required';
+    if (formData.AdData.length === 0) errors.AdData = 'At least one ad item required';
 
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+  console.warn('[DEBUG] Validation errors:', errors);
+  return;
 
-    onAddAd(formData);
+  console.log('AdType being sent:', formData.AdType);
+}
 
-    setFormData({
-      sellerId: '',
-      startTime: '',
-      endTime: '',
-      AdData: []
-    });
 
-    onClose();
+
+    try {
+      const result = await apiCreateAdAsync({
+        sellerId: formData.sellerId,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        clickPrice: parseFloat(formData.clickPrice),
+        viewPrice: parseFloat(formData.viewPrice),
+        conversionPrice: parseFloat(formData.conversionPrice),
+        AdType: formData.AdType,
+        Triggers: formData.Triggers,
+        AdData: formData.AdData,
+        isActive: formData.isActive,
+      });
+
+      
+      if (result.status === 201) {
+        console.log('Ad created!', result.data);
+        onClose();
+        setFormData({
+          sellerId: '',
+          startTime: '',
+          endTime: '',
+          clickPrice: '',
+          viewPrice: '',
+          conversionPrice: '',
+          AdData: [],
+          AdType: '',
+          Triggers: [],
+          isActive: true,
+        });
+      } else {
+        alert('Failed to create ad. Status: ' + result.status);
+      }
+    } catch (error) {
+      console.error('Error creating ad:', error);
+      alert('Ad creation failed: ' + error.message);
+    }
   };
 
   return (
@@ -110,7 +155,6 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           transform: 'translate(-50%, -50%)',
           width: 'auto',
           maxWidth: 1000,
-          height: 'auto',
           maxHeight: '90vh',
           overflowY: 'auto',
           bgcolor: '#fff',
@@ -119,31 +163,20 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           p: 4,
         }}
       >
-        {/* Header */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 4,
-            gap: 1,
-          }}
-        >
+        <Box display="flex" alignItems="center" justifyContent="center" mb={4} gap={1}>
           <SellIcon sx={{ fontSize: 28, color: '#fbbc05' }} />
-          <Typography variant='h5' fontWeight={700}>
+          <Typography variant="h5" fontWeight={700}>
             Create Ad
           </Typography>
         </Box>
 
-        {/* Content */}
-        <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mb: 2 }}>
-          {/* Right: Form */}
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box display="flex" gap={4} alignItems="flex-start" mb={2}>
+          <Box width="100%" display="flex" flexDirection="column">
             <TextField
               select
-              size='small'
-              name='sellerId'
-              label='Seller'
+              size="small"
+              name="sellerId"
+              label="Seller"
               value={formData.sellerId}
               onChange={handleChange}
               error={!!formErrors.sellerId}
@@ -161,10 +194,10 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             </TextField>
 
             <TextField
-              name='startTime'
-              label='Start time'
-              type='datetime-local'
-              size='small'
+              name="startTime"
+              label="Start time"
+              type="datetime-local"
+              size="small"
               value={formData.startTime}
               onChange={handleChange}
               error={!!formErrors.startTime}
@@ -177,10 +210,10 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             />
 
             <TextField
-              name='endTime'
-              label='End time'
-              type='datetime-local'
-              size='small'
+              name="endTime"
+              label="End time"
+              type="datetime-local"
+              size="small"
               value={formData.endTime}
               onChange={handleChange}
               error={!!formErrors.endTime}
@@ -192,82 +225,82 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
               }}
             />
 
-            {/* Error message if no items */}
             {formErrors.AdData && (
-              <Typography color='error' variant='body2' sx={{ mb: 1 }}>
+              <Typography color="error" variant="body2" sx={{ mb: 1 }}>
                 {formErrors.AdData}
               </Typography>
             )}
 
-            {/* Display added ad items */}
             {formData.AdData.map((item, index) => (
               <Box
                 key={index}
                 sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}
               >
-                <Typography variant='body2'>
+                <Typography variant="body2">
                   <strong>Ad Text:</strong> {item.Description}
                 </Typography>
-                <Typography variant='body2'>
+                <Typography variant="body2">
                   <strong>Store:</strong> {item.StoreLink}
                 </Typography>
-                <Typography variant='body2'>
+                <Typography variant="body2">
                   <strong>Product:</strong> {item.ProductLink}
                 </Typography>
               </Box>
             ))}
-<TextField
-  name="clickPrice"
-  label="Click Price"
-  type="number"
-  size="small"
-  value={formData.clickPrice}
-  onChange={handleChange}
-  error={!!formErrors.clickPrice}
-  helperText={formErrors.clickPrice}
-  sx={{ mb: 1.2 }}
-  InputProps={{
-    sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
-    inputProps: { min: 0 },
-    endAdornment: <InputAdornment position="end">KM</InputAdornment>,
-  }}
-/>
 
-<TextField
-  name="viewPrice"
-  label="View Price"
-  type="number"
-  size="small"
-  value={formData.viewPrice}
-  onChange={handleChange}
-  error={!!formErrors.viewPrice}
-  helperText={formErrors.viewPrice}
-  sx={{ mb: 1.2 }}
-  InputProps={{
-    sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
-    inputProps: { min: 0 },
-    endAdornment: <InputAdornment position="end">KM</InputAdornment>,
-  }}
-/>
+            <TextField
+              name="clickPrice"
+              label="Click Price"
+              type="number"
+              size="small"
+              value={formData.clickPrice}
+              onChange={handleChange}
+              error={!!formErrors.clickPrice}
+              helperText={formErrors.clickPrice}
+              sx={{ mb: 1.2 }}
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+                inputProps: { min: 0 },
+                endAdornment: <InputAdornment position="end">KM</InputAdornment>,
+              }}
+            />
 
-<TextField
-  name="conversionPrice"
-  label="Conversion Price"
-  type="number"
-  size="small"
-  value={formData.conversionPrice}
-  onChange={handleChange}
-  error={!!formErrors.conversionPrice}
-  helperText={formErrors.conversionPrice}
-  sx={{ mb: 1.2 }}
-  InputProps={{
-    sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
-    inputProps: { min: 0 },
-    endAdornment: <InputAdornment position="end">KM</InputAdornment>,
-  }}
-/>
-             <Button
-              variant='outlined'
+            <TextField
+              name="viewPrice"
+              label="View Price"
+              type="number"
+              size="small"
+              value={formData.viewPrice}
+              onChange={handleChange}
+              error={!!formErrors.viewPrice}
+              helperText={formErrors.viewPrice}
+              sx={{ mb: 1.2 }}
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+                inputProps: { min: 0 },
+                endAdornment: <InputAdornment position="end">KM</InputAdornment>,
+              }}
+            />
+
+            <TextField
+              name="conversionPrice"
+              label="Conversion Price"
+              type="number"
+              size="small"
+              value={formData.conversionPrice}
+              onChange={handleChange}
+              error={!!formErrors.conversionPrice}
+              helperText={formErrors.conversionPrice}
+              sx={{ mb: 1.2 }}
+              InputProps={{
+                sx: { borderRadius: 2, backgroundColor: '#f9f9f9' },
+                inputProps: { min: 0 },
+                endAdornment: <InputAdornment position="end">KM</InputAdornment>,
+              }}
+            />
+
+            <Button
+              variant="outlined"
               onClick={() => setAdItemModalOpen(true)}
               sx={{
                 mb: 1.2,
@@ -279,15 +312,10 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
             >
               Add Item
             </Button>
-            {formErrors.AdData && (
-            <Typography color='error' variant='body2' sx={{ mb: 1 }}>
-            {formErrors.AdData}
-            </Typography>
-            )}
-            {/* Buttons */}
-            <Box display='flex' gap='1.2px' justifyContent='flex-end' mt={2}>
+
+            <Box display="flex" gap="1.2px" justifyContent="flex-end" mt={2}>
               <Button
-                variant='outlined'
+                variant="outlined"
                 onClick={onClose}
                 sx={{
                   mr: 1.2,
@@ -301,7 +329,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
                 Cancel
               </Button>
               <Button
-                variant='contained'
+                variant="contained"
                 onClick={handleSubmit}
                 sx={{
                   backgroundColor: '#4a0404',
@@ -320,7 +348,6 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           </Box>
         </Box>
 
-        {/* Add Ad Item Modal */}
         <AddAdItemModal
           open={adItemModalOpen}
           onClose={() => setAdItemModalOpen(false)}
