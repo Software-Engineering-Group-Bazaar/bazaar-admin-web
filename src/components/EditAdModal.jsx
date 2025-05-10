@@ -6,73 +6,89 @@ import {
   TextField,
   Checkbox,
   Button,
-  IconButton,
   Stack,
+  Grid,
 } from '@mui/material';
-import { Edit3, Trash2 } from 'lucide-react';
+import { Edit3 } from 'lucide-react';
 import {
   apiFetchAllUsersAsync,
   apiGetAllStoresAsync,
-  apiRemoveAdItemAsync,
+  apiGetAllProductsAsync,
 } from '../api/api';
 
 const EditAdModal = ({ open, onClose, ad, onSave }) => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [isActive, setIsActive] = useState(false);
-  const [adContentItems, setAdContentItems] = useState([]);
+  const [adItem, setAdItem] = useState({
+    description: '',
+    storeId: '',
+    productId: '',
+    trigger: '',
+    displayType: '',
+    clickPrice: '',
+    viewPrice: '',
+    conversionPrice: '',
+    imageFile: null,
+    existingImageUrl: '',
+  });
+
+  const [stores, setStores] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [sellers, setSellers] = useState([]);
 
   useEffect(() => {
-    console.log(ad);
+    const fetchMeta = async () => {
+      const s = await apiGetAllStoresAsync();
+      const p = await apiGetAllProductsAsync();
+      const u = await apiFetchAllUsersAsync();
+      setStores(s);
+      setProducts(p);
+      setSellers(u);
+    };
+    fetchMeta();
+  }, []);
+
+  useEffect(() => {
     if (ad) {
       setStartTime(ad.startTime || '');
       setEndTime(ad.endTime || '');
       setIsActive(ad.isActive || false);
-      setAdContentItems(
-        (ad.adData || []).map((item) => ({
-          ...item,
-          imageFile: null, // novo uploadovan file (ako bude)
-          existingImageUrl: item.imageUrl, // postojeca slika iz GET-a
-        }))
-      );
+      const firstItem = (ad.adData && ad.adData[0]) || {};
+      setAdItem({
+        ...firstItem,
+        imageFile: null,
+        existingImageUrl: firstItem.imageUrl || '',
+      });
     }
   }, [ad]);
 
-  const handleFieldChange = (index, field, value) => {
-    const updatedItems = [...adContentItems];
-    updatedItems[index][field] = value;
-    setAdContentItems(updatedItems);
+  const handleFieldChange = (field, value) => {
+    setAdItem({ ...adItem, [field]: value });
   };
 
-  const handleFileChange = (index, file) => {
-    const updatedItems = [...adContentItems];
-    updatedItems[index].imageFile = file;
-    setAdContentItems(updatedItems);
-  };
-
-  const handleRemoveItem = async (index) => {
-    const updatedItems = [...adContentItems];
-    updatedItems.splice(index, 1);
-
-    const id = ad.adData[index].id;
-    const res = await apiRemoveAdItemAsync(id);
-
-    setAdContentItems(updatedItems);
+  const handleFileChange = (file) => {
+    setAdItem({ ...adItem, imageFile: file });
   };
 
   const handleSave = () => {
-    const cleanedItems = adContentItems.map((item) => ({
-      storeId: Number(item.storeId),
-      productId: Number(item.productId),
-      description: item.description,
-      imageFile: item.imageFile || null, // ako nema novog file-a, backend koristi stari
-    }));
+    const cleanedItem = {
+      storeId: Number(adItem.storeId),
+      productId: Number(adItem.productId),
+      description: adItem.description,
+      imageFile: adItem.imageFile || null,
+      trigger: adItem.trigger,
+      displayType: adItem.displayType,
+      clickPrice: Number(adItem.clickPrice),
+      viewPrice: Number(adItem.viewPrice),
+      conversionPrice: Number(adItem.conversionPrice),
+    };
 
     onSave?.(ad.id, {
       startTime,
       endTime,
       isActive,
-      newAdDataItems: cleanedItems,
+      newAdDataItems: [cleanedItem],
     });
 
     onClose();
@@ -130,84 +146,132 @@ const EditAdModal = ({ open, onClose, ad, onSave }) => {
           </Box>
         </Stack>
 
-        {/* Ad Items Section */}
         <Typography variant='h6' mt={4} mb={2}>
-          Advertisement Items
+          Advertisement Item
         </Typography>
 
-        <Box
-          sx={{
-            maxHeight: '30vh',
-            overflowY: 'auto',
-            pr: 1,
-            mb: 3,
-            '&::-webkit-scrollbar': {
-              width: 8,
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: '#bbb',
-              borderRadius: 4,
-            },
-          }}
-        >
-          <Stack spacing={2}>
-            {adContentItems.map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  border: '1px solid #ddd',
-                  borderRadius: 2,
-                  p: 2,
-                  backgroundColor: '#f9fafb',
-                }}
+        <Stack spacing={2}>
+          <TextField
+            label='Description'
+            fullWidth
+            value={adItem.description}
+            onChange={(e) => handleFieldChange('description', e.target.value)}
+          />
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                fullWidth
+                value={adItem.storeId}
+                onChange={(e) => handleFieldChange('storeId', e.target.value)}
+                SelectProps={{ native: true }}
               >
-                <TextField
-                  label='Description'
-                  fullWidth
-                  value={item.description}
-                  onChange={(e) =>
-                    handleFieldChange(index, 'description', e.target.value)
-                  }
-                  sx={{ mb: 1 }}
-                />
-                <TextField
-                  label='Store ID'
-                  type='number'
-                  fullWidth
-                  value={item.storeId}
-                  onChange={(e) =>
-                    handleFieldChange(index, 'storeId', e.target.value)
-                  }
-                  sx={{ mb: 1 }}
-                />
-                <TextField
-                  label='Product ID'
-                  type='number'
-                  fullWidth
-                  value={item.productId}
-                  onChange={(e) =>
-                    handleFieldChange(index, 'productId', e.target.value)
-                  }
-                  sx={{ mb: 1 }}
-                />
-                <Button variant='outlined' component='label' sx={{ mt: 1 }}>
-                  Upload Image
-                  <input
-                    hidden
-                    type='file'
-                    onChange={(e) => handleFileChange(index, e.target.files[0])}
-                  />
-                </Button>
-                <IconButton
-                  onClick={() => handleRemoveItem(index)}
-                  size='small'
-                >
-                  <Trash2 size={20} />
-                </IconButton>
-              </Box>
-            ))}
-          </Stack>
-        </Box>
+                <option value=''>Select Store</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                fullWidth
+                value={adItem.productId}
+                onChange={(e) =>
+                  handleFieldChange('productId', e.target.value)
+                }
+                SelectProps={{ native: true }}
+              >
+                <option value=''>Select Product</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label='Trigger (e.g. search, view, buy)'
+                fullWidth
+                value={adItem.trigger || ''}
+                onChange={(e) => handleFieldChange('trigger', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                fullWidth
+                value={adItem.displayType || ''}
+                onChange={(e) =>
+                  handleFieldChange('displayType', e.target.value)
+                }
+                SelectProps={{ native: true }}
+              >
+                <option value=''>Select Display Type</option>
+                <option value='Left'>Left</option>
+                <option value='Right'>Right</option>
+                <option value='Top'>Top</option>
+                <option value='Bottom'>Bottom</option>
+                <option value='PopUp'>PopUp</option>
+                <option value='Any'>Any</option>
+              </TextField>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label='Click Price'
+                type='number'
+                fullWidth
+                value={adItem.clickPrice || ''}
+                onChange={(e) =>
+                  handleFieldChange('clickPrice', e.target.value)
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label='View Price'
+                type='number'
+                fullWidth
+                value={adItem.viewPrice || ''}
+                onChange={(e) =>
+                  handleFieldChange('viewPrice', e.target.value)
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label='Conversion Price'
+                type='number'
+                fullWidth
+                value={adItem.conversionPrice || ''}
+                onChange={(e) =>
+                  handleFieldChange('conversionPrice', e.target.value)
+                }
+              />
+            </Grid>
+          </Grid>
+
+          <Box>
+            <Button variant='outlined' component='label'>
+              Upload Image
+              <input
+                hidden
+                type='file'
+                onChange={(e) => handleFileChange(e.target.files[0])}
+              />
+            </Button>
+          </Box>
+        </Stack>
 
         {/* Buttons */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>

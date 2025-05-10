@@ -1240,3 +1240,14 @@ export const apiGetGeographyAsync = async () => {
     return { regions: [], places: [] };
   }
 };
+
+
+
+
+export async function apiGetAllProductsAsync() {
+  const response = await fetch('/apiproducts'); 
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
+  }
+  return await response.json();
+}
