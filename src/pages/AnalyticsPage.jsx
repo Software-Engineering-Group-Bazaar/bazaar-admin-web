@@ -9,6 +9,9 @@ import RevenueByStore from '@components/RevenueByStore';
 import ParetoChart from '@components/ParetoChart';
 import AdFunnelChart from '@components/AdFunnelChart';
 import AdStackedBarChart from '@components/AdStackedBarChart';
+import Calendar from '@components/Calendar';
+import DealsChart from '@components/DealsChart';
+import SalesChart from '@components/SalesChart';
 import { useState, useEffect } from 'react';
 import {
   apiFetchOrdersAsync,
@@ -331,12 +334,16 @@ const AnalyticsPage = () => {
           </Grid>
         </Grid>
 
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: '100%' }}>
           {/* Funnel Chart (sam u jednom redu) */}
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Box
-                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <AdFunnelChart />
               </Box>
@@ -344,19 +351,63 @@ const AnalyticsPage = () => {
           </Grid>
 
           {/* Pareto Chart i Stacked Bar Chart (jedan do drugog) */}
-          <Grid container spacing={6} mb={2}>
+          <Grid container spacing={6} mb={3}>
             <Grid item sx={{ width: '45%' }}>
               <Box
-                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <ParetoChart />
               </Box>
             </Grid>
             <Grid item sx={{ width: '45%' }}>
               <Box
-                sx={{ height: "100%", display: 'flex', flexDirection: 'column' }}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <AdStackedBarChart />
+              </Box>
+            </Grid>
+          </Grid>
+          {/* Calendar, DealsChart, SalesChart */}
+          <Grid container spacing={3} mb={2}>
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <Calendar />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <DealsChart />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <SalesChart />
               </Box>
             </Grid>
           </Grid>

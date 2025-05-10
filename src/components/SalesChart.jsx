@@ -109,40 +109,46 @@ function SalesChart() {
   };
 
   return (
-    <Paper 
+    <Paper
       elevation={3} // Adding shadow to make it look like a card
-      sx={{ 
-        p: 3, 
-        minHeight: '400px', // Ensures the card has a minimum height
-        backgroundColor: '#f7f7f7', // Light grey background
+      sx={{
+        p: 3,
+        boxShadow: 3,
+        minHeight: '480px', // Ensures the card has a minimum height
+        width: '380px',
+        backgroundColor: '#fff', // Light grey background
         borderRadius: 2,
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)' // Card-like shadow
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)', // Card-like shadow
       }}
     >
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'flex-end', 
-        alignItems: 'center', 
-        mb: 3 
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Box>
           <IconButton
-            aria-label="filters"
+            aria-label='filters'
             aria-controls={open ? 'filter-menu' : undefined}
-            aria-haspopup="true"
+            aria-haspopup='true'
             aria-expanded={open ? 'true' : undefined}
             onClick={handleFilterClick}
-            sx={{ 
-              border: '1px solid #e0e0e0', 
+            sx={{
+              border: '1px solid #e0e0e0',
               borderRadius: 1,
-              px: 1
+              px: 1,
             }}
           >
-            <Typography variant="body2" sx={{ mr: 1 }}>Filters</Typography>
-            <FilterListIcon fontSize="small" />
+            <Typography variant='body2' sx={{ mr: 1 }}>
+              Filters
+            </Typography>
+            <FilterListIcon fontSize='small' />
           </IconButton>
           <Menu
-            id="filter-menu"
+            id='filter-menu'
             anchorEl={anchorEl}
             open={open}
             onClose={handleClose}
@@ -162,73 +168,75 @@ function SalesChart() {
 
       <Stack spacing={2}>
         {data.map((item) => (
-          <Box 
-            key={item.id} 
-            sx={{ 
-              display: 'flex', 
+          <Box
+            key={item.id}
+            sx={{
+              display: 'flex',
               alignItems: 'center',
               p: 2,
               borderRadius: 2,
-              backgroundColor: 'white', // Card item background color
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)', // Subtle shadow for items
+              backgroundColor: '#f8f9fa', // Card item background color
+              boxShadow: 3, // Subtle shadow for items
               '&:hover': {
-                backgroundColor: theme.palette.grey[50]
-              }
+                backgroundColor: theme.palette.grey[50],
+              },
             }}
           >
-            <Box 
-              sx={{ 
-                width: 40, 
-                height: 40, 
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: 'white',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                mr: 2
+                mr: 2,
               }}
             >
-              {React.createElement(item.icon, { 
-                sx: { 
+              {React.createElement(item.icon, {
+                sx: {
                   fontSize: 24,
-                  color: item.color
-                }
+                  color: item.color,
+                },
               })}
             </Box>
-            
+
             <Box sx={{ flexGrow: 1 }}>
-              <Typography 
-                variant="body1" 
-                sx={{ 
+              <Typography
+                variant='body1'
+                sx={{
                   fontWeight: 500,
-                  color: theme.palette.text.primary
+                  color: theme.palette.text.primary,
                 }}
               >
                 {item.name}
               </Typography>
             </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'right' }}>
-              <Typography 
-                variant="body1" 
-                sx={{ 
+
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', textAlign: 'right' }}
+            >
+              <Typography
+                variant='body1'
+                sx={{
                   fontWeight: 600,
                   color: theme.palette.text.primary,
-                  mr: 2
+                  mr: 2,
                 }}
               >
                 ${item.amount.toLocaleString()}
               </Typography>
-              <Typography 
-                variant="body2" 
-                sx={{ 
+              <Typography
+                variant='body2'
+                sx={{
                   color: theme.palette.text.secondary,
                   backgroundColor: theme.palette.grey[100],
                   px: 1,
                   py: 0.5,
                   borderRadius: 1,
-                  display: 'inline-block'
+                  display: 'inline-block',
                 }}
               >
                 {item.percentage}%
