@@ -126,7 +126,9 @@ function Calendar() {
       elevation={0} 
       sx={{ 
         p: 2,
-        height: '100%',
+        height: '480px',
+        boxShadow: 3,
+        width: '380px',
         display: 'flex',
         flexDirection: 'column'
       }}
