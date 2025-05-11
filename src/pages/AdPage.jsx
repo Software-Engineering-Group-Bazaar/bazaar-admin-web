@@ -5,7 +5,6 @@ import AdsManagementHeader from '@sections/AdsManagementHeader';
 import UserManagementPagination from '@components/UserManagementPagination';
 import AddAdModal from '@components/AddAdModal'; 
 import AdvertisementDetailsModal from '@components/AdvertisementDetailsModal';
-import { useAdSignalR } from '../hooks/useAdSignalR'; // ili stvarna putanja
 import {
   apiCreateAdAsync,
   apiGetAllAdsAsync,
@@ -38,11 +37,7 @@ const AdPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ads, setAds] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
-
-  const { latestAdUpdate } = useAdSignalR();
-
   const [isLoading, setIsLoading] = useState(true);
-
   const adsPerPage = 5;
 
   const filteredAds = ads.filter((ad) =>
@@ -69,23 +64,6 @@ const AdPage = () => {
     fetchAds();
   }, []);
 
-  // === 2. Real-time update preko SignalR ===
-  useEffect(() => {
-    if (latestAdUpdate) {
-      setAds((prevAds) =>
-        prevAds.map((ad) =>
-          ad.id === latestAdUpdate.id
-            ? {
-                ...ad,
-                views: latestAdUpdate.views,
-                clicks: latestAdUpdate.clicks,
-              }
-            : ad
-        )
-      );
-    }
-  }, [latestAdUpdate]);
-
   const handleDelete = async (id) => {
     const response = await apiDeleteAdAsync(id);
       console.log("nesto");
@@ -110,7 +88,6 @@ const AdPage = () => {
 
   const handleViewDetails = (id) => {
     const found = ads.find((a) => a.id === id);
-    console.log("detalji");
     setSelectedAd(found);
   };
 
