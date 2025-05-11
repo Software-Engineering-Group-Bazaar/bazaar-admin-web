@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography } from '@mui/material';
-import CountUp from 'react-countup';
-import { connectToSignalR } from '@api/HubService';
 import {
-  Eye,
-  Hand,
-  CheckCircle,
-  BarChart2,
-  MousePointerClick,
-  Percent,
-  Activity,
+  Eye, Hand, CheckCircle, BarChart2,
+  MousePointerClick, Percent, Activity
 } from 'lucide-react';
+import CountUp from 'react-countup';
 import AdContentCard from '@components/AdContentCard';
 import HorizontalScroll from './HorizontalScroll';
 import { apiGetAllStoresAsync, apiGetStoreProductsAsync } from '@api/api';
+import { useAdSignalR } from '@hooks/useAdSignalR';
 
 const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -24,9 +19,19 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
     isActive: ad?.isActive || false,
   });
 
-  const [adStats, setAdStats] = useState(ad);
   const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
+
+  const {
+    connectionStatus,
+    latestAdUpdate,
+    latestClickTime,
+    latestViewTime,
+    latestConversionTime,
+    adUpdatesHistory,
+  } = useAdSignalR();
+
+  const adToShow = latestAdUpdate?.id === ad?.id ? latestAdUpdate : ad;
 
   useEffect(() => {
     if (open) {
@@ -41,16 +46,9 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
         }
         setProducts(allProducts);
       };
-
       fetchData();
-
-      connectToSignalR((updatedStats) => {
-        if (updatedStats.id === ad.id) {
-          setAdStats(updatedStats);
-        }
-      });
     }
-  }, [open, ad.id]);
+  }, [open]);
 
   const getStoreName = (storeId) =>
     stores.find((s) => s.id === storeId)?.name || `Unknown store`;
@@ -79,41 +77,44 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
     setEditedData({ ...editedData, adData: newAdData });
   };
 
-  if (!adStats) return null;
+  if (!adToShow) {
+    return <></>; // siguran render bez hook greške
+  }
 
   const cardData = [
     {
       icon: <BarChart2 size={24} color="#0284c7" />,
       label: 'Views',
-      value: adStats.views.toLocaleString(),
+      value: adToShow.views.toLocaleString(),
       bg: '#e0f2fe',
     },
     {
       icon: <MousePointerClick size={24} color="#0d9488" />,
       label: 'Clicks',
-      value: adStats.clicks.toLocaleString(),
+      value: adToShow.clicks.toLocaleString(),
       bg: '#ccfbf1',
     },
     {
       icon: <Percent size={24} color="#f59e0b" />,
       label: 'CTR',
       value:
-        adStats.views > 0
-          ? ((adStats.clicks / adStats.views) * 100).toFixed(1) + '%'
+        adToShow.views > 0
+          ? ((adToShow.clicks / adToShow.views) * 100).toFixed(1) + '%'
           : '0%',
       bg: '#fef9c3',
     },
     {
-      icon: <Activity size={24} color={adStats.isActive ? '#22c55e' : '#ef4444'} />,
+      icon: <Activity size={24} color={adToShow.isActive ? '#22c55e' : '#ef4444'} />,
       label: 'Status',
-      value: adStats.isActive ? 'Active' : 'Inactive',
-      bg: adStats.isActive ? '#dcfce7' : '#fee2e2',
+      value: adToShow.isActive ? 'Active' : 'Inactive',
+      bg: adToShow.isActive ? '#dcfce7' : '#fee2e2',
     },
   ];
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={styles.modal}>
+        {/* Header */}
         <Box sx={styles.headerBox}>
           <Box sx={styles.headerAccent} />
           <Box sx={styles.headerContent}>
@@ -121,16 +122,16 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
               Advertisement Overview
             </Typography>
             <Typography variant="h4" fontWeight={800}>
-              Advertisement {adStats.id}
+              Advertisement {adToShow.id}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Seller ID: {adStats.sellerId}
+              Seller ID: {adToShow.sellerId}
             </Typography>
           </Box>
           <Box sx={styles.headerAccent} />
         </Box>
 
-        {/* KPI Cards */}
+        {/* Stats Cards */}
         <Box sx={styles.cardGrid}>
           {cardData.map((item, i) => (
             <Box key={i} sx={{ ...styles.card, backgroundColor: item.bg }}>
@@ -147,38 +148,25 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
 
         {/* Time Info */}
         <Box sx={{ display: 'flex', gap: 3, mt: 4 }}>
-          <Box sx={styles.timeCard}>
-            <Typography variant="subtitle2" sx={styles.timeTitle}>
-              <svg width="16" height="16" fill="#FF8000" style={{ marginRight: 6 }}>
-                <path d="M3 0a1 1 0 011 1v1h8V1a1 1 0 112 0v1h1a1 1 0 011 1v2H0V3a1 1 0 011-1h1V1a1 1 0 011-1zm11 6H2v7a1 1 0 001 1h10a1 1 0 001-1V6zM6 8h2v2H6V8z" />
-              </svg>
-              Start Time
-            </Typography>
-            <Typography variant="h6" fontWeight={500}>
-              {new Date(adStats.startTime).toLocaleDateString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {new Date(adStats.startTime).toLocaleTimeString()}
-            </Typography>
-          </Box>
-
-          <Box sx={styles.timeCard}>
-            <Typography variant="subtitle2" sx={styles.timeTitle}>
-              <svg width="16" height="16" fill="#FF8000" style={{ marginRight: 6 }}>
-                <path d="M3 0a1 1 0 011 1v1h8V1a1 1 0 112 0v1h1a1 1 0 011 1v2H0V3a1 1 0 011-1h1V1a1 1 0 011-1zm11 6H2v7a1 1 0 001 1h10a1 1 0 001-1V6zM6 8h2v2H6V8z" />
-              </svg>
-              End Time
-            </Typography>
-            <Typography variant="h6" fontWeight={500}>
-              {new Date(adStats.endTime).toLocaleDateString()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {new Date(adStats.endTime).toLocaleTimeString()}
-            </Typography>
-          </Box>
+          {[{ label: 'Start Time', time: adToShow.startTime }, { label: 'End Time', time: adToShow.endTime }].map(({ label, time }, idx) => (
+            <Box key={idx} sx={styles.timeCard}>
+              <Typography variant="subtitle2" sx={styles.timeTitle}>
+                <svg width="16" height="16" fill="#FF8000" style={{ marginRight: 6 }}>
+                  <path d="M3 0a1 1 0 011 1v1h8V1a1 1 0 112 0v1h1a1 1 0 011 1v2H0V3a1 1 0 011-1h1V1a1 1 0 011-1zm11 6H2v7a1 1 0 001 1h10a1 1 0 001-1V6zM6 8h2v2H6V8z" />
+                </svg>
+                {label}
+              </Typography>
+              <Typography variant="h6" fontWeight={500}>
+                {new Date(time).toLocaleDateString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {new Date(time).toLocaleTimeString()}
+              </Typography>
+            </Box>
+          ))}
         </Box>
 
-        {/* Pricing Info */}
+        {/* Prices */}
         <Box
           sx={{
             display: 'flex',
@@ -193,16 +181,13 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
           }}
         >
           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Hand size={25} color="#0d9488" /> Click Price:{' '}
-            <b style={{ marginLeft: 5 }}>{adStats.clickPrice ?? '1000'}</b>
+            <Hand size={25} color="#0d9488" /> Click Price: <b style={{ marginLeft: 5 }}>{adToShow.clickPrice ?? '1000'}</b>
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Eye size={25} color="#0284c7" /> View Price:{' '}
-            <b style={{ marginLeft: 2 }}>{adStats.viewPrice ?? '1000'}</b>
+            <Eye size={25} color="#0284c7" /> View Price: <b style={{ marginLeft: 2 }}>{adToShow.viewPrice ?? '1000'}</b>
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <CheckCircle size={25} color="#f59e0b" /> Conversion Price:{' '}
-            <b style={{ marginLeft: 2 }}>{adStats.conversionPrice ?? '1000'}</b>
+            <CheckCircle size={25} color="#f59e0b" /> Conversion Price: <b style={{ marginLeft: 2 }}>{adToShow.conversionPrice ?? '1000'}</b>
           </Typography>
         </Box>
 
@@ -212,7 +197,7 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
             Advertisement Content
           </Typography>
           <HorizontalScroll>
-            {adStats.adData.map((item, index) => (
+            {adToShow.adData.map((item, index) => (
               <AdContentCard
                 key={index}
                 imageUrl={item.imageUrl}

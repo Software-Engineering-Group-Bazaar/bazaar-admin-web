@@ -22,6 +22,7 @@ import {
 import { toast } from 'react-hot-toast';
 import DeleteConfirmationModal from './DeleteAdConfirmation';
 import EditAdModal from './EditAdModal';
+import AdvertisementDetailsModal from './AdvertisementDetailsModal';
 import { apiFetchApprovedUsersAsync } from '../api/api';
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 import defaultAdImage from '@images/bazaarAd.jpg';
@@ -329,6 +330,18 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
         </Stack>
         {/* ...modals... */}
       </Paper>
+        <EditAdModal
+          open={isEditOpen}
+          ad={ad}
+          onClose={() => setIsEditOpen(false)}
+          onSave={handleEdit}
+        />
+
+        <DeleteConfirmationModal
+          open={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          onConfirm={handleDelete}
+        />
     </Box>
   );
 };
