@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Select, Checkbox, ListItemText } from '@mui/material';
 import {
   Modal,
   Box,
@@ -20,7 +21,7 @@ const triggerArrayToBitmask = (arr) => {
   const triggerMap = {
     View: 1,
     Search: 2,
-    Buy: 4,
+    Order: 4,
   };
   return arr.reduce((sum, val) => sum | (triggerMap[val] || 0), 0);
 };
@@ -64,7 +65,7 @@ const AddAdModal = ({ open, onClose }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value.toString(),
     }));
   };
 
@@ -72,11 +73,25 @@ const AddAdModal = ({ open, onClose }) => {
     setFormData((prev) => ({
       ...prev,
       AdData: [...prev.AdData, item],
-      AdType: item.AdType,
-      Triggers: item.Triggers,
+    }));
+  };
+  const handleAdType = (e) => {
+    const value = e.target.value.toString();
+    setFormData((prev) => ({
+      ...prev,
+      AdType: value,
     }));
   };
 
+  const handleTriggers = (e) => {
+    const value = e.target.value.toString();
+    if (!formData.Triggers.includes(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        Triggers: [...prev.Triggers, value],
+      }));
+    }
+  };
   const handleSubmit = async () => {
     const errors = {};
     console.log('[DEBUG] Raw form data before validation:', formData);
@@ -299,6 +314,51 @@ const AddAdModal = ({ open, onClose }) => {
               }}
             />
 
+          <TextField
+  select
+  name='AdType'
+  label='Ad Type'
+  value={formData.AdType}
+  onChange={handleChange}
+  fullWidth
+  margin='dense'
+  error={!!formErrors.AdType}
+  helperText={formErrors.AdType}
+>
+  <MenuItem value='PopUp'>PopUp</MenuItem>
+  <MenuItem value='Fixed'>Fixed</MenuItem>
+</TextField>
+
+<TextField
+  select
+  SelectProps={{
+    multiple: true,
+    renderValue: (selected) => selected.join(', '),
+  }}
+  name="Triggers"
+  label="Triggers"
+  value={Array.isArray(formData.Triggers) ? formData.Triggers : []}
+  onChange={(e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      Triggers: typeof value === 'string' ? value.split(',') : value,
+    }));
+  }}
+  fullWidth
+  margin="dense"
+  error={!!formErrors.Triggers}
+  helperText={formErrors.Triggers}
+>
+  {['Search', 'Order', 'View'].map((trigger) => (
+    <MenuItem key={trigger} value={trigger}>
+      <Checkbox
+        checked={(Array.isArray(formData.Triggers) ? formData.Triggers : []).includes(trigger)}
+      />
+      <ListItemText primary={trigger} />
+    </MenuItem>
+  ))}
+</TextField>
             <Button
               variant="outlined"
               onClick={() => setAdItemModalOpen(true)}

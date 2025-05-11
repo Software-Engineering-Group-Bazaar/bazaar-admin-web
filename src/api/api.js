@@ -1027,15 +1027,18 @@ export const apiCreateAdAsync = async (adData) => {
     formData.append('SellerId', String(adData.sellerId));
     formData.append('StartTime', new Date(adData.startTime).toISOString());
     formData.append('EndTime', new Date(adData.endTime).toISOString());
-    formData.append('ClickPrice', adData.clickPrice);
-    formData.append('ViewPrice', adData.viewPrice);
-    formData.append('ConversionPrice', adData.conversionPrice);
-    formData.append('AdType', adData.AdType === 'PopUp' ? 'PopUp' : 'Fixed');
-    
-    const triggers = Array.isArray(adData.Triggers) ? 
-      adData.Triggers.map(t => t.toLowerCase()) : [];
-    formData.append('Triggers', convertTriggersToBitFlag(triggers));
+    formData.append('ClickPrice', parseFloat(adData.clickPrice));
+    formData.append('ViewPrice', parseFloat(adData.viewPrice));
+    formData.append('ConversionPrice', parseFloat(adData.conversionPrice));
+    formData.append('AdType', adData.AdType);
+    formData.append('Triggers', adData.Triggers);
+    if(Array.isArray(adData.Triggers)){
+      adData.Triggers.forEach((item, index) => {
+        formData.append(`Triggers[${index}]`, String(item))
+      })
+    }
     if (Array.isArray(adData.AdData)) {
+      console.log(adData.AdData[0].StoreLink);
       adData.AdData.forEach((item, index) => {
         formData.append(`AdDataItems[${index}].storeId`, String(item.StoreLink));
         formData.append(`AdDataItems[${index}].productId`, String(item.ProductLink));
@@ -1050,7 +1053,7 @@ export const apiCreateAdAsync = async (adData) => {
     for (const [key, val] of formData.entries()) {
       console.log(key, val);
     }
-
+    console.log(formData);
     const response = await axios.post(
       `${baseApiUrl}/api/AdminAnalytics/advertisements`,
       formData,

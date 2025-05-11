@@ -15,9 +15,7 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
     Image: '',
     StoreLink: '',
     ProductLink: '',
-    Description: '',
-    AdType: '',
-    Triggers: [],
+    Description: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -49,33 +47,12 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
     }
   };
 
-  const handleAdType = (e) => {
-    const value = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      AdType: value,
-    }));
-  };
-
-  const handleTriggers = (e) => {
-    const value = e.target.value;
-    if (!formData.Triggers.includes(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        Triggers: [...prev.Triggers, value],
-      }));
-    }
-  };
-
   const handleSubmit = () => {
     const err = {};
     if (!formData.Description.trim()) err.Description = 'Required';
     if (!formData.ProductLink) err.ProductLink = 'Required';
     if (!formData.StoreLink) err.StoreLink = 'Required';
     if (!formData.Image) err.Image = 'Image is required';
-    if (!formData.AdType) err.AdType = 'Ad Type is required';
-    if (formData.Triggers.length === 0) err.Triggers = 'At least one trigger is required';
-
     setErrors(err);
     if (Object.keys(err).length > 0) return;
 
@@ -170,37 +147,6 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
                 {s.name}
               </MenuItem>
             ))}
-          </TextField>
-
-          <TextField
-            select
-            name='AdType'
-            label='Ad Type'
-            value={formData.AdType}
-            onChange={handleAdType}
-            fullWidth
-            margin='dense'
-            error={!!errors.AdType}
-            helperText={errors.AdType}
-          >
-            <MenuItem value='PopUp'>PopUp</MenuItem>
-            <MenuItem value='Fixed'>Fixed</MenuItem>
-          </TextField>
-
-          <TextField
-            select
-            name='Triggers'
-            label='Triggers'
-            value={formData.Triggers}
-            onChange={handleTriggers}
-            fullWidth
-            margin='dense'
-            error={!!errors.Triggers}
-            helperText={errors.Triggers}
-          >
-            <MenuItem value='Search'>Search</MenuItem>
-            <MenuItem value='Buy'>Buy</MenuItem>
-            <MenuItem value='View'>View</MenuItem>
           </TextField>
 
           {/* Buttons */}
