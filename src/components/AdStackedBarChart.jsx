@@ -23,8 +23,16 @@ function groupByMonthAndType(ads) {
     if (ad.adType === 'Fixed') byMonth[month].Fixed += 1;
     if (ad.adType === 'PopUp') byMonth[month].PopUp += 1;
   });
-  return Object.values(byMonth).sort((a, b) => a.year.localeCompare(b.year));
+
+  // Sortiraj po mjesecima
+  const sortedMonths = Object.values(byMonth).sort((a, b) =>
+    a.year.localeCompare(b.year)
+  );
+
+  // Uzmi samo zadnja tri mjeseca
+  return sortedMonths.slice(-3);
 }
+
 
 function StackedBarRow({
   row,

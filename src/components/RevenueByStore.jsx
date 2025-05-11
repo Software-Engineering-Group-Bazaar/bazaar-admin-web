@@ -87,8 +87,8 @@ const RevenueByStore = () => {
           >
             <XAxis
               type='number'
-              domain={[0, 'dataMax + 2000']}
-              tickFormatter={(v) => `$${(v / 1000).toFixed(1)}K`}
+              domain={[0, 'dataMax + 200']}
+              tickFormatter={(v) => `$${v.toFixed(0)}`}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 13, dy: 2 }}
@@ -115,7 +115,6 @@ const RevenueByStore = () => {
           </BarChart>
         </ResponsiveContainer>
       </Box>
-      
     </Card>
   );
 };

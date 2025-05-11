@@ -20,6 +20,7 @@ import {
   Tooltip as ChartTooltip,
   Legend,
 } from 'chart.js';
+import { apiGetAllStoresAsync, apiGetAllAdsAsync } from '../api/api.js';
 
 ChartJS.register(
   CategoryScale,
@@ -30,31 +31,58 @@ ChartJS.register(
   Legend
 );
 
-const initialData = [
-  { id: 1, name: 'Dribbble', amount: 85000, color: '#ea4c89' },
-  { id: 2, name: 'Behance', amount: 72000, color: '#0057ff' },
-  { id: 3, name: 'Google', amount: 65000, color: '#4285F4' },
-  { id: 4, name: 'Instagram', amount: 52000, color: '#E1306C' },
-  { id: 5, name: 'Store', amount: 45000, color: '#627eea' },
-];
-
-const lowestRatedData = [
-  { id: 6, name: 'Twitter', amount: 15000, color: '#1DA1F2' },
-  { id: 7, name: 'Facebook', amount: 12000, color: '#4267B2' },
-  { id: 8, name: 'LinkedIn', amount: 9000, color: '#0A66C2' },
-  { id: 9, name: 'Pinterest', amount: 7000, color: '#E60023' },
-  { id: 10, name: 'TikTok', amount: 5000, color: '#000000' },
-];
-
 function DealsChart() {
   const [filterType, setFilterType] = useState('topRated');
   const [anchorEl, setAnchorEl] = useState(null);
   const [barPositions, setBarPositions] = useState([]);
+  const [storesData, setStoresData] = useState([]);
   const open = Boolean(anchorEl);
   const chartRef = useRef(null);
   const containerRef = useRef(null);
 
-  const data = filterType === 'topRated' ? initialData : lowestRatedData;
+  useEffect(() => {
+    const fetchData = async () => {
+      const [stores, adsResponse] = await Promise.all([
+        apiGetAllStoresAsync(),
+        apiGetAllAdsAsync(),
+      ]);
+      const ads = adsResponse.data;
+
+      const storeMap = {};
+      stores.forEach((store) => {
+        storeMap[store.id] = store.name;
+      });
+
+      const revenueByStore = {};
+      ads.forEach((ad) => {
+        if (!ad.conversionPrice || ad.conversionPrice === 0) return;
+        ad.adData.forEach((adDataItem) => {
+          const storeId = adDataItem.storeId;
+          if (!storeMap[storeId]) return;
+          const revenue = ad.conversionPrice * ad.conversions;
+          revenueByStore[storeId] = (revenueByStore[storeId] || 0) + revenue;
+        });
+      });
+
+      const sortedStores = Object.entries(revenueByStore)
+        .map(([storeId, amount]) => ({
+          id: storeId,
+          name: storeMap[storeId],
+          amount,
+        }))
+        .sort((a, b) => b.amount - a.amount);
+
+      const topRated = sortedStores.slice(0, 5);
+      const lowestRated = sortedStores.slice(-5);
+
+      setStoresData({
+        topRated,
+        lowestRated,
+      });
+    };
+
+    fetchData();
+  }, []);
 
   const handleFilterClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -69,47 +97,7 @@ function DealsChart() {
     handleClose();
   };
 
-  // Update bar positions when the chart renders
-  useEffect(() => {
-    const updateBarPositions = () => {
-      if (chartRef.current) {
-        const chart = chartRef.current;
-
-        // Check if chart metadata is available
-        if (chart && chart.chartArea && chart.scales.x) {
-          const newPositions = [];
-
-          // Get each bar's position from the chart
-          const meta = chart.getDatasetMeta(0);
-          if (meta && meta.data) {
-            meta.data.forEach((bar, index) => {
-              const barTop = bar.y;
-              const barLeft = bar.x;
-              const barWidth = bar.width;
-
-              newPositions.push({
-                top: barTop,
-                left: barLeft,
-                width: barWidth,
-              });
-            });
-
-            setBarPositions(newPositions);
-          }
-        }
-      }
-    };
-
-    // Initial update
-    updateBarPositions();
-
-    // Update positions on window resize
-    window.addEventListener('resize', updateBarPositions);
-
-    return () => {
-      window.removeEventListener('resize', updateBarPositions);
-    };
-  }, [filterType, data]);
+  const data = storesData[filterType] || [];
 
   const chartData = {
     labels: data.map((item) => item.name),
@@ -188,7 +176,7 @@ function DealsChart() {
       sx={{
         p: 3,
         height: '480px',
-        width:'380px',
+        width: '380px',
         backgroundColor: '#fff',
         borderRadius: 2,
         position: 'relative',
@@ -243,33 +231,33 @@ function DealsChart() {
         <Bar ref={chartRef} data={chartData} options={chartOptions} />
 
         {/* Icons on top of bars */}
-        {/* Icons on top of bars */}
         {barPositions.map((pos, index) => {
-          // Sortiraj podatke po amount za rangiranje
-          const sortedData = [...data].sort((a, b) => b.amount - a.amount);
+          // Obrni logiku sortiranja za lowestRated
+          const sortedData = [...data].sort((a, b) =>
+            filterType === 'topRated'
+              ? b.amount - a.amount
+              : a.amount - b.amount
+          );
 
-          // Dodaj boje za top rated ili lowest rated
           let backgroundColor;
           if (filterType === 'topRated') {
-            if (sortedData[index].amount === sortedData[0].amount) {
-              backgroundColor = '#FFD700'; // Zlatna za prvi
-            } else if (sortedData[index].amount === sortedData[1].amount) {
-              backgroundColor = '#C0C0C0'; // Srebrna za drugi
-            } else if (sortedData[index].amount === sortedData[2].amount) {
-              backgroundColor = '#CD7F32'; // Bronzana za treći
-            } else {
-              backgroundColor = '#B4D4C3'; // Neutralna za ostale
-            }
+            if (index === 0)
+              backgroundColor = '#FFD700'; // Gold
+            else if (index === 1)
+              backgroundColor = '#C0C0C0'; // Silver
+            else if (index === 2)
+              backgroundColor = '#CD7F32'; // Bronze
+            else backgroundColor = '#B4D4C3'; // Neutral
           } else {
-            if (sortedData[index].amount === sortedData[0].amount) {
-              backgroundColor = '#f93336'; // Crvena za prvi
-            } else if (sortedData[index].amount === sortedData[1].amount) {
-              backgroundColor = '#E74C3C'; // Svjetlija crvena za drugi
-            } else if (sortedData[index].amount === sortedData[2].amount) {
-              backgroundColor = '#ffeb3b'; // Žuta za treći
-            } else {
-              backgroundColor = '#B4D4C3'; // Neutralna za ostale
-            }
+            // Obrnuto rangiranje za lowest rated
+            const reverseIndex = sortedData.length - 1 - index;
+            if (reverseIndex === 0)
+              backgroundColor = '#f93336'; // Dark Red for lowest
+            else if (reverseIndex === 1)
+              backgroundColor = '#E74C3C'; // Lighter Red
+            else if (reverseIndex === 2)
+              backgroundColor = '#f39c12'; // Yellow for third lowest
+            else backgroundColor = '#B4D4C3'; // Neutral
           }
 
           return (
@@ -305,7 +293,7 @@ function DealsChart() {
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant='body2' color='text.secondary'>
-            by referrer category
+            by store
           </Typography>
           <KeyboardArrowDownIcon
             fontSize='small'

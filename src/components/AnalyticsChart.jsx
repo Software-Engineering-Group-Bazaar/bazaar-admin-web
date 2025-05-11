@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Tabs, Tab, Box, Typography } from '@mui/material';
 import {
   LineChart,
@@ -10,10 +10,12 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import {
-  apiFetchOrdersAsync,
-  apiFetchAllUsersAsync,
-} from '../api/api.js';
+import { apiGetAllAdsAsync } from '../api/api.js';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+
+const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
+const HUB_URL = `${baseUrl}${HUB_ENDPOINT_PATH}`;
 
 function getLast12Months() {
   const months = [];
@@ -28,106 +30,149 @@ function getLast12Months() {
 }
 
 function generateTargets(realValues, minOffset = -0.1, maxOffset = 0.15) {
-  // Generiši targete koji su blizu stvarnih vrijednosti, ali malo variraju
   return realValues.map((item) => {
-    const offset =
-      minOffset +
-      Math.random() * (maxOffset - minOffset); // npr. -10% do +15%
+    const offset = minOffset + Math.random() * (maxOffset - minOffset);
     return Math.round(item * (1 + offset));
   });
 }
 
-const AnalyticsChart = () => {
+const AdsRevenueChart = () => {
   const [tab, setTab] = useState(0);
   const [chartData, setChartData] = useState({
-    revenue: [],
-    orders: [],
-    registrations: [],
+    conversions: [],
+    clicks: [],
+    views: [],
   });
+  const [ads, setAds] = useState([]);
+  const connectionRef = useRef(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const months = getLast12Months();
+  // Helper to recalculate chart data
+  const calculateChartData = (ads) => {
+    const months = getLast12Months();
 
-      // 1. Orders
-      const orders = await apiFetchOrdersAsync();
-      // 2. Users
-      const response  = await apiFetchAllUsersAsync();
-      const users = response.data;
-
-      // 3. Revenue po mjesecima
-      const revenueByMonth = months.map((monthLabel, idx) => {
-        // Pronađi početak i kraj mjeseca
-        const d = new Date();
-        d.setMonth(d.getMonth() - (11 - idx), 1);
-        const start = new Date(d.getFullYear(), d.getMonth(), 1);
-        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-
-        const monthOrders = orders.filter(
-          (o) =>
-            new Date(o.createdAt) >= start && new Date(o.createdAt) < end
-        );
-        const revenue = monthOrders.reduce(
-          (sum, o) => sum + (o.totalPrice || 0),
-          0
-        );
-        return revenue;
-      });
-
-      // 4. Orders po mjesecima
-      const ordersByMonth = months.map((monthLabel, idx) => {
-        const d = new Date();
-        d.setMonth(d.getMonth() - (11 - idx), 1);
-        const start = new Date(d.getFullYear(), d.getMonth(), 1);
-        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-
-        const monthOrders = orders.filter(
-          (o) =>
-            new Date(o.createdAt) >= start && new Date(o.createdAt) < end
-        );
-        return monthOrders.length;
-      });
-
-      // 5. Registrations po mjesecima
-      const registrationsByMonth = months.map((monthLabel, idx) => {
-        const d = new Date();
-        d.setMonth(d.getMonth() - (11 - idx), 1);
-        const start = new Date(d.getFullYear(), d.getMonth(), 1);
-        const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-
-        const monthUsers = users.filter(
-          (u) =>
-            new Date(u.createdAt) >= start && new Date(u.createdAt) < end
-        );
-        return monthUsers.length;
-      });
-
-      // 6. Generiši targete
-      const revenueTargets = generateTargets(revenueByMonth, -0.05, 0.12);
-      const ordersTargets = generateTargets(ordersByMonth, -0.08, 0.15);
-      const registrationsTargets = generateTargets(registrationsByMonth, -0.1, 0.2);
-
-      // 7. Pripremi podatke za graf
-      setChartData({
-        revenue: months.map((month, i) => ({
-          month,
-          revenue: revenueByMonth[i],
-          target: revenueTargets[i],
-        })),
-        orders: months.map((month, i) => ({
-          month,
-          orders: ordersByMonth[i],
-          target: ordersTargets[i],
-        })),
-        registrations: months.map((month, i) => ({
-          month,
-          registrations: registrationsByMonth[i],
-          target: registrationsTargets[i],
-        })),
-      });
+    const revenueData = {
+      conversions: Array(12).fill(0),
+      clicks: Array(12).fill(0),
+      views: Array(12).fill(0),
     };
 
-    fetchData();
+    for (const ad of ads) {
+      const startDate = new Date(ad.startTime);
+      const endDate = new Date(ad.endTime);
+
+      for (let i = 0; i < 12; i++) {
+        const monthStart = new Date();
+        monthStart.setMonth(monthStart.getMonth() - (11 - i), 1);
+        const monthEnd = new Date(monthStart);
+        monthEnd.setMonth(monthEnd.getMonth() + 1);
+
+        if (startDate < monthEnd && endDate >= monthStart) {
+          revenueData.conversions[i] +=
+            (ad.conversions || 0) * (ad.conversionPrice || 0);
+          revenueData.clicks[i] += (ad.clicks || 0) * (ad.clickPrice || 0);
+          revenueData.views[i] += (ad.views || 0) * (ad.viewPrice || 0);
+        }
+      }
+    }
+
+    // Generate targets
+    const conversionsTargets = generateTargets(revenueData.conversions);
+    const clicksTargets = generateTargets(revenueData.clicks);
+    const viewsTargets = generateTargets(revenueData.views);
+
+    // Prepare final chart data
+    setChartData({
+      conversions: months.map((month, i) => ({
+        month,
+        revenue: revenueData.conversions[i],
+        target: conversionsTargets[i],
+      })),
+      clicks: months.map((month, i) => ({
+        month,
+        revenue: revenueData.clicks[i],
+        target: clicksTargets[i],
+      })),
+      views: months.map((month, i) => ({
+        month,
+        revenue: revenueData.views[i],
+        target: viewsTargets[i],
+      })),
+    });
+  };
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const adsResponse = await apiGetAllAdsAsync();
+        const adsData = adsResponse.data || [];
+        setAds(adsData);
+        calculateChartData(adsData);
+      } catch (error) {
+        console.error('Error fetching initial ads data:', error);
+      }
+    };
+
+    fetchInitialData();
+
+    // Initialize SignalR connection
+    const jwtToken = localStorage.getItem('token');
+    if (!jwtToken) {
+      console.warn('No JWT token found. SignalR connection not started.');
+      return;
+    }
+
+    const newConnection = new HubConnectionBuilder()
+      .withUrl(HUB_URL, {
+        accessTokenFactory: () => jwtToken,
+      })
+      .withAutomaticReconnect([0, 2000, 10000, 30000])
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    connectionRef.current = newConnection;
+
+    const startConnection = async () => {
+      try {
+        await newConnection.start();
+        console.log('SignalR Connected to AdvertisementHub!');
+      } catch (err) {
+        console.error('SignalR Connection Error:', err);
+      }
+    };
+
+    startConnection();
+
+    // Register event handlers
+    newConnection.on('ReceiveAdUpdate', (updatedAd) => {
+      console.log('Received Ad Update:', updatedAd);
+      setAds((prevAds) => {
+        const updatedAds = prevAds.map((ad) =>
+          ad.id === updatedAd.id ? updatedAd : ad
+        );
+
+        if (!updatedAds.some((ad) => ad.id === updatedAd.id)) {
+          updatedAds.push(updatedAd);
+        }
+
+        calculateChartData(updatedAds);
+        return updatedAds;
+      });
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (
+        connectionRef.current &&
+        connectionRef.current.state === 'Connected'
+      ) {
+        console.log('Stopping SignalR connection on component unmount.');
+        connectionRef.current
+          .stop()
+          .catch((err) =>
+            console.error('Error stopping SignalR connection:', err)
+          );
+      }
+    };
   }, []);
 
   const handleChange = (event, newValue) => {
@@ -154,9 +199,9 @@ const AnalyticsChart = () => {
         }}
       >
         <Typography variant='h6' fontWeight={600}>
-          {tab === 0 && 'Revenue Over Time'}
-          {tab === 1 && 'Orders Per Month'}
-          {tab === 2 && 'User Registrations'}
+          {tab === 0 && 'Conversions Revenue'}
+          {tab === 1 && 'Clicks Revenue'}
+          {tab === 2 && 'Views Revenue'}
         </Typography>
         <Tabs
           value={tab}
@@ -164,88 +209,44 @@ const AnalyticsChart = () => {
           textColor='primary'
           indicatorColor='primary'
         >
-          <Tab label='Revenue' />
-          <Tab label='Orders' />
-          <Tab label='Registrations' />
+          <Tab label='Conversions' />
+          <Tab label='Clicks' />
+          <Tab label='Views' />
         </Tabs>
       </Box>
 
       <ResponsiveContainer width='100%' height={300}>
-        {tab === 0 && (
-          <LineChart data={chartData.revenue}>
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='month' />
-            <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}K`} />
-            <Tooltip formatter={(val) => `$${val}`} />
-            <Legend />
-            <Line
-              type='monotone'
-              dataKey='revenue'
-              stroke='#0f766e'
-              strokeWidth={2}
-              name='Total Revenue'
-            />
-            <Line
-              type='monotone'
-              dataKey='target'
-              stroke='#f59e0b'
-              strokeWidth={2}
-              name='Target'
-              strokeDasharray="5 5"
-            />
-          </LineChart>
-        )}
-        {tab === 1 && (
-          <LineChart data={chartData.orders}>
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='month' />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type='monotone'
-              dataKey='orders'
-              stroke='#0f766e'
-              strokeWidth={2}
-              name='Orders'
-            />
-            <Line
-              type='monotone'
-              dataKey='target'
-              stroke='#f59e0b'
-              strokeWidth={2}
-              name='Target'
-              strokeDasharray="5 5"
-            />
-          </LineChart>
-        )}
-        {tab === 2 && (
-          <LineChart data={chartData.registrations}>
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='month' />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type='monotone'
-              dataKey='registrations'
-              stroke='#0f766e'
-              strokeWidth={2}
-              name='Registrations'
-            />
-            <Line
-              type='monotone'
-              dataKey='target'
-              stroke='#f59e0b'
-              strokeWidth={2}
-              name='Target'
-              strokeDasharray="5 5"
-            />
-          </LineChart>
-        )}
+        <LineChart
+          data={
+            chartData[
+              tab === 0 ? 'conversions' : tab === 1 ? 'clicks' : 'views'
+            ]
+          }
+        >
+          <CartesianGrid strokeDasharray='3 3' />
+          <XAxis dataKey='month' />
+          <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}K`} />
+          <Tooltip formatter={(val) => `$${val}`} />
+          <Legend />
+          <Line
+            type='monotone'
+            dataKey='revenue'
+            stroke='#0f766e'
+            strokeWidth={2}
+            name='Total Revenue'
+          />
+          <Line
+            type='monotone'
+            dataKey='target'
+            stroke='#f59e0b'
+            strokeWidth={2}
+            name='Target'
+            strokeDasharray='5 5'
+          />
+        </LineChart>
       </ResponsiveContainer>
     </Box>
   );
 };
 
-export default AnalyticsChart;
+export default AdsRevenueChart;

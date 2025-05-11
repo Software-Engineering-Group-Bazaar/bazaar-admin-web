@@ -1,124 +1,112 @@
-import React, { useState } from 'react';
-import { 
-  Paper, 
-  Box, 
-  Typography, 
-  IconButton, 
-  Menu, 
+import React, { useState, useEffect } from 'react';
+import {
+  Paper,
+  Box,
+  Typography,
+  IconButton,
+  Menu,
   MenuItem,
   Stack,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import SportsBasketballIcon from '@mui/icons-material/SportsBasketball';
-import InstagramIcon from '@mui/icons-material/Instagram';
-import GoogleIcon from '@mui/icons-material/Google';
-import BrushIcon from '@mui/icons-material/Brush';
-
-// Sample data for the chart
-const initialData = [
-  { 
-    id: 1, 
-    name: 'Dribbble', 
-    amount: 227459, 
-    percentage: 43, 
-    icon: SportsBasketballIcon,
-    color: '#ea4c89'
-  },
-  { 
-    id: 2, 
-    name: 'Instagram', 
-    amount: 142823, 
-    percentage: 27, 
-    icon: InstagramIcon,
-    color: '#E4405F'
-  },
-  { 
-    id: 3, 
-    name: 'Behance', 
-    amount: 89935, 
-    percentage: 11, 
-    icon: BrushIcon,
-    color: '#1769ff'
-  },
-  { 
-    id: 4, 
-    name: 'Google', 
-    amount: 37028, 
-    percentage: 7, 
-    icon: GoogleIcon,
-    color: '#4285F4'
-  }
-  
-];
-
-const lowestRatedData = [
-  { 
-    id: 5, 
-    name: 'Twitter', 
-    amount: 15000, 
-    percentage: 3, 
-    icon: SportsBasketballIcon,
-    color: '#1DA1F2'
-  },
-  { 
-    id: 6, 
-    name: 'Facebook', 
-    amount: 12000, 
-    percentage: 2, 
-    icon: InstagramIcon,
-    color: '#4267B2'
-  },
-  { 
-    id: 7, 
-    name: 'LinkedIn', 
-    amount: 9000, 
-    percentage: 1, 
-    icon: BrushIcon,
-    color: '#0077B5'
-  },
-  { 
-    id: 8, 
-    name: 'Pinterest', 
-    amount: 7000, 
-    percentage: 1, 
-    icon: GoogleIcon,
-    color: '#E60023'
-  }
-];
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import {
+  apiGetAllAdsAsync,
+  apiGetAllStoresAsync,
+  apiGetStoreProductsAsync,
+} from '../api/api.js';
 
 function SalesChart() {
   const theme = useTheme();
   const [filterType, setFilterType] = useState('topRated');
   const [anchorEl, setAnchorEl] = useState(null);
+  const [productData, setProductData] = useState([]);
   const open = Boolean(anchorEl);
-  
-  const data = filterType === 'topRated' ? initialData : lowestRatedData;
-  
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Dohvati sve reklame
+        const adsResponse = await apiGetAllAdsAsync();
+        const ads = adsResponse.data || [];
+
+        // Dohvati sve storeove
+        const storesResponse = await apiGetAllStoresAsync();
+        const stores = storesResponse || [];
+
+        // Kreiraj mapu svih proizvoda iz svih storeova
+        const allProducts = {};
+        for (const store of stores) {
+          const productsResponse = await apiGetStoreProductsAsync(store.id);
+          for (const product of productsResponse.data) {
+            if (!allProducts[product.id]) {
+              allProducts[product.id] = {
+                id: product.id,
+                name: product.name,
+                imageUrl: 'https://via.placeholder.com/150',
+                clicks: 0,
+                conversions: 0,
+                revenue: 0,
+              };
+            }
+          }
+        }
+
+        // Obradi sve reklame
+        for (const ad of ads) {
+          for (const adDataItem of ad.adData || []) {
+            const productId = adDataItem.productId;
+            if (allProducts[productId]) {
+              allProducts[productId].clicks += ad.clicks || 0;
+              allProducts[productId].conversions += ad.conversions || 0;
+              allProducts[productId].revenue +=
+                (ad.conversions || 0) * (ad.conversionPrice || 0);
+            }
+          }
+        }
+
+        // Sortiraj proizvode po zaradi
+        const sortedProducts = Object.values(allProducts).sort((a, b) => {
+          return filterType === 'topRated'
+            ? b.revenue - a.revenue
+            : a.revenue - b.revenue;
+        });
+
+        // Ograniči na 4 proizvoda
+        setProductData(sortedProducts.slice(0, 4));
+      } catch (error) {
+        console.error('Error fetching product data:', error);
+      }
+    };
+
+    fetchData();
+  }, [filterType]);
+
   const handleFilterClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleClose = () => {
     setAnchorEl(null);
   };
-  
+
   const handleFilterChange = (type) => {
     setFilterType(type);
-    handleClose();
+    setAnchorEl(null);
   };
 
   return (
     <Paper
-      elevation={3} // Adding shadow to make it look like a card
+      elevation={3}
       sx={{
         p: 3,
         boxShadow: 3,
-        minHeight: '480px', // Ensures the card has a minimum height
+        minHeight: '480px',
         width: '380px',
-        backgroundColor: '#fff', // Light grey background
+        backgroundColor: '#fff',
         borderRadius: 2,
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)', // Card-like shadow
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
       }}
     >
       <Box
@@ -167,7 +155,7 @@ function SalesChart() {
       </Box>
 
       <Stack spacing={2}>
-        {data.map((item) => (
+        {productData.map((item, index) => (
           <Box
             key={item.id}
             sx={{
@@ -175,8 +163,8 @@ function SalesChart() {
               alignItems: 'center',
               p: 2,
               borderRadius: 2,
-              backgroundColor: '#f8f9fa', // Card item background color
-              boxShadow: 3, // Subtle shadow for items
+              backgroundColor: '#f8f9fa',
+              boxShadow: 3,
               '&:hover': {
                 backgroundColor: theme.palette.grey[50],
               },
@@ -187,20 +175,16 @@ function SalesChart() {
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
+                overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: 'white',
+                backgroundColor: '#fff',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 mr: 2,
               }}
             >
-              {React.createElement(item.icon, {
-                sx: {
-                  fontSize: 24,
-                  color: item.color,
-                },
-              })}
+              <ShoppingCartIcon sx={{ fontSize: 24, color: '#555' }} />
             </Box>
 
             <Box sx={{ flexGrow: 1 }}>
@@ -221,12 +205,12 @@ function SalesChart() {
               <Typography
                 variant='body1'
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: theme.palette.text.primary,
-                  mr: 2,
+                  mr: 0.2,
                 }}
               >
-                ${item.amount.toLocaleString()}
+                ${item.revenue.toLocaleString()}
               </Typography>
               <Typography
                 variant='body2'
@@ -239,7 +223,12 @@ function SalesChart() {
                   display: 'inline-block',
                 }}
               >
-                {item.percentage}%
+                {(
+                  (item.revenue /
+                    productData.reduce((sum, p) => sum + p.revenue, 0)) *
+                  100
+                ).toFixed(1)}
+                %
               </Typography>
             </Box>
           </Box>
