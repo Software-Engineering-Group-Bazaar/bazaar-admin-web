@@ -60,7 +60,7 @@ function Calendar() {
   const generateCalendarDays = () => {
     const firstDayOfMonth = currentDate.startOf('month');
     const daysInMonth = currentDate.daysInMonth();
-    const startDay = firstDayOfMonth.day() === 0 ? 6 : firstDayOfMonth.day() - 1; // Convert Sunday = 0 to Monday = 0
+    const startDay = firstDayOfMonth.day() === 0 ? 6 : firstDayOfMonth.day() - 1; 
     
     // Previous month days
     const prevMonthDays = [];
@@ -181,10 +181,10 @@ function Calendar() {
         </IconButton>
       </Box>
 
-    {/* Weekday headers */}
+    
 <Grid container spacing={3.5} sx={{ mb: 1 }}>
   {weekDays.map(day => (
-    <Grid item xs={1} key={day}>  {/* xs={1} za 7 dana u redu */}
+    <Grid item xs={1} key={day}>  
       <DayHeader>{day}</DayHeader>
     </Grid>
   ))}
@@ -193,7 +193,7 @@ function Calendar() {
 {/* Calendar grid */}
 <Grid container spacing={1}>
   {days.map((day, index) => (
-    <Grid item xs={1} key={index} sx={{ mb: 1 }}>  {/* xs={1} za 7 dana u redu */}
+    <Grid item xs={1} key={index} sx={{ mb: 1 }}>  
       <Box display="flex" justifyContent="center">
         <CalendarCell 
           isToday={day.isToday}

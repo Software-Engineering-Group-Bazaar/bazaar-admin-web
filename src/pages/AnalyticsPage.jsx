@@ -6,6 +6,8 @@ import CountryStatsPanel from '@components/CountryStatsPanel';
 import OrdersByStatus from '@components/OrdersByStatus';
 import UserDistribution from '@components/UserDistribution';
 import RevenueByStore from '@components/RevenueByStore';
+import ProductsSummary from '@components/ProductsSummary';
+import RevenueMetrics from '@components/RevenueMetrics';
 import { useState, useEffect } from "react";
 import {
   apiFetchOrdersAsync,
@@ -281,6 +283,7 @@ const AnalyticsPage = () => {
         ))}
       </Grid>
 
+
       {/* Glavni graf + countries */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} md={9}>
@@ -314,8 +317,26 @@ const AnalyticsPage = () => {
           </Grid>
         </Grid>
       </Box>
-    </Box>
+
+      
+      <Box sx={{ width: 1210, mt: 6 }}>
+      <Grid container spacing={2}>
+    <Grid item xs={12} md={6}>
+      <ProductsSummary />
+    </Grid>
+    <Grid item xs={12} md={6}>
+      <RevenueMetrics />
+    </Grid>
+  </Grid>
+</Box>
+    </Box>  
+    
+    
+    
   );
 };
+
+
+
 
 export default AnalyticsPage;

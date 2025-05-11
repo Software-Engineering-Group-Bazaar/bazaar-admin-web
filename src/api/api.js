@@ -1240,3 +1240,51 @@ export const apiGetGeographyAsync = async () => {
     return { regions: [], places: [] };
   }
 };
+
+export const apiFetchAdsWithProfitAsync = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`${baseApiUrl}/api/Ads/ads`);
+    const rawAds = response.data;
+
+    const adsWithProfit = rawAds.map(entry => {
+      const ad = entry.result.advertisment;
+
+      const profit =
+        (ad.clicks * ad.clickPrice) +
+        (ad.views * ad.viewPrice) +
+        (ad.conversions * ad.conversionPrice);
+
+      const fullAd = {
+        id: ad.id,
+        sellerId: ad.sellerId,
+        views: ad.views,
+        viewPrice: ad.viewPrice,
+        clicks: ad.clicks,
+        clickPrice: ad.clickPrice,
+        conversions: ad.conversions,
+        conversionPrice: ad.conversionPrice,
+        startTime: ad.startTime,
+        endTime: ad.endTime,
+        isActive: ad.isActive,
+        adType: ad.adType,
+        productCategoryId: ad.productCategoryId ?? null,
+        triggers: ad.triggers,
+        profit: parseFloat(profit.toFixed(2)),
+      };
+
+      console.log(`Ad #${ad.id} profit: $${fullAd.profit}`);
+
+      return fullAd;
+    });
+
+    return adsWithProfit;
+  } catch (error) {
+    console.error('Greška pri dohvaćanju oglasa:', error);
+    return [];
+  }
+};

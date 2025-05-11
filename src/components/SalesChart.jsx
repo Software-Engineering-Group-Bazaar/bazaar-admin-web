@@ -110,13 +110,13 @@ function SalesChart() {
 
   return (
     <Paper 
-      elevation={3} // Adding shadow to make it look like a card
+      elevation={3} 
       sx={{ 
         p: 3, 
-        minHeight: '400px', // Ensures the card has a minimum height
-        backgroundColor: '#f7f7f7', // Light grey background
+        minHeight: '400px', 
+        backgroundColor: '#f7f7f7', 
         borderRadius: 2,
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)' // Card-like shadow
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
       }}
     >
       <Box sx={{ 
@@ -169,8 +169,8 @@ function SalesChart() {
               alignItems: 'center',
               p: 2,
               borderRadius: 2,
-              backgroundColor: 'white', // Card item background color
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)', // Subtle shadow for items
+              backgroundColor: 'white',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               '&:hover': {
                 backgroundColor: theme.palette.grey[50]
               }
