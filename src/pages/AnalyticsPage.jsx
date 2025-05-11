@@ -6,174 +6,445 @@ import CountryStatsPanel from '@components/CountryStatsPanel';
 import OrdersByStatus from '@components/OrdersByStatus';
 import UserDistribution from '@components/UserDistribution';
 import RevenueByStore from '@components/RevenueByStore';
-import { useState, useEffect } from "react";
+import ParetoChart from '@components/ParetoChart';
+import AdFunnelChart from '@components/AdFunnelChart';
+import AdStackedBarChart from '@components/AdStackedBarChart';
+import Calendar from '@components/Calendar';
+import DealsChart from '@components/DealsChart';
+import SalesChart from '@components/SalesChart';
+import { useState, useEffect, useRef } from 'react';
 import {
+  apiGetAllAdsAsync,
   apiFetchOrdersAsync,
   apiFetchAllUsersAsync,
   apiGetAllStoresAsync,
   apiGetStoreProductsAsync,
 } from '../api/api.js';
-import { subMonths} from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { subMonths } from 'date-fns';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 
+// Define the SignalR connection endpoint
+const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
+const HUB_URL = `${baseUrl}${HUB_ENDPOINT_PATH}`;
 
 const AnalyticsPage = () => {
+  const [ads, setAds] = useState([]);
+  const [kpi, setKpi] = useState({
+    totalViews: 0,
+    totalClicks: 0,
+    totalConversions: 0,
+    totalConversionRevenue: 0,
+    totalAds: 0,
+    activeAds: 0,
+    topAds: [],
+    totalClicksRevenue: 0,
+    totalViewsRevenue: 0,
+    totalProducts: 0,
+    viewsChange: 0,
+    clicksChange: 0,
+    conversionsChange: 0,
+    conversionRevenueChange: 0,
+    clicksRevenueChange: 0,
+    viewsRevenueChange: 0,
+    productsChange: 0,
+    totalAdsChange: 0,
+  });
 
+  // For tracking SignalR connection status
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [lastError, setLastError] = useState('');
+  const connectionRef = useRef(null);
+
+  // For tracking real-time events
+  const [clickTimeStamps, setClickTimeStamps] = useState([]);
+  const [viewTimeStamps, setViewTimeStamps] = useState([]);
+  const [conversionTimeStamps, setConversionTimeStamps] = useState([]);
+  const [realtimeEvents, setRealtimeEvents] = useState([]);
+
+  // Setup SignalR connection
   useEffect(() => {
-    fetchKpis();
+    const jwtToken = localStorage.getItem('token');
+
+    if (!jwtToken) {
+      console.warn(
+        'AnalyticsPage: No JWT token found. SignalR connection not started.'
+      );
+      setConnectionStatus('Auth Token Missing');
+      return;
+    }
+
+    // Build the connection
+    const newConnection = new HubConnectionBuilder()
+      .withUrl(HUB_URL, {
+        accessTokenFactory: () => jwtToken, // Crucial for JWT auth
+      })
+      .withAutomaticReconnect([0, 2000, 10000, 30000]) // Retry times in ms, then stop
+      .configureLogging(LogLevel.Information) // Or LogLevel.Debug for more detail
+      .build();
+
+    connectionRef.current = newConnection;
+    setConnectionStatus('Connecting...');
+
+    const startConnection = async () => {
+      try {
+        await newConnection.start();
+        console.log('SignalR Connected to AdvertisementHub!');
+        setConnectionStatus('Connected');
+        setLastError('');
+      } catch (err) {
+        console.error('SignalR Connection Error: ', err);
+        setConnectionStatus(
+          `Error: ${err.message ? err.message.substring(0, 150) : 'Unknown connection error'}`
+        );
+        setLastError(err.message || 'Failed to connect');
+      }
+    };
+
+    startConnection();
+
+    // Register event handlers for messages from the server
+    newConnection.on('ReceiveAdUpdate', (advertisement) => {
+      console.log('Received Ad Update:', advertisement);
+
+      // Update the ads array by replacing the updated ad
+      setAds((prevAds) => {
+        const adIndex = prevAds.findIndex((ad) => ad.id === advertisement.id);
+
+        // Ako već postoji, zamijeni
+        if (adIndex !== -1) {
+          const updatedAds = [...prevAds];
+          updatedAds[adIndex] = advertisement;
+          calculateKpis(updatedAds);
+          return updatedAds;
+        }
+
+        // Ako ne postoji, dodaj novi
+        const updatedAds = [advertisement, ...prevAds];
+        calculateKpis(updatedAds);
+        return updatedAds;
+      });
+
+      // Add to realtime events log
+      setRealtimeEvents((prev) => [
+        { type: 'Ad Update', data: advertisement, time: new Date() },
+        ...prev.slice(0, 19), // Keep last 20 events
+      ]);
+    });
+
+    newConnection.on('ReceiveClickTimestamp', (timestamp) => {
+      console.log('Received Click Timestamp:', timestamp);
+
+      // Add to click timestamps
+      setClickTimeStamps((prev) => [...prev, timestamp]);
+
+      // Add to realtime events log
+      setRealtimeEvents((prev) => [
+        {
+          type: 'Click',
+          data: new Date(timestamp).toLocaleTimeString(),
+          time: new Date(),
+        },
+        ...prev.slice(0, 19),
+      ]);
+    });
+
+    newConnection.on('ReceiveViewTimestamp', (timestamp) => {
+      console.log('Received View Timestamp:', timestamp);
+
+      // Add to view timestamps
+      setViewTimeStamps((prev) => [...prev, timestamp]);
+
+      // Add to realtime events log
+      setRealtimeEvents((prev) => [
+        {
+          type: 'View',
+          data: new Date(timestamp).toLocaleTimeString(),
+          time: new Date(),
+        },
+        ...prev.slice(0, 19),
+      ]);
+    });
+
+    newConnection.on('ReceiveConversionTimestamp', (timestamp) => {
+      console.log('Received Conversion Timestamp:', timestamp);
+
+      // Add to conversion timestamps
+      setConversionTimeStamps((prev) => [...prev, timestamp]);
+
+      // Add to realtime events log
+      setRealtimeEvents((prev) => [
+        {
+          type: 'Conversion',
+          data: new Date(timestamp).toLocaleTimeString(),
+          time: new Date(),
+        },
+        ...prev.slice(0, 19),
+      ]);
+    });
+
+    // Handle connection events
+    newConnection.onclose((error) => {
+      console.warn('SignalR connection closed.', error);
+      setConnectionStatus('Disconnected');
+      if (error) {
+        setLastError(`Connection closed due to error: ${error.message}`);
+      }
+    });
+
+    newConnection.onreconnecting((error) => {
+      console.warn('SignalR attempting to reconnect...', error);
+      setConnectionStatus('Reconnecting...');
+      setLastError(
+        error ? `Reconnection attempt failed: ${error.message}` : ''
+      );
+    });
+
+    newConnection.onreconnected((connectionId) => {
+      console.log('SignalR reconnected successfully with ID:', connectionId);
+      setConnectionStatus('Connected');
+      setLastError('');
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (
+        connectionRef.current &&
+        connectionRef.current.state === 'Connected'
+      ) {
+        console.log('Stopping SignalR connection on component unmount.');
+        connectionRef.current
+          .stop()
+          .catch((err) =>
+            console.error('Error stopping SignalR connection:', err)
+          );
+      }
+    };
+  }, []); // Empty dependency array: run once on mount
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchInitialData();
   }, []);
 
+  const fetchInitialData = async () => {
+    try {
+      // Fetch all necessary data
+      const ordersData = await apiFetchOrdersAsync();
+      const usersResponse = await apiFetchAllUsersAsync();
+      const users = usersResponse.data;
+      const stores = await apiGetAllStoresAsync();
 
-  const fetchKpis = async () => {
-    // 1. Narudžbe
-    const orders = await apiFetchOrdersAsync();
-    const now = new Date();
-    const lastMonth = subMonths(now, 1);
-    const prevMonth = subMonths(now, 2);
-  
-    const ordersThisMonth = orders.filter(
-      o => new Date(o.createdAt) >= lastMonth
-    );
-    const ordersPrevMonth = orders.filter(
-      o => new Date(o.createdAt) >= prevMonth && new Date(o.createdAt) < lastMonth
-    );
-    const ordersChange = ordersPrevMonth.length
-      ? ((ordersThisMonth.length - ordersPrevMonth.length) / ordersPrevMonth.length) * 100
-      : 100;
-  
-    // 2. Korisnici
-    const response = await apiFetchAllUsersAsync();
-    console.log("RESPONSE: ", response);
-    const users = response.data;
-    console.log("users: ", users);
+      // Fetch ads
+      const adsResponse = await apiGetAllAdsAsync();
+      const adsData = adsResponse.data;
+      console.log('Initial Ads Data:', adsData);
 
-    const usersThisMonth = users.filter(
-      u => new Date(u.createdAt) >= lastMonth
-    );
-    const usersPrevMonth = users.filter(
-      u => new Date(u.createdAt) >= prevMonth && new Date(u.createdAt) < lastMonth
-    );
-    const usersChange = usersPrevMonth.length
-      ? ((usersThisMonth.length - usersPrevMonth.length) / usersPrevMonth.length) * 100
-      : 100;
-  
-    // 3. Prodavnice
-    const stores = await apiGetAllStoresAsync();
-    const storesThisMonth = stores.filter(
-      s => new Date(s.createdAt) >= lastMonth
-    );
-    const storesPrevMonth = stores.filter(
-      s => new Date(s.createdAt) >= prevMonth && new Date(s.createdAt) < lastMonth
-    );
-    const storesChange = storesPrevMonth.length
-      ? ((storesThisMonth.length - storesPrevMonth.length) / storesPrevMonth.length) * 100
-      : 100;
-  
-    // 4. Proizvodi
-    let totalProducts = 0;
-    let productsThisMonth = 0;
-    let productsPrevMonth = 0;
-    for (const store of stores) {
-      const { data: products } = await apiGetStoreProductsAsync(store.id);
-      totalProducts += products.length;
-      productsThisMonth += products.filter(
-        p => new Date(p.createdAt) >= lastMonth
-      ).length;
-      productsPrevMonth += products.filter(
-        p => new Date(p.createdAt) >= prevMonth && new Date(p.createdAt) < lastMonth
-      ).length;
+      // Set ads state
+      setAds(adsData);
+
+      // Calculate products
+      let totalProducts = 0;
+      for (const store of stores) {
+        const { data: products } = await apiGetStoreProductsAsync(store.id);
+        totalProducts += products.length;
+      }
+
+      // Calculate KPIs with the fetched data
+      calculateKpis(adsData, totalProducts);
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
     }
-    const productsChange = productsPrevMonth
-      ? ((productsThisMonth - productsPrevMonth) / productsPrevMonth) * 100
+  };
+
+  // Function to calculate KPIs from ads data
+  const calculateKpis = (adsData, totalProductsCount = kpi.totalProducts) => {
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      1
+    );
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    // Filter ads by current and previous month
+    const adsThisMonth = adsData.filter(
+      (ad) =>
+        new Date(ad.startTime) >= currentMonthStart &&
+        new Date(ad.startTime) <= now
+    );
+    const adsPrevMonth = adsData.filter(
+      (ad) =>
+        new Date(ad.startTime) >= previousMonthStart &&
+        new Date(ad.startTime) <= previousMonthEnd
+    );
+
+    // Calculate change percentages
+    const totalAdsChange = adsPrevMonth.length
+      ? ((adsThisMonth.length - adsPrevMonth.length) / adsPrevMonth.length) *
+        100
       : 100;
-  
-    // 5. Prihod
-    const totalIncome = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-    const incomeThisMonth = ordersThisMonth.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-    const incomePrevMonth = ordersPrevMonth.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-    const incomeChange = incomePrevMonth
-      ? ((incomeThisMonth - incomePrevMonth) / incomePrevMonth) * 100
+
+    // Views calculations
+    const totalViewsThisMonth = adsThisMonth.reduce(
+      (sum, ad) => sum + (ad.views || 0),
+      0
+    );
+    const totalViewsPrevMonth = adsPrevMonth.reduce(
+      (sum, ad) => sum + (ad.views || 0),
+      0
+    );
+    const viewsChange = totalViewsPrevMonth
+      ? ((totalViewsThisMonth - totalViewsPrevMonth) / totalViewsPrevMonth) *
+        100
       : 100;
-  
-    // 6. Aktivne prodavnice
-  
-  // Sadašnje aktivne prodavnice
-  const activeStores = stores.filter(s => s.isActive).length;
-  
-  // Aktivne prodavnice KREIRANE u ovom mjesecu
-  const activeStoresThisMonth = stores.filter(
-    s => s.isActive && new Date(s.createdAt) >= lastMonth
-  ).length;
-  
-  // Aktivne prodavnice KREIRANE u prošlom mjesecu
-  const activeStoresPrevMonth = stores.filter(
-    s => s.isActive &&
-         new Date(s.createdAt) >= prevMonth &&
-         new Date(s.createdAt) < lastMonth
-  ).length;
-  
-  // Promjena u odnosu na prošli mjesec
-  const activeStoresChange = activeStoresPrevMonth
-    ? ((activeStoresThisMonth - activeStoresPrevMonth) / activeStoresPrevMonth) * 100
-    : 100;
-  
-  
-    // 7. Odobreni korisnici
-  
-  // Sadašnji broj odobrenih korisnika
-  const approvedUsers = users.filter(u => u.isApproved).length;
-  
-  // Odobreni korisnici KREIRANI u ovom mjesecu
-  const approvedUsersThisMonth = users.filter(
-    u => u.isApproved && new Date(u.createdAt) >= lastMonth
-  ).length;
-  
-  // Odobreni korisnici KREIRANI u prošlom mjesecu
-  const approvedUsersPrevMonth = users.filter(
-    u => u.isApproved &&
-         new Date(u.createdAt) >= prevMonth &&
-         new Date(u.createdAt) < lastMonth
-  ).length;
-  
-  // Promjena u odnosu na prošli mjesec
-  const approvedUsersChange = approvedUsersPrevMonth
-    ? ((approvedUsersThisMonth - approvedUsersPrevMonth) / approvedUsersPrevMonth) * 100
-    : 100;
-  
-  
-    // 8. Nove registracije
-    const newUsers = usersThisMonth.length;
-    const newUsersPrev = usersPrevMonth.length;
-    const newUsersChange = newUsersPrev
-      ? ((newUsers - newUsersPrev) / newUsersPrev) * 100
+
+    // Clicks calculations
+    const totalClicksThisMonth = adsThisMonth.reduce(
+      (sum, ad) => sum + (ad.clicks || 0),
+      0
+    );
+    const totalClicksPrevMonth = adsPrevMonth.reduce(
+      (sum, ad) => sum + (ad.clicks || 0),
+      0
+    );
+    const clicksChange = totalClicksPrevMonth
+      ? ((totalClicksThisMonth - totalClicksPrevMonth) / totalClicksPrevMonth) *
+        100
       : 100;
-  
+
+    // Conversions calculations
+    const totalConversionsThisMonth = adsThisMonth.reduce(
+      (sum, ad) => sum + (ad.conversions || 0),
+      0
+    );
+    const totalConversionsPrevMonth = adsPrevMonth.reduce(
+      (sum, ad) => sum + (ad.conversions || 0),
+      0
+    );
+    const conversionsChange = totalConversionsPrevMonth
+      ? ((totalConversionsThisMonth - totalConversionsPrevMonth) /
+          totalConversionsPrevMonth) *
+        100
+      : 100;
+
+    // Revenue calculations
+    const totalConversionRevenueThisMonth = adsThisMonth.reduce(
+      (sum, ad) => sum + (ad.conversionPrice || 0),
+      0
+    );
+    const totalConversionRevenuePrevMonth = adsPrevMonth.reduce(
+      (sum, ad) => sum + (ad.conversionPrice || 0),
+      0
+    );
+    const conversionRevenueChange = totalConversionRevenuePrevMonth
+      ? ((totalConversionRevenueThisMonth - totalConversionRevenuePrevMonth) /
+          totalConversionRevenuePrevMonth) *
+        100
+      : 100;
+
+    const totalClicksRevenueThisMonth = adsThisMonth.reduce(
+      (sum, ad) => sum + (ad.clickPrice * ad.clicks || 0),
+      0
+    );
+    const totalClicksRevenuePrevMonth = adsPrevMonth.reduce(
+      (sum, ad) => sum + (ad.clickPrice * ad.clicks || 0),
+      0
+    );
+    const clicksRevenueChange = totalClicksRevenuePrevMonth
+      ? ((totalClicksRevenueThisMonth - totalClicksRevenuePrevMonth) /
+          totalClicksRevenuePrevMonth) *
+        100
+      : 100;
+
+    const totalViewsRevenueThisMonth = adsThisMonth.reduce(
+      (sum, ad) => sum + (ad.viewPrice * ad.views || 0),
+      0
+    );
+    const totalViewsRevenuePrevMonth = adsPrevMonth.reduce(
+      (sum, ad) => sum + (ad.viewPrice * ad.views || 0),
+      0
+    );
+    const viewsRevenueChange = totalViewsRevenuePrevMonth
+      ? ((totalViewsRevenueThisMonth - totalViewsRevenuePrevMonth) /
+          totalViewsRevenuePrevMonth) *
+        100
+      : 100;
+
+    // Active ads count
+    const activeAds = adsData.filter((ad) => ad.isActive).length;
+
+    // Top ads by conversion revenue
+    const topAds = [...adsData]
+      .sort((a, b) => (b.conversionPrice || 0) - (a.conversionPrice || 0))
+      .slice(0, 5);
+
+    // Update KPI state
     setKpi({
-      orders: { total: orders.length, change: ordersChange },
-      users: { total: users.length, change: usersChange },
-      stores: { total: stores.length, change: storesChange },
-      products: { total: totalProducts, change: productsChange },
-      income: { total: totalIncome, change: incomeChange },
-      activeSt: {total: activeStores, change: activeStoresChange},
-      approvedUs: {total: approvedUsers, change: approvedUsersChange},
-      newUsers: { total: newUsers, change: newUsersChange },
+      totalViews: totalViewsThisMonth,
+      totalClicks: totalClicksThisMonth,
+      totalConversions: totalConversionsThisMonth,
+      totalConversionRevenue: totalConversionRevenueThisMonth.toFixed(2),
+      totalAds: adsData.length,
+      activeAds: activeAds,
+      topAds: topAds,
+      totalClicksRevenue: totalClicksRevenueThisMonth.toFixed(2),
+      totalViewsRevenue: totalViewsRevenueThisMonth.toFixed(2),
+      totalProducts: totalProductsCount,
+      viewsChange: viewsChange.toFixed(2),
+      clicksChange: clicksChange.toFixed(2),
+      conversionsChange: conversionsChange.toFixed(2),
+      conversionRevenueChange: conversionRevenueChange.toFixed(2),
+      clicksRevenueChange: clicksRevenueChange.toFixed(2),
+      viewsRevenueChange: viewsRevenueChange.toFixed(2),
+      productsChange: 100, // We don't recalculate this here
+      totalAdsChange: totalAdsChange.toFixed(2),
     });
   };
 
+  // Custom component to display real-time events (optional)
+  const RealtimeEventsList = () => (
+    <Box
+      sx={{
+        bgcolor: 'background.paper',
+        p: 2,
+        borderRadius: 1,
+        boxShadow: 1,
+        maxHeight: 300,
+        overflowY: 'auto',
+      }}
+    >
+      <Typography variant='h6' sx={{ mb: 1, fontWeight: 'bold' }}>
+        Realtime Events ({connectionStatus})
+      </Typography>
+      {realtimeEvents.length === 0 ? (
+        <Typography variant='body2' color='text.secondary'>
+          No events received yet
+        </Typography>
+      ) : (
+        realtimeEvents.map((event, index) => (
+          <Box
+            key={index}
+            sx={{ mb: 1, pb: 1, borderBottom: '1px solid #f0f0f0' }}
+          >
+            <Typography
+              variant='body2'
+              color='primary'
+              sx={{ fontWeight: 'bold' }}
+            >
+              {event.type}
+            </Typography>
+            <Typography variant='caption' color='text.secondary'>
+              {new Date(event.time).toLocaleTimeString()}
+            </Typography>
+          </Box>
+        ))
+      )}
+    </Box>
+  );
 
-
-
-
-  const [kpi, setKpi] = useState({
-    orders: { total: 0, change: 0 },
-    users: { total: 0, change: 0 },
-    stores: { total: 0, change: 0 },
-    products: { total: 0, change: 0 },
-    income: { total: 0, change: 0 },
-    activeSt: 0,
-    approvedUs: 0,
-    newUsers: 0,
-  });
-  
   return (
     <Box
       sx={{
@@ -215,70 +486,84 @@ const AnalyticsPage = () => {
           lineHeight: 1.2,
         }}
       >
-        Dashboard Analytics
+        Dashboard Analytics{' '}
+        <span
+          style={{
+            fontSize: '0.8rem',
+            fontWeight: 'normal',
+            color: connectionStatus === 'Connected' ? 'green' : 'orange',
+          }}
+        >
+          ({connectionStatus})
+        </span>
       </Typography>
 
       {/* KPI sekcija */}
       <Grid container spacing={3} mb={3} width={1200}>
-        {[
-          {
-            label: 'Total Orders',
-            value: kpi.orders.total,
-            change: kpi.orders.change,
-            type: 'orders',
-          },
-          {
-            label: 'Total Users',
-            value: kpi.users.total,
-            change: kpi.users.change,
-            type: 'users',
-          },
-          {
-            label: 'Total Stores',
-            value: kpi.stores.total,
-            change: kpi.stores.change, // ispravljeno s kpi.stores.total
-            type: 'stores',
-          },
-          {
-            label: 'Total Products',
-            value: kpi.products.total,
-            change: kpi.products.change,
-            type: 'products',
-          },
-          {
-            label: 'Total Revenue',
-            value: kpi.income.total,
-            change: kpi.income.change,
-            type: 'income',
-          },
-          {
-            label: 'Active Stores',
-            value: kpi.activeSt.total,
-            change: kpi.activeSt.change,
-            type: 'activeStores',
-          },
-          {
-            label: 'Approved Users',
-            value: kpi.approvedUs.total,
-            change: kpi.approvedUs.change,
-            type: 'approvedUsers',
-          },
-          {
-            label: 'New Registrations',
-            value: kpi.newUsers.total,
-            change: kpi.newUsers.change,
-            type: 'newUsers',
-          },
-        ].map((item, i) => (
-          <Grid item xs={12} md={3} key={i}>
-            <KpiCard
-              label={item.label}
-              value={item.value}
-              percentageChange={item.change}
-              type={item.type}
-            />
-          </Grid>
-        ))}
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Ads'
+            value={kpi.totalAds}
+            percentageChange={kpi.totalAdsChange}
+            type='totalAds'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Views (All Ads)'
+            value={kpi.totalViews}
+            percentageChange={kpi.viewsChange}
+            type='views'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Clicks (All Ads)'
+            value={kpi.totalClicks}
+            percentageChange={kpi.clicksChange}
+            type='clicks'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Conversions (All Ads)'
+            value={kpi.totalConversions}
+            percentageChange={kpi.conversionsChange}
+            type='conversionRevenue'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Conversions Revenue'
+            value={kpi.totalConversionRevenue}
+            percentageChange={kpi.conversionRevenueChange}
+            type='conversionRevenue'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Clicks Revenue'
+            value={kpi.totalClicksRevenue}
+            percentageChange={kpi.clicksRevenueChange}
+            type='conversionRevenue'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Views Revenue'
+            value={kpi.totalViewsRevenue}
+            percentageChange={kpi.viewsRevenueChange}
+            type='conversionRevenue'
+          />
+        </Grid>
+        <Grid item xs={12} md={2.4}>
+          <KpiCard
+            label='Total Products'
+            value={kpi.totalProducts}
+            percentageChange={kpi.productsChange}
+            type='activeAds'
+          />
+        </Grid>
       </Grid>
 
       {/* Glavni graf + countries */}
@@ -313,6 +598,86 @@ const AnalyticsPage = () => {
             </Box>
           </Grid>
         </Grid>
+
+        <Box sx={{ width: '100%' }}>
+          {/* Funnel Chart (sam u jednom redu) */}
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <AdFunnelChart />
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Pareto Chart i Stacked Bar Chart (jedan do drugog) */}
+          <Grid container spacing={6} mb={3}>
+            <Grid item sx={{ width: '45%' }}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <ParetoChart />
+              </Box>
+            </Grid>
+            <Grid item sx={{ width: '45%' }}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <AdStackedBarChart />
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Calendar, DealsChart, SalesChart */}
+          <Grid container spacing={3} mb={2}>
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <Calendar />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <DealsChart />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <SalesChart />
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
     </Box>
   );

@@ -20,6 +20,8 @@ export function useAdSignalR() {
       setConnectionStatus('Auth Token Missing');
       return;
     }
+
+
     const newConnection = new HubConnectionBuilder()
       .withUrl(HUB_URL, {
         accessTokenFactory: () => jwtToken,
@@ -95,6 +97,7 @@ export function useAdSignalR() {
     adUpdatesHistory,
   };
 }
+
 
 export function useAdSignalRwithId(adId) {
   const connectionRef = useRef(null);
@@ -192,3 +195,4 @@ export function useAdSignalRwithId(adId) {
     adUpdatesHistory,
   };
 }
+

@@ -38,7 +38,11 @@ const AdPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ads, setAds] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
+
   const { latestAdUpdate } = useAdSignalR();
+
+  const [isLoading, setIsLoading] = useState(true);
+
   const adsPerPage = 5;
 
   const filteredAds = ads.filter((ad) =>
@@ -52,10 +56,15 @@ const AdPage = () => {
   );
 
   useEffect(() => {
-    const fetchAds = async () => {
+    async function fetchAds() {
+      setIsLoading(true);
+      try{
       const rez = await apiGetAllAdsAsync();
-      console.log(rez);
       setAds(rez.data);
+      } catch (err) {
+        console.error("Greška pri dohvaćanju reklama:", err);
+      } 
+      setIsLoading(false);
     };
     fetchAds();
   }, []);
@@ -109,16 +118,20 @@ const AdPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleAddAd = async (newAd) => {
-    const nextId = Math.max(...ads.map((a) => a.id)) + 1;
-    setAds((prev) => [...prev, { ...newAd, id: nextId }]);
-
+const handleAddAd = async (newAd) => {
+  try {
     const response = await apiCreateAdAsync(newAd);
-        if (response.status < 400) {
-          const res = await apiGetAllAdsAsync();
-          setAds(res.data);
-        }
-  };
+    if (response.status < 400 && response.data) {
+      setAds(prev => [...prev, response.data]);
+      console.log("Uradjeno");
+      setIsModalOpen(false);
+    } else {
+      console.error('Greška pri kreiranju oglasa:', response);
+    }
+  } catch (error) {
+    console.error('API error:', error);
+  }
+};
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
