@@ -10,7 +10,9 @@ import {
   useTheme,
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
+// Using ShoppingCartIcon from develop as it's generic for product sales
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+// API imports from develop
 import {
   apiGetAllAdsAsync,
   apiGetAllStoresAsync,
@@ -19,69 +21,95 @@ import {
 
 function SalesChart() {
   const theme = useTheme();
-  const [filterType, setFilterType] = useState('topRated');
+  const [filterType, setFilterType] = useState('topRated'); // 'topRated' or 'lowestRated'
   const [anchorEl, setAnchorEl] = useState(null);
-  const [productData, setProductData] = useState([]);
+  const [productSalesData, setProductSalesData] = useState([]); // Changed from productData to be more specific
   const open = Boolean(anchorEl);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Dohvati sve reklame
+        // Fetch all ads
         const adsResponse = await apiGetAllAdsAsync();
-        const ads = adsResponse.data || [];
+        const ads =
+          adsResponse && Array.isArray(adsResponse.data)
+            ? adsResponse.data
+            : [];
 
-        // Dohvati sve storeove
+        // Fetch all stores
         const storesResponse = await apiGetAllStoresAsync();
-        const stores = storesResponse || [];
+        const stores = Array.isArray(storesResponse) ? storesResponse : [];
 
-        // Kreiraj mapu svih proizvoda iz svih storeova
-        const allProducts = {};
+        // Create a map of all products from all stores
+        const allProductsMap = {};
         for (const store of stores) {
-          const productsResponse = await apiGetStoreProductsAsync(store.id);
-          for (const product of productsResponse.data) {
-            if (!allProducts[product.id]) {
-              allProducts[product.id] = {
-                id: product.id,
-                name: product.name,
-                imageUrl: 'https://via.placeholder.com/150',
-                clicks: 0,
-                conversions: 0,
-                revenue: 0,
-              };
+          if (store && store.id) {
+            const productsResponse = await apiGetStoreProductsAsync(store.id);
+            const storeProducts =
+              productsResponse && Array.isArray(productsResponse.data)
+                ? productsResponse.data
+                : [];
+            for (const product of storeProducts) {
+              if (product && product.id && !allProductsMap[product.id]) {
+                allProductsMap[product.id] = {
+                  id: product.id,
+                  name: product.name || `Product ${product.id}`,
+                  // imageUrl: product.imageUrl || 'https://via.placeholder.com/40', // If you have image URLs
+                  // Placeholder for product-specific icon/color if needed later
+                  // icon: ShoppingCartIcon,
+                  // color: theme.palette.text.secondary,
+                  clicks: 0,
+                  conversions: 0,
+                  revenue: 0,
+                };
+              }
             }
           }
         }
 
-        // Obradi sve reklame
+        // Process all ads to aggregate sales data per product
         for (const ad of ads) {
-          for (const adDataItem of ad.adData || []) {
-            const productId = adDataItem.productId;
-            if (allProducts[productId]) {
-              allProducts[productId].clicks += ad.clicks || 0;
-              allProducts[productId].conversions += ad.conversions || 0;
-              allProducts[productId].revenue +=
-                (ad.conversions || 0) * (ad.conversionPrice || 0);
+          if (ad && Array.isArray(ad.adData)) {
+            for (const adDataItem of ad.adData) {
+              if (
+                adDataItem &&
+                adDataItem.productId &&
+                allProductsMap[adDataItem.productId]
+              ) {
+                const productEntry = allProductsMap[adDataItem.productId];
+                productEntry.clicks += ad.clicks || 0;
+                productEntry.conversions += ad.conversions || 0;
+                productEntry.revenue +=
+                  (ad.conversions || 0) * (ad.conversionPrice || 0);
+              }
             }
           }
         }
 
-        // Sortiraj proizvode po zaradi
-        const sortedProducts = Object.values(allProducts).sort((a, b) => {
-          return filterType === 'topRated'
-            ? b.revenue - a.revenue
-            : a.revenue - b.revenue;
-        });
+        // Sort products based on filterType (revenue)
+        let sortedProductsArray = Object.values(allProductsMap);
 
-        // Ograniči na 4 proizvoda
-        setProductData(sortedProducts.slice(0, 4));
+        if (filterType === 'topRated') {
+          sortedProductsArray.sort((a, b) => b.revenue - a.revenue);
+        } else {
+          // 'lowestRated'
+          // Filter out products with zero revenue for "lowest rated" to make it meaningful
+          sortedProductsArray = sortedProductsArray.filter(
+            (p) => p.revenue > 0
+          );
+          sortedProductsArray.sort((a, b) => a.revenue - b.revenue);
+        }
+
+        // Limit to top/lowest 4 products (or adjust as needed)
+        setProductSalesData(sortedProductsArray.slice(0, 4));
       } catch (error) {
-        console.error('Error fetching product data:', error);
+        console.error('Error fetching product sales data:', error);
+        setProductSalesData([]); // Reset on error
       }
     };
 
     fetchData();
-  }, [filterType]);
+  }, [filterType]); // Re-fetch when filterType changes
 
   const handleFilterClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -93,20 +121,25 @@ function SalesChart() {
 
   const handleFilterChange = (type) => {
     setFilterType(type);
-    setAnchorEl(null);
+    handleClose(); // Also close the menu
   };
+
+  const totalRevenueAllDisplayed = productSalesData.reduce(
+    (sum, p) => sum + p.revenue,
+    0
+  );
 
   return (
     <Paper
       elevation={3}
       sx={{
         p: 3,
-        boxShadow: 3,
+        // Using dimensions from develop for consistency in a dashboard
         minHeight: '480px',
         width: '380px',
-        backgroundColor: '#fff',
+        backgroundColor: '#fff', // White background from develop
         borderRadius: 2,
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)', // Consistent shadow
       }}
     >
       <Box
@@ -117,9 +150,10 @@ function SalesChart() {
           mb: 3,
         }}
       >
+        {/* Filter Button and Menu - structure from develop is fine */}
         <Box>
           <IconButton
-            aria-label='filters'
+            aria-label='filters' // aria-label from HEAD
             aria-controls={open ? 'filter-menu' : undefined}
             aria-haspopup='true'
             aria-expanded={open ? 'true' : undefined}
@@ -155,84 +189,112 @@ function SalesChart() {
       </Box>
 
       <Stack spacing={2}>
-        {productData.map((item, index) => (
-          <Box
-            key={item.id}
+        {productSalesData.length === 0 && (
+          <Typography
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              p: 2,
-              borderRadius: 2,
-              backgroundColor: '#f8f9fa',
-              boxShadow: 3,
-              '&:hover': {
-                backgroundColor: theme.palette.grey[50],
-              },
+              textAlign: 'center',
+              color: theme.palette.text.secondary,
+              mt: 4,
             }}
           >
+            No product sales data to display for this filter.
+          </Typography>
+        )}
+        {productSalesData.map((item) => {
+          // Dynamic percentage calculation from develop
+          const percentage =
+            totalRevenueAllDisplayed > 0
+              ? ((item.revenue / totalRevenueAllDisplayed) * 100).toFixed(1)
+              : '0.0';
+
+          return (
             <Box
+              key={item.id}
               sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#fff',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                mr: 2,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: '#f8f9fa', // Item background from develop
+                boxShadow: 1, // Subtle shadow for items
+                '&:hover': {
+                  backgroundColor: theme.palette.grey[100], // Slightly darker hover
+                },
               }}
             >
-              <ShoppingCartIcon sx={{ fontSize: 24, color: '#555' }} />
-            </Box>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#fff', // Icon background circle
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  mr: 2,
+                }}
+              >
+                {/* Using generic ShoppingCartIcon from develop.
+                    If item had specific icon data, could use React.createElement here. */}
+                <ShoppingCartIcon
+                  sx={{ fontSize: 22, color: theme.palette.primary.main }}
+                />
+              </Box>
 
-            <Box sx={{ flexGrow: 1 }}>
-              <Typography
-                variant='body1'
-                sx={{
-                  fontWeight: 500,
-                  color: theme.palette.text.primary,
-                }}
-              >
-                {item.name}
-              </Typography>
-            </Box>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography
+                  variant='body1'
+                  sx={{
+                    fontWeight: 500,
+                    color: theme.palette.text.primary,
+                  }}
+                  noWrap // Prevent long names from breaking layout
+                  title={item.name}
+                >
+                  {item.name}
+                </Typography>
+              </Box>
 
-            <Box
-              sx={{ display: 'flex', alignItems: 'center', textAlign: 'right' }}
-            >
-              <Typography
-                variant='body1'
+              <Box
                 sx={{
-                  fontWeight: 700,
-                  color: theme.palette.text.primary,
-                  mr: 0.2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  textAlign: 'right',
+                  ml: 1,
                 }}
               >
-                ${item.revenue.toLocaleString()}
-              </Typography>
-              <Typography
-                variant='body2'
-                sx={{
-                  color: theme.palette.text.secondary,
-                  backgroundColor: theme.palette.grey[100],
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 1,
-                  display: 'inline-block',
-                }}
-              >
-                {(
-                  (item.revenue /
-                    productData.reduce((sum, p) => sum + p.revenue, 0)) *
-                  100
-                ).toFixed(1)}
-                %
-              </Typography>
+                <Typography
+                  variant='body1'
+                  sx={{
+                    fontWeight: 600, // Slightly less bold than develop's 700, more like HEAD's 600
+                    color: theme.palette.text.primary,
+                    mr: 1, // Increased margin for readability
+                  }}
+                >
+                  ${item.revenue.toLocaleString()}
+                </Typography>
+                <Typography
+                  variant='caption' // Using caption for percentage for better hierarchy
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    backgroundColor: theme.palette.grey[200], // Adjusted background for caption
+                    px: 0.8,
+                    py: 0.3,
+                    borderRadius: 1,
+                    display: 'inline-block',
+                    fontWeight: 500,
+                    minWidth: '40px', // Ensure percentage has some space
+                    textAlign: 'center',
+                  }}
+                >
+                  {percentage}%
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-        ))}
+          );
+        })}
       </Stack>
     </Paper>
   );

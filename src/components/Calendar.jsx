@@ -1,115 +1,140 @@
 import React, { useState } from 'react';
-import { 
-  Paper, 
-  Box, 
-  IconButton, 
-  Typography, 
+import {
+  Paper,
+  Box,
+  IconButton,
+  Typography,
   styled,
-  Button,
+  Button, // From HEAD
   Grid,
-  useTheme
+  useTheme,
 } from '@mui/material';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ZoomIn, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
   ZoomOut,
-  Remove
+  Remove,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 
+const CalendarCell = styled(Box)(
+  ({ theme, isToday, isSelected, isCurrentMonth }) => ({
+    width: 36,
+    height: 36,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    borderRadius: '50%',
+    transition: 'all 0.2s ease',
+    color: !isCurrentMonth
+      ? theme.palette.text.disabled
+      : isToday
+        ? theme.palette.primary.main
+        : theme.palette.text.primary,
+    backgroundColor: isSelected ? theme.palette.primary.main : 'transparent',
+    '&:hover': {
+      backgroundColor: isSelected
+        ? theme.palette.primary.dark // Slightly darker hover for selected
+        : isCurrentMonth
+          ? theme.palette.action.hover
+          : 'transparent', // Only hover current month days
+    },
+    ...(isSelected && {
+      color: theme.palette.primary.contrastText,
+    }),
+    ...(isToday &&
+      !isSelected && {
+        border: `1px solid ${theme.palette.primary.main}`,
+      }),
+    ...(!isCurrentMonth && {
+      // Ensure non-current month days are not interactive on hover
+      pointerEvents: 'none',
+    }),
+  })
+);
 
-const CalendarCell = styled(Box)(({ theme, isToday, isSelected, isCurrentMonth }) => ({
-  width: 36,
-  height: 36,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  borderRadius: '50%',
-  transition: 'all 0.2s ease',
-  color: !isCurrentMonth ? theme.palette.text.disabled : 
-         isToday ? theme.palette.primary.main : 
-         theme.palette.text.primary,
-  backgroundColor: isSelected ? theme.palette.primary.main : 'transparent',
-  '&:hover': {
-    backgroundColor: isSelected ? theme.palette.primary.main : theme.palette.action.hover,
-  },
-  ...(isSelected && {
-    color: theme.palette.primary.contrastText
-  }),
-  ...(isToday && !isSelected && {
-    border: `1px solid ${theme.palette.primary.main}`
-  }),
-}));
-
-const DayHeader = styled(Typography)({
+const DayHeader = styled(Typography)(({ theme }) => ({
+  // Added theme for consistency
   fontSize: '0.875rem',
   fontWeight: 500,
   textAlign: 'center',
-  color: '#9e9e9e'
-});
+  color: theme.palette.text.secondary, // Using theme for color
+}));
 
 function Calendar() {
   const theme = useTheme();
   const today = dayjs();
   const [currentDate, setCurrentDate] = useState(today);
-  const [selectedDates, setSelectedDates] = useState([today.format('YYYY-MM-DD')]);
+  // Default to no dates selected or just today if that's the desired default
+  const [selectedDates, setSelectedDates] = useState([
+    today.format('YYYY-MM-DD'),
+  ]);
+  // const [selectedDates, setSelectedDates] = useState([]); // Alternative: start with no selection
 
   // Generate calendar days
   const generateCalendarDays = () => {
     const firstDayOfMonth = currentDate.startOf('month');
     const daysInMonth = currentDate.daysInMonth();
-    const startDay = firstDayOfMonth.day() === 0 ? 6 : firstDayOfMonth.day() - 1; // Convert Sunday = 0 to Monday = 0
-    
-    // Previous month days
+    // Consistent startDay logic (Monday = 0)
+    const startDay =
+      firstDayOfMonth.day() === 0 ? 6 : firstDayOfMonth.day() - 1;
+
     const prevMonthDays = [];
-    for (let i = startDay - 1; i >= 0; i--) {
-      const date = firstDayOfMonth.subtract(i + 1, 'day');
+    for (let i = 0; i < startDay; i++) {
+      // Corrected loop for prev month days
+      const date = firstDayOfMonth.subtract(startDay - i, 'day');
       prevMonthDays.push({
         day: date.date(),
         isCurrentMonth: false,
         date: date.format('YYYY-MM-DD'),
-        isToday: date.isSame(today, 'day')
+        isToday: date.isSame(today, 'day'),
       });
     }
-    
-    // Current month days
+
     const currentMonthDays = [];
     for (let i = 1; i <= daysInMonth; i++) {
-      const date = firstDayOfMonth.add(i - 1, 'day');
+      const date = firstDayOfMonth.date(i); // Simpler way to get date in current month
       currentMonthDays.push({
         day: i,
         isCurrentMonth: true,
         date: date.format('YYYY-MM-DD'),
-        isToday: date.isSame(today, 'day')
+        isToday: date.isSame(today, 'day'),
       });
     }
-    
-    // Next month days
-    const total = prevMonthDays.length + currentMonthDays.length;
+
+    const totalCells = 42; // Standard 6 weeks * 7 days
+    const remainingCells =
+      totalCells - (prevMonthDays.length + currentMonthDays.length);
     const nextMonthDays = [];
-    for (let i = 1; i <= 42 - total; i++) {
-      const date = firstDayOfMonth.add(daysInMonth - 1 + i, 'day');
+    const lastDayOfCurrentMonth = currentDate.endOf('month'); // For calculating next month days
+
+    for (let i = 1; i <= remainingCells; i++) {
+      const date = lastDayOfCurrentMonth.add(i, 'day');
       nextMonthDays.push({
-        day: i,
+        day: date.date(),
         isCurrentMonth: false,
         date: date.format('YYYY-MM-DD'),
-        isToday: date.isSame(today, 'day')
+        isToday: date.isSame(today, 'day'),
       });
     }
-    
+
     return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
   };
 
   const days = generateCalendarDays();
   const weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-  const handleDateClick = (date) => {
-    if (selectedDates.includes(date)) {
-      setSelectedDates(selectedDates.filter(d => d !== date));
+  const handleDateClick = (dateStr, isCurrentMonthCell) => {
+    if (!isCurrentMonthCell) return; // Only allow selecting dates in the current month
+
+    if (selectedDates.includes(dateStr)) {
+      setSelectedDates(selectedDates.filter((d) => d !== dateStr));
     } else {
-      setSelectedDates([...selectedDates, date]);
+      // If you want single selection, uncomment next line and comment out the one after
+      // setSelectedDates([dateStr]);
+      setSelectedDates([...selectedDates, dateStr]); // For multi-selection
     }
   };
 
@@ -121,94 +146,167 @@ function Calendar() {
     setCurrentDate(currentDate.add(1, 'month'));
   };
 
+  // Placeholder for zoom functionality if needed
+  const handleZoom = (type) => {
+    console.log(`Zoom ${type} clicked`);
+  };
+
   return (
-    <Paper 
-      elevation={0} 
-      sx={{ 
-        p: 2,
+    <Paper
+      elevation={3} // Using elevation from develop for consistency
+      sx={{
+        p: 2.5, // Slightly increased padding
+        // Using dimensions from develop for consistency if part of a dashboard
         height: '480px',
-        boxShadow: 3,
         width: '380px',
+        boxShadow: 3, // Explicit shadow
+        backgroundColor: theme.palette.background.paper, // Use theme background
+        borderRadius: 2, // Consistent border radius
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        position: 'relative', // For absolute positioning of zoom controls
       }}
     >
-      {/* Calendar controls */}
-      <Box 
-        sx={{ 
-          display: 'flex', 
+      {/* Calendar Header: Month/Year and Navigation */}
+      <Box
+        sx={{
+          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           mb: 2,
-          borderBottom: '1px solid #f0f0f0',
-          pb: 2
+          borderBottom: `1px solid ${theme.palette.divider}`, // Use theme divider
+          pb: 1.5, // Adjusted padding
         }}
       >
-        <IconButton onClick={handlePrevMonth} size="small">
+        <IconButton
+          onClick={handlePrevMonth}
+          size='small'
+          aria-label='Previous month'
+        >
           <ChevronLeft />
         </IconButton>
-        
-        <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+        <Typography
+          variant='h6'
+          sx={{ fontWeight: 'medium', color: theme.palette.text.primary }}
+        >
           {currentDate.format('MMMM YYYY')}
         </Typography>
-        
-        <IconButton onClick={handleNextMonth} size="small">
+        <IconButton
+          onClick={handleNextMonth}
+          size='small'
+          aria-label='Next month'
+        >
           <ChevronRight />
         </IconButton>
       </Box>
-      
-      {/* Zoom controls */}
-      <Box 
-        sx={{ 
+
+      {/* Zoom controls - from HEAD, adjusted styling and position */}
+      <Box
+        sx={{
           display: 'flex',
           justifyContent: 'center',
-          mb: 1,
           position: 'absolute',
-          top: 12,
+          top: theme.spacing(2.5), // Align with top padding
           left: '50%',
           transform: 'translateX(-50%)',
-          backgroundColor: '#333',
-          borderRadius: 1,
-          padding: '2px'
+          backgroundColor: 'rgba(0,0,0,0.6)', // Darker, slightly transparent
+          borderRadius: theme.shape.borderRadius,
+          padding: '2px 4px',
+          zIndex: 1, // Ensure it's above other elements
         }}
       >
-        <IconButton size="small" sx={{ color: 'white', p: 0.5 }}>
-          <Remove fontSize="small" />
-        </IconButton>
-        <IconButton size="small" sx={{ color: 'white', p: 0.5 }}>
-          <ZoomIn fontSize="small" />
-        </IconButton>
-        <IconButton size="small" sx={{ color: 'white', p: 0.5 }}>
-          <ZoomOut fontSize="small" />
-        </IconButton>
-      </Box>
-
-    {/* Weekday headers */}
-<Grid container spacing={3.5} sx={{ mb: 1 }}>
-  {weekDays.map(day => (
-    <Grid item xs={1} key={day}>  {/* xs={1} za 7 dana u redu */}
-      <DayHeader>{day}</DayHeader>
-    </Grid>
-  ))}
-</Grid>
-
-{/* Calendar grid */}
-<Grid container spacing={1}>
-  {days.map((day, index) => (
-    <Grid item xs={1} key={index} sx={{ mb: 1 }}>  {/* xs={1} za 7 dana u redu */}
-      <Box display="flex" justifyContent="center">
-        <CalendarCell 
-          isToday={day.isToday}
-          isSelected={selectedDates.includes(day.date)}
-          isCurrentMonth={day.isCurrentMonth}
-          onClick={() => handleDateClick(day.date)}
+        <IconButton
+          size='small'
+          sx={{ color: 'white', p: 0.5 }}
+          onClick={() => handleZoom('reset')}
+          aria-label='Reset zoom'
         >
-          {day.day}
-        </CalendarCell>
+          <Remove fontSize='inherit' />
+        </IconButton>
+        <IconButton
+          size='small'
+          sx={{ color: 'white', p: 0.5 }}
+          onClick={() => handleZoom('in')}
+          aria-label='Zoom in'
+        >
+          <ZoomIn fontSize='inherit' />
+        </IconButton>
+        <IconButton
+          size='small'
+          sx={{ color: 'white', p: 0.5 }}
+          onClick={() => handleZoom('out')}
+          aria-label='Zoom out'
+        >
+          <ZoomOut fontSize='inherit' />
+        </IconButton>
       </Box>
-    </Grid>
-  ))}
-</Grid>
+
+      {/* Weekday headers */}
+      <Grid container spacing={0.5} sx={{ mb: 1.5, px: 0.5 }}>
+        {' '}
+        {/* Adjusted spacing and padding */}
+        {weekDays.map((day) => (
+          // Each day header takes up 1/7th of the width
+          <Grid
+            item
+            xs={12 / 7}
+            key={day}
+            sx={{ display: 'flex', justifyContent: 'center' }}
+          >
+            <DayHeader>{day}</DayHeader>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Calendar grid */}
+      <Grid container spacing={0.5} sx={{ flexGrow: 1, px: 0.5 }}>
+        {' '}
+        {/* Allow grid to take remaining space */}
+        {days.map((dayInfo, index) => (
+          // Each cell takes up 1/7th of the width
+          <Grid
+            item
+            xs={12 / 7}
+            key={`${dayInfo.date}-${index}`}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              mb: 0.5,
+            }}
+          >
+            <CalendarCell
+              isToday={dayInfo.isToday}
+              isSelected={selectedDates.includes(dayInfo.date)}
+              isCurrentMonth={dayInfo.isCurrentMonth}
+              onClick={() =>
+                handleDateClick(dayInfo.date, dayInfo.isCurrentMonth)
+              }
+            >
+              {dayInfo.day}
+            </CalendarCell>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Done button - from HEAD */}
+      <Box
+        sx={{ mt: 'auto', pt: 2, display: 'flex', justifyContent: 'flex-end' }}
+      >
+        <Button
+          variant='contained'
+          color='primary'
+          sx={{
+            borderRadius: 28, // Pill shape
+            px: 4,
+            boxShadow: 'none', // Flat button style
+            textTransform: 'none', // Normal case text
+          }}
+          onClick={() => console.log('Selected Dates:', selectedDates)} // Placeholder action
+        >
+          Done
+        </Button>
+      </Box>
     </Paper>
   );
 }

@@ -1,36 +1,42 @@
 import React from 'react';
-import { Grid, Typography, Box } from '@mui/material';
+import { Grid, Typography, Box, Pagination } from '@mui/material';
 import KpiCard from '@components/KpiCard';
 import AnalyticsChart from '@components/AnalyticsChart';
 import CountryStatsPanel from '@components/CountryStatsPanel';
 import OrdersByStatus from '@components/OrdersByStatus';
 import UserDistribution from '@components/UserDistribution';
 import RevenueByStore from '@components/RevenueByStore';
-import ParetoChart from '@components/ParetoChart';
-import AdFunnelChart from '@components/AdFunnelChart';
-import AdStackedBarChart from '@components/AdStackedBarChart';
-import Calendar from '@components/Calendar';
-import DealsChart from '@components/DealsChart';
-import SalesChart from '@components/SalesChart';
-import { useState, useEffect, useRef } from 'react';
+// --- Merged Imports ---
+import ProductsSummary from '@components/ProductsSummary'; // From HEAD
+import RevenueMetrics from '@components/RevenueMetrics'; // From HEAD
+import ParetoChart from '@components/ParetoChart'; // From develop
+import AdFunnelChart from '@components/AdFunnelChart'; // From develop
+import AdStackedBarChart from '@components/AdStackedBarChart'; // From develop
+import Calendar from '@components/Calendar'; // From develop
+import DealsChart from '@components/DealsChart'; // From develop
+import SalesChart from '@components/SalesChart'; // From develop
+import { useState, useEffect, useRef } from 'react'; // useRef from develop
+
 import {
   apiGetAllAdsAsync,
-  apiFetchOrdersAsync,
-  apiFetchAllUsersAsync,
+  apiFetchOrdersAsync, // Used in develop's fetchInitialData, not in HEAD's kpis
+  apiFetchAllUsersAsync, // Used in develop's fetchInitialData, not in HEAD's kpis
   apiGetAllStoresAsync,
   apiGetStoreProductsAsync,
+  apiFetchAdsWithProfitAsync, // From HEAD, for ProductsSummary
 } from '../api/api.js';
-import { format, parseISO } from 'date-fns';
-import { subMonths } from 'date-fns';
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+// format and parseISO were in develop but not used in the conflicting part, subMonths is used by both
+import { subMonths, format, parseISO } from 'date-fns'; // Added format, parseISO from develop imports
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'; // From develop
 
-// Define the SignalR connection endpoint
+// --- SignalR Setup (from develop) ---
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
 const HUB_URL = `${baseUrl}${HUB_ENDPOINT_PATH}`;
 
 const AnalyticsPage = () => {
-  const [ads, setAds] = useState([]);
+  // --- State from develop ---
+  const [ads, setAds] = useState([]); // For general ad data, updated by SignalR
   const [kpi, setKpi] = useState({
     totalViews: 0,
     totalClicks: 0,
@@ -48,25 +54,38 @@ const AnalyticsPage = () => {
     conversionRevenueChange: 0,
     clicksRevenueChange: 0,
     viewsRevenueChange: 0,
-    productsChange: 0,
+    productsChange: 0, // Will be set based on logic
     totalAdsChange: 0,
   });
-
-  // For tracking SignalR connection status
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [lastError, setLastError] = useState('');
   const connectionRef = useRef(null);
-
-  // For tracking real-time events
   const [clickTimeStamps, setClickTimeStamps] = useState([]);
   const [viewTimeStamps, setViewTimeStamps] = useState([]);
   const [conversionTimeStamps, setConversionTimeStamps] = useState([]);
   const [realtimeEvents, setRealtimeEvents] = useState([]);
 
-  // Setup SignalR connection
+  // --- State from HEAD (for product pagination and summary) ---
+  const [products, setProducts] = useState([]); // For paginated product list
+  const [adsDataForSummary, setAdsDataForSummary] = useState([]); // Specifically for ProductsSummary
+  const [currentProductPage, setCurrentProductPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 5; // Or your desired number
+
+  // --- Pagination Logic (from HEAD) ---
+  const handlePageChange = (event, value) => {
+    setCurrentProductPage(value);
+  };
+
+  const paginatedProducts = products.slice(
+    (currentProductPage - 1) * PRODUCTS_PER_PAGE,
+    currentProductPage * PRODUCTS_PER_PAGE
+  );
+
+  const pageCount = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+
+  // --- SignalR useEffect (from develop) ---
   useEffect(() => {
     const jwtToken = localStorage.getItem('token');
-
     if (!jwtToken) {
       console.warn(
         'AnalyticsPage: No JWT token found. SignalR connection not started.'
@@ -74,16 +93,11 @@ const AnalyticsPage = () => {
       setConnectionStatus('Auth Token Missing');
       return;
     }
-
-    // Build the connection
     const newConnection = new HubConnectionBuilder()
-      .withUrl(HUB_URL, {
-        accessTokenFactory: () => jwtToken, // Crucial for JWT auth
-      })
-      .withAutomaticReconnect([0, 2000, 10000, 30000]) // Retry times in ms, then stop
-      .configureLogging(LogLevel.Information) // Or LogLevel.Debug for more detail
+      .withUrl(HUB_URL, { accessTokenFactory: () => jwtToken })
+      .withAutomaticReconnect([0, 2000, 10000, 30000])
+      .configureLogging(LogLevel.Information)
       .build();
-
     connectionRef.current = newConnection;
     setConnectionStatus('Connecting...');
 
@@ -96,50 +110,31 @@ const AnalyticsPage = () => {
       } catch (err) {
         console.error('SignalR Connection Error: ', err);
         setConnectionStatus(
-          `Error: ${err.message ? err.message.substring(0, 150) : 'Unknown connection error'}`
+          `Error: ${err.message ? err.message.substring(0, 150) : 'Unknown'}`
         );
         setLastError(err.message || 'Failed to connect');
       }
     };
-
     startConnection();
 
-    // Register event handlers for messages from the server
     newConnection.on('ReceiveAdUpdate', (advertisement) => {
       console.log('Received Ad Update:', advertisement);
-
-      // Update the ads array by replacing the updated ad
       setAds((prevAds) => {
         const adIndex = prevAds.findIndex((ad) => ad.id === advertisement.id);
-
-        // Ako već postoji, zamijeni
-        if (adIndex !== -1) {
-          const updatedAds = [...prevAds];
-          updatedAds[adIndex] = advertisement;
-          calculateKpis(updatedAds);
-          return updatedAds;
-        }
-
-        // Ako ne postoji, dodaj novi
-        const updatedAds = [advertisement, ...prevAds];
-        calculateKpis(updatedAds);
+        const updatedAds = [...prevAds];
+        if (adIndex !== -1) updatedAds[adIndex] = advertisement;
+        else updatedAds.unshift(advertisement);
+        calculateKpis(updatedAds, kpi.totalProducts); // Recalculate KPIs
         return updatedAds;
       });
-
-      // Add to realtime events log
       setRealtimeEvents((prev) => [
         { type: 'Ad Update', data: advertisement, time: new Date() },
-        ...prev.slice(0, 19), // Keep last 20 events
+        ...prev.slice(0, 19),
       ]);
     });
-
     newConnection.on('ReceiveClickTimestamp', (timestamp) => {
       console.log('Received Click Timestamp:', timestamp);
-
-      // Add to click timestamps
       setClickTimeStamps((prev) => [...prev, timestamp]);
-
-      // Add to realtime events log
       setRealtimeEvents((prev) => [
         {
           type: 'Click',
@@ -149,14 +144,9 @@ const AnalyticsPage = () => {
         ...prev.slice(0, 19),
       ]);
     });
-
     newConnection.on('ReceiveViewTimestamp', (timestamp) => {
       console.log('Received View Timestamp:', timestamp);
-
-      // Add to view timestamps
       setViewTimeStamps((prev) => [...prev, timestamp]);
-
-      // Add to realtime events log
       setRealtimeEvents((prev) => [
         {
           type: 'View',
@@ -166,14 +156,9 @@ const AnalyticsPage = () => {
         ...prev.slice(0, 19),
       ]);
     });
-
     newConnection.on('ReceiveConversionTimestamp', (timestamp) => {
       console.log('Received Conversion Timestamp:', timestamp);
-
-      // Add to conversion timestamps
       setConversionTimeStamps((prev) => [...prev, timestamp]);
-
-      // Add to realtime events log
       setRealtimeEvents((prev) => [
         {
           type: 'Conversion',
@@ -183,228 +168,219 @@ const AnalyticsPage = () => {
         ...prev.slice(0, 19),
       ]);
     });
-
-    // Handle connection events
     newConnection.onclose((error) => {
       console.warn('SignalR connection closed.', error);
       setConnectionStatus('Disconnected');
-      if (error) {
-        setLastError(`Connection closed due to error: ${error.message}`);
-      }
+      if (error) setLastError(`Connection closed: ${error.message}`);
     });
-
     newConnection.onreconnecting((error) => {
       console.warn('SignalR attempting to reconnect...', error);
       setConnectionStatus('Reconnecting...');
-      setLastError(
-        error ? `Reconnection attempt failed: ${error.message}` : ''
-      );
+      setLastError(error ? `Reconnect failed: ${error.message}` : '');
     });
-
     newConnection.onreconnected((connectionId) => {
-      console.log('SignalR reconnected successfully with ID:', connectionId);
+      console.log('SignalR reconnected with ID:', connectionId);
       setConnectionStatus('Connected');
       setLastError('');
     });
-
-    // Cleanup on unmount
     return () => {
       if (
         connectionRef.current &&
         connectionRef.current.state === 'Connected'
       ) {
-        console.log('Stopping SignalR connection on component unmount.');
+        console.log('Stopping SignalR connection.');
         connectionRef.current
           .stop()
-          .catch((err) =>
-            console.error('Error stopping SignalR connection:', err)
-          );
+          .catch((err) => console.error('Error stopping SignalR:', err));
       }
     };
-  }, []); // Empty dependency array: run once on mount
+  }, []); // Run once
 
-  // Initial data fetch
+  // --- Initial Data Fetch (combining logic from both branches) ---
   useEffect(() => {
     fetchInitialData();
   }, []);
 
   const fetchInitialData = async () => {
     try {
-      // Fetch all necessary data
-      const ordersData = await apiFetchOrdersAsync();
-      const usersResponse = await apiFetchAllUsersAsync();
-      const users = usersResponse.data;
+      // Fetch stores first to get products
       const stores = await apiGetAllStoresAsync();
+      let allFetchedProducts = [];
+      let productsThisMonthCount = 0;
+      let productsPrevMonthCount = 0;
+      const now = new Date();
+      const lastMonthDate = subMonths(now, 1);
+      const prevMonthDate = subMonths(now, 2);
 
-      // Fetch ads
-      const adsResponse = await apiGetAllAdsAsync();
-      const adsData = adsResponse.data;
-      console.log('Initial Ads Data:', adsData);
-
-      // Set ads state
-      setAds(adsData);
-
-      // Calculate products
-      let totalProducts = 0;
-      for (const store of stores) {
-        const { data: products } = await apiGetStoreProductsAsync(store.id);
-        totalProducts += products.length;
+      if (stores && stores.length > 0) {
+        const productPromises = stores.map((store) =>
+          store && store.id
+            ? apiGetStoreProductsAsync(store.id)
+            : Promise.resolve({ data: [] })
+        );
+        const productResults = await Promise.all(productPromises);
+        productResults.forEach((result) => {
+          if (result && result.data && Array.isArray(result.data)) {
+            allFetchedProducts.push(...result.data);
+            result.data.forEach((p) => {
+              const createdAt = p.createdAt
+                ? parseISO(p.createdAt)
+                : new Date(0);
+              if (createdAt >= lastMonthDate) productsThisMonthCount++;
+              if (createdAt >= prevMonthDate && createdAt < lastMonthDate)
+                productsPrevMonthCount++;
+            });
+          }
+        });
       }
+      setProducts(allFetchedProducts); // For product pagination
 
-      // Calculate KPIs with the fetched data
-      calculateKpis(adsData, totalProducts);
+      const calculatedProductsChange =
+        productsPrevMonthCount > 0
+          ? ((productsThisMonthCount - productsPrevMonthCount) /
+              productsPrevMonthCount) *
+            100
+          : productsThisMonthCount > 0
+            ? 100
+            : 0;
+
+      // Fetch ads for general KPIs (from develop)
+      const adsResponse = await apiGetAllAdsAsync();
+      const initialAdsData =
+        adsResponse && adsResponse.data && Array.isArray(adsResponse.data)
+          ? adsResponse.data
+          : [];
+      console.log('Initial Ads Data:', initialAdsData);
+      setAds(initialAdsData);
+
+      // Fetch ads with profit for ProductsSummary (from HEAD)
+      const adsWithProfitResponse = await apiFetchAdsWithProfitAsync();
+      const adsForSummaryData =
+        adsWithProfitResponse && Array.isArray(adsWithProfitResponse)
+          ? adsWithProfitResponse
+          : adsWithProfitResponse && Array.isArray(adsWithProfitResponse.data)
+            ? adsWithProfitResponse.data
+            : [];
+      console.log('✅ Fetched ads with profit for summary:', adsForSummaryData);
+      setAdsDataForSummary(adsForSummaryData);
+
+      // Calculate KPIs with fetched data
+      // Pass allFetchedProducts.length for totalProductsCount
+      // Pass calculatedProductsChange for productsChange KPI
+      calculateKpis(
+        initialAdsData,
+        allFetchedProducts.length,
+        calculatedProductsChange
+      );
+
+      // Other initial data if needed (orders, users - not directly used for KPIs in develop's version)
+      // const ordersData = await apiFetchOrdersAsync();
+      // const usersResponse = await apiFetchAllUsersAsync();
+      // const users = usersResponse.data;
     } catch (error) {
       console.error('Error fetching initial data:', error);
+      // Set error states or default values if needed
     }
   };
 
-  // Function to calculate KPIs from ads data
-  const calculateKpis = (adsData, totalProductsCount = kpi.totalProducts) => {
+  // --- KPI Calculation (from develop, adapted) ---
+  const calculateKpis = (
+    currentAdsData,
+    totalProductsCount,
+    productsChangeValue = kpi.productsChange
+  ) => {
     const now = new Date();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const previousMonthStart = new Date(
-      now.getFullYear(),
-      now.getMonth() - 1,
-      1
-    );
-    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const previousMonthStart = subMonths(currentMonthStart, 1); // Correctly get first day of previous month
+    const previousMonthEnd = subMonths(now, 1); // End of previous month is last day of previous month
+    previousMonthEnd.setDate(0); // Set to last day of previous month. Example: if now is July 10, this becomes June 30.
+    // More robust way: const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    // Filter ads by current and previous month
-    const adsThisMonth = adsData.filter(
-      (ad) =>
-        new Date(ad.startTime) >= currentMonthStart &&
-        new Date(ad.startTime) <= now
-    );
-    const adsPrevMonth = adsData.filter(
-      (ad) =>
-        new Date(ad.startTime) >= previousMonthStart &&
-        new Date(ad.startTime) <= previousMonthEnd
-    );
+    const adsThisMonth = currentAdsData.filter((ad) => {
+      const startTime = ad.startTime ? parseISO(ad.startTime) : new Date(0);
+      return startTime >= currentMonthStart && startTime <= now;
+    });
+    const adsPrevMonth = currentAdsData.filter((ad) => {
+      const startTime = ad.startTime ? parseISO(ad.startTime) : new Date(0);
+      return startTime >= previousMonthStart && startTime <= previousMonthEnd;
+    });
 
-    // Calculate change percentages
-    const totalAdsChange = adsPrevMonth.length
-      ? ((adsThisMonth.length - adsPrevMonth.length) / adsPrevMonth.length) *
-        100
-      : 100;
+    const calculateMetricAndChange = (metricExtractor, priceField = null) => {
+      const currentMonthTotal = adsThisMonth.reduce(
+        (sum, ad) =>
+          sum +
+          (priceField
+            ? (ad[metricExtractor] || 0) * (ad[priceField] || 0)
+            : ad[metricExtractor] || 0),
+        0
+      );
+      const prevMonthTotal = adsPrevMonth.reduce(
+        (sum, ad) =>
+          sum +
+          (priceField
+            ? (ad[metricExtractor] || 0) * (ad[priceField] || 0)
+            : ad[metricExtractor] || 0),
+        0
+      );
+      const change =
+        prevMonthTotal > 0
+          ? ((currentMonthTotal - prevMonthTotal) / prevMonthTotal) * 100
+          : currentMonthTotal > 0
+            ? 100
+            : 0;
+      return { total: currentMonthTotal, change };
+    };
 
-    // Views calculations
-    const totalViewsThisMonth = adsThisMonth.reduce(
-      (sum, ad) => sum + (ad.views || 0),
-      0
-    );
-    const totalViewsPrevMonth = adsPrevMonth.reduce(
-      (sum, ad) => sum + (ad.views || 0),
-      0
-    );
-    const viewsChange = totalViewsPrevMonth
-      ? ((totalViewsThisMonth - totalViewsPrevMonth) / totalViewsPrevMonth) *
-        100
-      : 100;
+    const viewsStats = calculateMetricAndChange('views');
+    const clicksStats = calculateMetricAndChange('clicks');
+    const conversionsStats = calculateMetricAndChange('conversions');
+    const conversionRevenueStats = calculateMetricAndChange(
+      'conversions',
+      'conversionPrice'
+    ); // Assuming conversionPrice is per conversion
+    const clicksRevenueStats = calculateMetricAndChange('clicks', 'clickPrice');
+    const viewsRevenueStats = calculateMetricAndChange('views', 'viewPrice');
 
-    // Clicks calculations
-    const totalClicksThisMonth = adsThisMonth.reduce(
-      (sum, ad) => sum + (ad.clicks || 0),
-      0
-    );
-    const totalClicksPrevMonth = adsPrevMonth.reduce(
-      (sum, ad) => sum + (ad.clicks || 0),
-      0
-    );
-    const clicksChange = totalClicksPrevMonth
-      ? ((totalClicksThisMonth - totalClicksPrevMonth) / totalClicksPrevMonth) *
-        100
-      : 100;
+    const totalAdsChange =
+      adsPrevMonth.length > 0
+        ? ((adsThisMonth.length - adsPrevMonth.length) / adsPrevMonth.length) *
+          100
+        : adsThisMonth.length > 0
+          ? 100
+          : 0;
 
-    // Conversions calculations
-    const totalConversionsThisMonth = adsThisMonth.reduce(
-      (sum, ad) => sum + (ad.conversions || 0),
-      0
-    );
-    const totalConversionsPrevMonth = adsPrevMonth.reduce(
-      (sum, ad) => sum + (ad.conversions || 0),
-      0
-    );
-    const conversionsChange = totalConversionsPrevMonth
-      ? ((totalConversionsThisMonth - totalConversionsPrevMonth) /
-          totalConversionsPrevMonth) *
-        100
-      : 100;
-
-    // Revenue calculations
-    const totalConversionRevenueThisMonth = adsThisMonth.reduce(
-      (sum, ad) => sum + (ad.conversionPrice || 0),
-      0
-    );
-    const totalConversionRevenuePrevMonth = adsPrevMonth.reduce(
-      (sum, ad) => sum + (ad.conversionPrice || 0),
-      0
-    );
-    const conversionRevenueChange = totalConversionRevenuePrevMonth
-      ? ((totalConversionRevenueThisMonth - totalConversionRevenuePrevMonth) /
-          totalConversionRevenuePrevMonth) *
-        100
-      : 100;
-
-    const totalClicksRevenueThisMonth = adsThisMonth.reduce(
-      (sum, ad) => sum + (ad.clickPrice * ad.clicks || 0),
-      0
-    );
-    const totalClicksRevenuePrevMonth = adsPrevMonth.reduce(
-      (sum, ad) => sum + (ad.clickPrice * ad.clicks || 0),
-      0
-    );
-    const clicksRevenueChange = totalClicksRevenuePrevMonth
-      ? ((totalClicksRevenueThisMonth - totalClicksRevenuePrevMonth) /
-          totalClicksRevenuePrevMonth) *
-        100
-      : 100;
-
-    const totalViewsRevenueThisMonth = adsThisMonth.reduce(
-      (sum, ad) => sum + (ad.viewPrice * ad.views || 0),
-      0
-    );
-    const totalViewsRevenuePrevMonth = adsPrevMonth.reduce(
-      (sum, ad) => sum + (ad.viewPrice * ad.views || 0),
-      0
-    );
-    const viewsRevenueChange = totalViewsRevenuePrevMonth
-      ? ((totalViewsRevenueThisMonth - totalViewsRevenuePrevMonth) /
-          totalViewsRevenuePrevMonth) *
-        100
-      : 100;
-
-    // Active ads count
-    const activeAds = adsData.filter((ad) => ad.isActive).length;
-
-    // Top ads by conversion revenue
-    const topAds = [...adsData]
-      .sort((a, b) => (b.conversionPrice || 0) - (a.conversionPrice || 0))
+    const activeAds = currentAdsData.filter((ad) => ad.isActive).length;
+    const topAds = [...currentAdsData]
+      .sort(
+        (a, b) =>
+          (b.conversions || 0) * (b.conversionPrice || 0) -
+          (a.conversions || 0) * (a.conversionPrice || 0)
+      ) // Sort by total conversion revenue
       .slice(0, 5);
 
-    // Update KPI state
     setKpi({
-      totalViews: totalViewsThisMonth,
-      totalClicks: totalClicksThisMonth,
-      totalConversions: totalConversionsThisMonth,
-      totalConversionRevenue: totalConversionRevenueThisMonth.toFixed(2),
-      totalAds: adsData.length,
+      totalViews: viewsStats.total,
+      totalClicks: clicksStats.total,
+      totalConversions: conversionsStats.total,
+      totalConversionRevenue: conversionRevenueStats.total.toFixed(2),
+      totalAds: currentAdsData.length,
       activeAds: activeAds,
       topAds: topAds,
-      totalClicksRevenue: totalClicksRevenueThisMonth.toFixed(2),
-      totalViewsRevenue: totalViewsRevenueThisMonth.toFixed(2),
+      totalClicksRevenue: clicksRevenueStats.total.toFixed(2),
+      totalViewsRevenue: viewsRevenueStats.total.toFixed(2),
       totalProducts: totalProductsCount,
-      viewsChange: viewsChange.toFixed(2),
-      clicksChange: clicksChange.toFixed(2),
-      conversionsChange: conversionsChange.toFixed(2),
-      conversionRevenueChange: conversionRevenueChange.toFixed(2),
-      clicksRevenueChange: clicksRevenueChange.toFixed(2),
-      viewsRevenueChange: viewsRevenueChange.toFixed(2),
-      productsChange: 100, // We don't recalculate this here
+      viewsChange: viewsStats.change.toFixed(2),
+      clicksChange: clicksStats.change.toFixed(2),
+      conversionsChange: conversionsStats.change.toFixed(2),
+      conversionRevenueChange: conversionRevenueStats.change.toFixed(2),
+      clicksRevenueChange: clicksRevenueStats.change.toFixed(2),
+      viewsRevenueChange: viewsRevenueStats.change.toFixed(2),
+      productsChange: productsChangeValue.toFixed(2),
       totalAdsChange: totalAdsChange.toFixed(2),
     });
   };
 
-  // Custom component to display real-time events (optional)
+  // RealtimeEventsList component (from develop, optional to render)
   const RealtimeEventsList = () => (
     <Box
       sx={{
@@ -414,11 +390,17 @@ const AnalyticsPage = () => {
         boxShadow: 1,
         maxHeight: 300,
         overflowY: 'auto',
+        mt: 2,
       }}
     >
       <Typography variant='h6' sx={{ mb: 1, fontWeight: 'bold' }}>
         Realtime Events ({connectionStatus})
       </Typography>
+      {lastError && (
+        <Typography color='error' variant='caption'>
+          Last Error: {lastError}
+        </Typography>
+      )}
       {realtimeEvents.length === 0 ? (
         <Typography variant='body2' color='text.secondary'>
           No events received yet
@@ -439,6 +421,7 @@ const AnalyticsPage = () => {
             <Typography variant='caption' color='text.secondary'>
               {new Date(event.time).toLocaleTimeString()}
             </Typography>
+            {/* <Typography variant='caption' color='text.secondary' sx={{display: 'block'}}>{JSON.stringify(event.data)}</Typography> */}
           </Box>
         ))
       )}
@@ -448,29 +431,21 @@ const AnalyticsPage = () => {
   return (
     <Box
       sx={{
-        pl: 42,
-        pr: 4,
+        pl: { xs: 2, md: 42 }, // Responsive padding
+        pr: { xs: 2, md: 4 }, // Responsive padding
         pt: 4,
         pb: 8,
         height: '100vh',
         overflowY: 'auto',
-
-        /* --- Moderni custom scrollbar --- */
-        '&::-webkit-scrollbar': {
-          width: 8,
-        },
-        '&::-webkit-scrollbar-track': {
-          background: 'transparent',
-        },
+        '&::-webkit-scrollbar': { width: 8 },
+        '&::-webkit-scrollbar-track': { background: 'transparent' },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(15, 118, 110, 0.6)', // tvoja primarna tamno-zelena
+          backgroundColor: 'rgba(15, 118, 110, 0.6)',
           borderRadius: 4,
         },
         '&::-webkit-scrollbar-thumb:hover': {
           backgroundColor: 'rgba(15, 118, 110, 0.8)',
         },
-
-        /* FireFox */
         scrollbarWidth: 'thin',
         scrollbarColor: 'rgba(15,118,110,0.6) transparent',
       }}
@@ -491,193 +466,226 @@ const AnalyticsPage = () => {
           style={{
             fontSize: '0.8rem',
             fontWeight: 'normal',
-            color: connectionStatus === 'Connected' ? 'green' : 'orange',
+            color:
+              connectionStatus === 'Connected'
+                ? 'green'
+                : connectionStatus === 'Connecting...' ||
+                    connectionStatus === 'Reconnecting...'
+                  ? 'orange'
+                  : 'red',
           }}
         >
           ({connectionStatus})
         </span>
       </Typography>
 
-      {/* KPI sekcija */}
-      <Grid container spacing={3} mb={3} width={1200}>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Ads'
-            value={kpi.totalAds}
-            percentageChange={kpi.totalAdsChange}
-            type='totalAds'
-          />
-        </Grid>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Views (All Ads)'
-            value={kpi.totalViews}
-            percentageChange={kpi.viewsChange}
-            type='views'
-          />
-        </Grid>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Clicks (All Ads)'
-            value={kpi.totalClicks}
-            percentageChange={kpi.clicksChange}
-            type='clicks'
-          />
-        </Grid>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Conversions (All Ads)'
-            value={kpi.totalConversions}
-            percentageChange={kpi.conversionsChange}
-            type='conversionRevenue'
-          />
-        </Grid>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Conversions Revenue'
-            value={kpi.totalConversionRevenue}
-            percentageChange={kpi.conversionRevenueChange}
-            type='conversionRevenue'
-          />
-        </Grid>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Clicks Revenue'
-            value={kpi.totalClicksRevenue}
-            percentageChange={kpi.clicksRevenueChange}
-            type='conversionRevenue'
-          />
-        </Grid>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Views Revenue'
-            value={kpi.totalViewsRevenue}
-            percentageChange={kpi.viewsRevenueChange}
-            type='conversionRevenue'
-          />
-        </Grid>
-        <Grid item xs={12} md={2.4}>
-          <KpiCard
-            label='Total Products'
-            value={kpi.totalProducts}
-            percentageChange={kpi.productsChange}
-            type='activeAds'
-          />
-        </Grid>
+      {/* KPI sekcija (from develop) */}
+      <Grid container spacing={2} mb={3} sx={{ maxWidth: 1200 }}>
+        {' '}
+        {/* Adjusted spacing and maxWidth */}
+        {[
+          {
+            label: 'Total Ads',
+            value: kpi.totalAds,
+            change: kpi.totalAdsChange,
+            type: 'totalAds',
+          },
+          {
+            label: 'Total Views',
+            value: kpi.totalViews,
+            change: kpi.viewsChange,
+            type: 'views',
+          },
+          {
+            label: 'Total Clicks',
+            value: kpi.totalClicks,
+            change: kpi.clicksChange,
+            type: 'clicks',
+          },
+          {
+            label: 'Total Conversions',
+            value: kpi.totalConversions,
+            change: kpi.conversionsChange,
+            type: 'conversions',
+          }, // Changed type
+          {
+            label: 'Conversion Revenue',
+            value: kpi.totalConversionRevenue,
+            change: kpi.conversionRevenueChange,
+            type: 'conversionRevenue',
+          },
+          {
+            label: 'Clicks Revenue',
+            value: kpi.totalClicksRevenue,
+            change: kpi.clicksRevenueChange,
+            type: 'clicksRevenue',
+          }, // Changed type
+          {
+            label: 'Views Revenue',
+            value: kpi.totalViewsRevenue,
+            change: kpi.viewsRevenueChange,
+            type: 'viewsRevenue',
+          }, // Changed type
+          {
+            label: 'Total Products',
+            value: kpi.totalProducts,
+            change: kpi.productsChange,
+            type: 'products',
+          }, // Changed type
+        ].map((item, i) => (
+          <Grid item xs={12} sm={6} md={3} lg={1.5} key={i}>
+            {' '}
+            {/* Responsive grid items for KPIs */}
+            <KpiCard
+              label={item.label}
+              value={item.value}
+              percentageChange={item.change}
+              type={item.type}
+            />
+          </Grid>
+        ))}
       </Grid>
 
       {/* Glavni graf + countries */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} md={9}>
-          <Box sx={{ height: 420, width: '850px' }}>
+          <Box sx={{ height: 420, width: '100%' }}>
+            {' '}
+            {/* Responsive width */}
             <AnalyticsChart />
           </Box>
         </Grid>
         <Grid item xs={12} md={3}>
-          <Box sx={{ height: 420, width: '320px' }}>
+          <Box sx={{ height: 420, width: '100%' }}>
+            {' '}
+            {/* Responsive width */}
             <CountryStatsPanel />
+            {/* You might want to place RealtimeEventsList here or elsewhere */}
+            {/* <RealtimeEventsList /> */}
           </Box>
         </Grid>
       </Grid>
 
-      <Box sx={{ width: 1210, mt: 4 }}>
+      <Box sx={{ width: '100%', mt: 4 }}>
+        {' '}
+        {/* Responsive width */}
         <Grid container spacing={2}>
-          <Grid item sx={{ width: '32%' }}>
+          <Grid item xs={12} md={4}>
+            {' '}
+            {/* Responsive width */}
             <Box sx={{ height: 340, display: 'flex', flexDirection: 'column' }}>
               <OrdersByStatus />
             </Box>
           </Grid>
-          <Grid item sx={{ width: '32%' }}>
+          <Grid item xs={12} md={4}>
+            {' '}
+            {/* Responsive width */}
             <Box sx={{ height: 340, display: 'flex', flexDirection: 'column' }}>
               <UserDistribution />
             </Box>
           </Grid>
-          <Grid item sx={{ width: '32%' }}>
+          <Grid item xs={12} md={4}>
+            {' '}
+            {/* Responsive width */}
             <Box sx={{ height: 340, display: 'flex', flexDirection: 'column' }}>
               <RevenueByStore />
             </Box>
           </Grid>
         </Grid>
-
-        <Box sx={{ width: '100%' }}>
-          {/* Funnel Chart (sam u jednom redu) */}
-          <Grid container spacing={2}>
+        {/* Charts from develop */}
+        <Box sx={{ width: '100%', mt: 4 }}>
+          <Grid container spacing={3} mb={3}>
             <Grid item xs={12}>
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <AdFunnelChart />
               </Box>
             </Grid>
           </Grid>
 
-          {/* Pareto Chart i Stacked Bar Chart (jedan do drugog) */}
-          <Grid container spacing={6} mb={3}>
-            <Grid item sx={{ width: '45%' }}>
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+          <Grid container spacing={3} mb={3}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <ParetoChart />
               </Box>
             </Grid>
-            <Grid item sx={{ width: '45%' }}>
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+            <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <AdStackedBarChart />
               </Box>
             </Grid>
           </Grid>
 
-          {/* Calendar, DealsChart, SalesChart */}
-          <Grid container spacing={3} mb={2}>
+          <Grid container spacing={3} mb={3}>
             <Grid item xs={12} md={4}>
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Calendar />
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <DealsChart />
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <SalesChart />
               </Box>
             </Grid>
+            <Grid item xs={12} md={12}>
+              {' '}
+              {/* Added a spot for RealtimeEventsList */}
+              <RealtimeEventsList />
+            </Grid>
           </Grid>
         </Box>
+      </Box>
+
+      {/* Product List with Pagination (from HEAD) */}
+      <Box sx={{ width: '100%', mt: 6 }} id='products-section'>
+        {' '}
+        {/* Responsive width */}
+        <Typography variant='h5' sx={{ mb: 2, color: 'primary.dark' }}>
+          Product Performance
+        </Typography>
+        {products.length === 0 && (
+          <Typography sx={{ textAlign: 'center', my: 4 }}>
+            No products to display or still loading...
+          </Typography>
+        )}
+        {paginatedProducts.map((product, i) => (
+          <Grid
+            container
+            spacing={2}
+            key={
+              product.id ||
+              `prod-summary-${(currentProductPage - 1) * PRODUCTS_PER_PAGE + i}`
+            }
+            sx={{ mb: 2 }}
+          >
+            <Grid item xs={12} md={6}>
+              {/* Ensure adsDataForSummary is correctly populated and passed */}
+              <ProductsSummary product={product} ads={adsDataForSummary} />
+            </Grid>
+          </Grid>
+        ))}
+        {pageCount > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, pb: 4 }}>
+            <Pagination
+              count={pageCount}
+              page={currentProductPage}
+              onChange={handlePageChange}
+              color='primary'
+              showFirstButton
+              showLastButton
+            />
+          </Box>
+        )}
+      </Box>
+      <Box sx={{ width: '100%', mt: 6 }} id='revenue-section'>
+        {/* //jel ovo ima smisla ovd? (Comment from HEAD)
+                  // If RevenueMetrics is global, it should be outside this map.
+                  // If it's per-product, it should receive 'product' as a prop. */}
+        <RevenueMetrics /> {/* Assuming it might be per product */}
       </Box>
     </Box>
   );

@@ -1244,3 +1244,110 @@ export const apiGetGeographyAsync = async () => {
     return { regions: [], places: [] };
   }
 };
+
+export const apiFetchAdsWithProfitAsync = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`${baseApiUrl}/api/AdminAnalytics/advertisements`);
+    const ads = response.data;
+
+    const allProductIds = []; // Za skupljanje svih productId vrednosti
+
+    const adsWithProfit = ads.map(ad => {
+      const profit =
+        (ad.clicks * ad.clickPrice) +
+        (ad.views * ad.viewPrice) +
+        (ad.conversions * ad.conversionPrice);
+
+      // Izdvajanje productId-ova iz adData
+      const adData = ad.adData ?? [];
+      const productIds = adData
+        .filter(item => item.productId !== null && item.productId !== undefined)
+        .map(item => item.productId);
+
+      // Ispis pojedinačnih productId-ova za svaki oglas
+      console.log(`📦 Ad #${ad.id} - productId-ovi:`, productIds);
+
+      allProductIds.push(...productIds); // Dodaj u globalni niz
+
+      const fullAd = {
+        id: ad.id,
+        sellerId: ad.sellerId,
+        views: ad.views,
+        viewPrice: ad.viewPrice,
+        clicks: ad.clicks,
+        clickPrice: ad.clickPrice,
+        conversions: ad.conversions,
+        conversionPrice: ad.conversionPrice,
+        startTime: ad.startTime,
+        endTime: ad.endTime,
+        isActive: ad.isActive,
+        adType: ad.adType,
+        productCategoryId: ad.productCategoryId ?? null,
+        triggers: ad.triggers,
+        adData: adData,
+        profit: parseFloat(profit.toFixed(2)),
+      };
+
+      return fullAd;
+    });
+
+    // Uklanjanje duplikata
+    const uniqueProductIds = [...new Set(allProductIds)];
+
+    // Sačuvaj u localStorage
+    localStorage.setItem('adProductIds', JSON.stringify(uniqueProductIds));
+
+    // Ispis svih sačuvanih ID-eva
+    console.log('✅ Svi sačuvani productId-ovi u localStorage:', uniqueProductIds);
+
+    return adsWithProfit;
+  } catch (error) {
+    console.error('❌ Greška pri dohvaćanju oglasa:', error);
+    return [];
+  }
+};
+
+export const apiFetchProductsByIdsAsync = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+
+    const storedProductIds = JSON.parse(localStorage.getItem('adProductIds'));
+
+    if (!storedProductIds || !Array.isArray(storedProductIds) || storedProductIds.length === 0) {
+      console.warn('⚠️ Nema productId vrednosti u localStorage.');
+      return [];
+    }
+
+    console.log('📦 Product ID-ovi koji će biti dohvaćeni:', storedProductIds);
+
+    const productRequests = storedProductIds.map(async (productId) => {
+      try {
+        const response = await axios.get(`${baseApiUrl}/api/Admin/products/${productId}`);
+        console.log(`✅ Proizvod ${productId} uspešno dohvaćen.`);
+        return response.data;
+      } catch (err) {
+        console.error(`❌ Greška pri dohvaćanju proizvoda ${productId}:`, err);
+        return null;
+      }
+    });
+
+    const allProducts = await Promise.all(productRequests);
+
+    // Filtriraj neuspešne (null) odgovore
+    const validProducts = allProducts.filter(p => p !== null);
+
+    console.log('✅ Ukupno uspešno dohvaćenih proizvoda:', validProducts.length);
+    return validProducts;
+  } catch (error) {
+    console.error('❌ Globalna greška pri dohvaćanju proizvoda:', error);
+    return [];
+  }
+};
