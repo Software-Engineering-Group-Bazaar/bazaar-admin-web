@@ -209,21 +209,6 @@ function Calendar() {
     </Grid>
   ))}
 </Grid>
-
-      {/* Done button */}
-      <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          sx={{ 
-            borderRadius: 28,
-            px: 4,
-            boxShadow: 'none'
-          }}
-        >
-          Done
-        </Button>
-      </Box>
     </Paper>
   );
 }
