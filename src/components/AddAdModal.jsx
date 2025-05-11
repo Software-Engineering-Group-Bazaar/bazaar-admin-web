@@ -26,7 +26,7 @@ const triggerArrayToBitmask = (arr) => {
   return arr.reduce((sum, val) => sum | (triggerMap[val] || 0), 0);
 };
 
-const AddAdModal = ({ open, onClose }) => {
+const AddAdModal = ({ open, onClose, onAddAd }) => {
   const [formData, setFormData] = useState({
     sellerId: '',
     Views: 0,
@@ -119,10 +119,7 @@ const AddAdModal = ({ open, onClose }) => {
   console.log('AdType being sent:', formData.AdType);
 }
 
-
-
-    try {
-      const result = await apiCreateAdAsync({
+      const result = {
         sellerId: formData.sellerId,
         startTime: formData.startTime,
         endTime: formData.endTime,
@@ -133,12 +130,7 @@ const AddAdModal = ({ open, onClose }) => {
         Triggers: formData.Triggers,
         AdData: formData.AdData,
         isActive: formData.isActive,
-      });
-
-      
-      if (result.status === 201) {
-        console.log('Ad created!', result.data);
-        onClose();
+      };
         setFormData({
           sellerId: '',
           startTime: '',
@@ -151,13 +143,8 @@ const AddAdModal = ({ open, onClose }) => {
           Triggers: [],
           isActive: true,
         });
-      } else {
-        alert('Failed to create ad. Status: ' + result.status);
-      }
-    } catch (error) {
-      console.error('Error creating ad:', error);
-      alert('Ad creation failed: ' + error.message);
-    }
+      onAddAd(result)
+      onClose();    
   };
 
   return (

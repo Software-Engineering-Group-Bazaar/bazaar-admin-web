@@ -1031,7 +1031,6 @@ export const apiCreateAdAsync = async (adData) => {
     formData.append('ViewPrice', parseFloat(adData.viewPrice));
     formData.append('ConversionPrice', parseFloat(adData.conversionPrice));
     formData.append('AdType', adData.AdType);
-    formData.append('Triggers', adData.Triggers);
     if(Array.isArray(adData.Triggers)){
       adData.Triggers.forEach((item, index) => {
         formData.append(`Triggers[${index}]`, String(item))

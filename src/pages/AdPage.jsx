@@ -37,7 +37,7 @@ const AdPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ads, setAds] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(true);
   const adsPerPage = 5;
 
   const filteredAds = ads.filter((ad) =>
@@ -51,10 +51,15 @@ const AdPage = () => {
   );
 
   useEffect(() => {
-    const fetchAds = async () => {
+    async function fetchAds() {
+      setIsLoading(true);
+      try{
       const rez = await apiGetAllAdsAsync();
-      console.log(rez);
       setAds(rez.data);
+      } catch (err) {
+        console.error("Greška pri dohvaćanju reklama:", err);
+      } 
+      setIsLoading(false);
     };
     fetchAds();
   }, []);
@@ -93,11 +98,10 @@ const AdPage = () => {
 const handleAddAd = async (newAd) => {
   try {
     const response = await apiCreateAdAsync(newAd);
-    const updated = await apiGetAllAdsAsync();
-    setAds(updated.data);
     if (response.status < 400 && response.data) {
-
-      setIsModalOpen(false); // zatvori modal ako treba
+      setAds(prev => [...prev, response.data]);
+      console.log("Uradjeno");
+      setIsModalOpen(false);
     } else {
       console.error('Greška pri kreiranju oglasa:', response);
     }
