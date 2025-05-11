@@ -157,8 +157,7 @@ export default function AdFunnelChart() {
         p: 3,
         borderRadius: 4,
         boxShadow: 3,
-        width: 1190,
-        margin: '2rem auto',
+        width: 1170,
         background: '#fff',
       }}
     >

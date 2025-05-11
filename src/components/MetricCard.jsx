@@ -8,6 +8,7 @@ const MetricCard = ({ title, value, subtitle, icon, color, tooltipText, trend, t
     <Card 
       sx={{ 
         height: '100%', 
+        width: '275px',
         display: 'flex', 
         flexDirection: 'column',
         transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',

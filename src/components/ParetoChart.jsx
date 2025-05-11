@@ -121,7 +121,7 @@ const ParetoChart = () => {
         borderRadius: '24px',
         padding: '30px',
         boxShadow: 3,
-        width: '585px',
+        width: '570px',
         height: '480px',
         display: 'flex',
         flexDirection: 'column',

@@ -158,7 +158,7 @@ function Calendar() {
         p: 2.5, // Slightly increased padding
         // Using dimensions from develop for consistency if part of a dashboard
         height: '480px',
-        width: '380px',
+        width: '360px',
         boxShadow: 3, // Explicit shadow
         backgroundColor: theme.palette.background.paper, // Use theme background
         borderRadius: 2, // Consistent border radius
@@ -197,47 +197,6 @@ function Calendar() {
           aria-label='Next month'
         >
           <ChevronRight />
-        </IconButton>
-      </Box>
-
-      {/* Zoom controls - from HEAD, adjusted styling and position */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          position: 'absolute',
-          top: theme.spacing(2.5), // Align with top padding
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(0,0,0,0.6)', // Darker, slightly transparent
-          borderRadius: theme.shape.borderRadius,
-          padding: '2px 4px',
-          zIndex: 1, // Ensure it's above other elements
-        }}
-      >
-        <IconButton
-          size='small'
-          sx={{ color: 'white', p: 0.5 }}
-          onClick={() => handleZoom('reset')}
-          aria-label='Reset zoom'
-        >
-          <Remove fontSize='inherit' />
-        </IconButton>
-        <IconButton
-          size='small'
-          sx={{ color: 'white', p: 0.5 }}
-          onClick={() => handleZoom('in')}
-          aria-label='Zoom in'
-        >
-          <ZoomIn fontSize='inherit' />
-        </IconButton>
-        <IconButton
-          size='small'
-          sx={{ color: 'white', p: 0.5 }}
-          onClick={() => handleZoom('out')}
-          aria-label='Zoom out'
-        >
-          <ZoomOut fontSize='inherit' />
         </IconButton>
       </Box>
 
