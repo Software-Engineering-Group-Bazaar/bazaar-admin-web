@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography } from '@mui/material';
+import {
+  Eye, Hand, CheckCircle, BarChart2,
+  MousePointerClick, Percent, Activity
+} from 'lucide-react';
 import CountUp from 'react-countup';
-import { Pencil, Trash2, Link, Store, Save, X } from 'lucide-react';
-import { BarChart2, MousePointerClick, Percent, Activity } from 'lucide-react';
 import AdContentCard from '@components/AdContentCard';
 import HorizontalScroll from './HorizontalScroll';
 import { apiGetAllStoresAsync, apiGetStoreProductsAsync } from '@api/api';
+import { useAdSignalR } from '@hooks/useAdSignalR';
 
 const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -18,6 +21,17 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
 
   const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
+
+  const {
+    connectionStatus,
+    latestAdUpdate,
+    latestClickTime,
+    latestViewTime,
+    latestConversionTime,
+    adUpdatesHistory,
+  } = useAdSignalR();
+
+  const adToShow = latestAdUpdate?.id === ad?.id ? latestAdUpdate : ad;
 
   useEffect(() => {
     if (open) {
@@ -32,7 +46,6 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
         }
         setProducts(allProducts);
       };
-
       fetchData();
     }
   }, [open]);
@@ -50,7 +63,7 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
 
   const handleCancel = () => {
     setEditedData({
-      adData: ad.AdData,
+      adData: ad.adData,
       startTime: ad.startTime,
       endTime: ad.endTime,
       isActive: ad.isActive,
@@ -64,153 +77,136 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
     setEditedData({ ...editedData, adData: newAdData });
   };
 
-  if (!ad) return null;
+  if (!adToShow) {
+    return <></>; // siguran render bez hook greške
+  }
 
   const cardData = [
     {
-      icon: <BarChart2 size={24} color='#0284c7' />,
+      icon: <BarChart2 size={24} color="#0284c7" />,
       label: 'Views',
-      value: ad.views.toLocaleString(),
+      value: adToShow.views.toLocaleString(),
       bg: '#e0f2fe',
     },
     {
-      icon: <MousePointerClick size={24} color='#0d9488' />,
+      icon: <MousePointerClick size={24} color="#0d9488" />,
       label: 'Clicks',
-      value: ad.clicks.toLocaleString(),
+      value: adToShow.clicks.toLocaleString(),
       bg: '#ccfbf1',
     },
     {
-      icon: <Percent size={24} color='#f59e0b' />,
+      icon: <Percent size={24} color="#f59e0b" />,
       label: 'CTR',
       value:
-        ad.views > 0 ? ((ad.clicks / ad.views) * 100).toFixed(1) + '%' : '0%',
+        adToShow.views > 0
+          ? ((adToShow.clicks / adToShow.views) * 100).toFixed(1) + '%'
+          : '0%',
       bg: '#fef9c3',
     },
     {
-      icon: <Activity size={24} color={ad.isActive ? '#22c55e' : '#ef4444'} />,
+      icon: <Activity size={24} color={adToShow.isActive ? '#22c55e' : '#ef4444'} />,
       label: 'Status',
-      value: ad.isActive ? 'Active' : 'Inactive',
-      bg: ad.isActive ? '#dcfce7' : '#fee2e2',
+      value: adToShow.isActive ? 'Active' : 'Inactive',
+      bg: adToShow.isActive ? '#dcfce7' : '#fee2e2',
     },
   ];
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={styles.modal}>
+        {/* Header */}
         <Box sx={styles.headerBox}>
           <Box sx={styles.headerAccent} />
           <Box sx={styles.headerContent}>
-            <Typography variant='h6' fontWeight={600} sx={{ color: '#FF8000' }}>
+            <Typography variant="h6" fontWeight={600} sx={{ color: '#FF8000' }}>
               Advertisement Overview
             </Typography>
-            <Typography variant='h4' fontWeight={800}>
-              Advertisement {ad.id}
+            <Typography variant="h4" fontWeight={800}>
+              Advertisement {adToShow.id}
             </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              Seller ID: {ad.sellerId}
+            <Typography variant="body2" color="text.secondary">
+              Seller ID: {adToShow.sellerId}
             </Typography>
           </Box>
           <Box sx={styles.headerAccent} />
         </Box>
 
-        {/* KPI Cards */}
+        {/* Stats Cards */}
         <Box sx={styles.cardGrid}>
           {cardData.map((item, i) => (
             <Box key={i} sx={{ ...styles.card, backgroundColor: item.bg }}>
               {item.icon}
-              <Typography variant='body2' color='text.secondary'>
+              <Typography variant="body2" color="text.secondary">
                 {item.label}
               </Typography>
-              <Typography variant='h6' fontWeight='bold'>
+              <Typography variant="h6" fontWeight="bold">
                 {item.value}
               </Typography>
             </Box>
           ))}
         </Box>
 
-        {/* Enhanced Time Fields */}
+        {/* Time Info */}
         <Box sx={{ display: 'flex', gap: 3, mt: 4 }}>
-          <Box sx={styles.timeCard}>
-            <Typography variant='subtitle2' sx={styles.timeTitle}>
-              <svg
-                width='16'
-                height='16'
-                fill='#FF8000'
-                style={{ marginRight: 6 }}
-              >
-                <path d='M3 0a1 1 0 011 1v1h8V1a1 1 0 112 0v1h1a1 1 0 011 1v2H0V3a1 1 0 011-1h1V1a1 1 0 011-1zm11 6H2v7a1 1 0 001 1h10a1 1 0 001-1V6zM6 8h2v2H6V8z' />
-              </svg>
-              Start Time
-            </Typography>
-            <Typography variant='h6' fontWeight={500}>
-              {new Date(ad.startTime).toLocaleDateString()}
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              {new Date(ad.startTime).toLocaleTimeString()}
-            </Typography>
-          </Box>
-
-          <Box sx={styles.timeCard}>
-            <Typography variant='subtitle2' sx={styles.timeTitle}>
-              <svg
-                width='16'
-                height='16'
-                fill='#FF8000'
-                style={{ marginRight: 6 }}
-              >
-                <path d='M3 0a1 1 0 011 1v1h8V1a1 1 0 112 0v1h1a1 1 0 011 1v2H0V3a1 1 0 011-1h1V1a1 1 0 011-1zm11 6H2v7a1 1 0 001 1h10a1 1 0 001-1V6zM6 8h2v2H6V8z' />
-              </svg>
-              End Time
-            </Typography>
-            <Typography variant='h6' fontWeight={500}>
-              {new Date(ad.endTime).toLocaleDateString()}
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-              {new Date(ad.endTime).toLocaleTimeString()}
-            </Typography>
-          </Box>
+          {[{ label: 'Start Time', time: adToShow.startTime }, { label: 'End Time', time: adToShow.endTime }].map(({ label, time }, idx) => (
+            <Box key={idx} sx={styles.timeCard}>
+              <Typography variant="subtitle2" sx={styles.timeTitle}>
+                <svg width="16" height="16" fill="#FF8000" style={{ marginRight: 6 }}>
+                  <path d="M3 0a1 1 0 011 1v1h8V1a1 1 0 112 0v1h1a1 1 0 011 1v2H0V3a1 1 0 011-1h1V1a1 1 0 011-1zm11 6H2v7a1 1 0 001 1h10a1 1 0 001-1V6zM6 8h2v2H6V8z" />
+                </svg>
+                {label}
+              </Typography>
+              <Typography variant="h6" fontWeight={500}>
+                {new Date(time).toLocaleDateString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {new Date(time).toLocaleTimeString()}
+              </Typography>
+            </Box>
+          ))}
         </Box>
 
-        {/* Content */}
+        {/* Prices */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 5,
+            mb: -2,
+            background: '#f3f4f6',
+            borderRadius: 2,
+            p: 1.5,
+            mt: 5,
+          }}
+        >
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Hand size={25} color="#0d9488" /> Click Price: <b style={{ marginLeft: 5 }}>{adToShow.clickPrice ?? '1000'}</b>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Eye size={25} color="#0284c7" /> View Price: <b style={{ marginLeft: 2 }}>{adToShow.viewPrice ?? '1000'}</b>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <CheckCircle size={25} color="#f59e0b" /> Conversion Price: <b style={{ marginLeft: 2 }}>{adToShow.conversionPrice ?? '1000'}</b>
+          </Typography>
+        </Box>
+
+        {/* Content Section */}
         <Box mt={5}>
-          <Typography
-            variant='h6'
-            fontWeight={700}
-            sx={{ color: '#FF8000', mb: 2 }}
-          >
+          <Typography variant="h6" fontWeight={700} sx={{ color: '#FF8000', mb: 2 }}>
             Advertisement Content
           </Typography>
-
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 3,
-              overflowX: 'auto',
-              pb: 1,
-              '&::-webkit-scrollbar': {
-                height: 8,
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: '#ccc',
-                borderRadius: 4,
-              },
-            }}
-          >
-            <HorizontalScroll>
-              {ad.adData.map((item, index) => {
-                console.log('AdContentCard item:', item);
-                return (
-                  <AdContentCard
-                    key={index}
-                    imageUrl={item.imageUrl}
-                    storeName={getStoreName(item.storeId)}
-                    productName={getProductName(item.productId)}
-                    description={item.description}
-                  />
-                );
-              })}
-            </HorizontalScroll>
-          </Box>
+          <HorizontalScroll>
+            {adToShow.adData.map((item, index) => (
+              <AdContentCard
+                key={index}
+                imageUrl={item.imageUrl}
+                storeName={getStoreName(item.storeId)}
+                productName={getProductName(item.productId)}
+                description={item.description}
+              />
+            ))}
+          </HorizontalScroll>
         </Box>
       </Box>
     </Modal>
@@ -232,18 +228,12 @@ const styles = {
     p: 4,
     outline: 'none',
   },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    mb: 3,
-  },
   headerBox: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     mb: 4,
   },
-
   headerAccent: {
     width: 12,
     height: 48,
@@ -251,15 +241,9 @@ const styles = {
     background: 'linear-gradient(to bottom, #facc15, #f97316)',
     mx: 1,
   },
-
   headerContent: {
     flex: 1,
     textAlign: 'center',
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#FF8000',
   },
   cardGrid: {
     display: 'flex',
@@ -273,18 +257,6 @@ const styles = {
     p: 2,
     textAlign: 'center',
     boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-  },
-  timeRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: 4,
-    mb: 3,
-  },
-  timeCol: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    borderRadius: 2,
-    p: 2,
   },
   timeCard: {
     flex: 1,
@@ -303,23 +275,6 @@ const styles = {
     fontWeight: 600,
     color: '#FF8000',
     mb: 1,
-  },
-  label: {
-    fontWeight: 600,
-    color: '#FF8000',
-    mb: 1,
-  },
-  description: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  link: {
-    color: '#FF8000',
-    textDecoration: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    fontWeight: 500,
   },
 };
 

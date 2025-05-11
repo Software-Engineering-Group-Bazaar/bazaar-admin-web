@@ -30,7 +30,7 @@ const ProductSummary = ({ product, ads }) => {
   const totalProfit = adsData.reduce((sum, ad) => sum + ad.profit, 0);
   console.log(product);
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', mb: 4 }}>
+    <Box sx={{ width: '100%', mb: 4 }}>
       <Paper sx={{ p: 3 }}>
         <Box
           sx={{

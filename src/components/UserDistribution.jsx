@@ -1,45 +1,153 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { apiFetchAllUsersAsync } from '../api/api.js';
+import { apiGetAllAdsAsync } from '../api/api.js';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+
+const gaugeColor = '#0F766E';
+const bgColor = '#E5E7EB';
+const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
+const HUB_URL = `${baseUrl}${HUB_ENDPOINT_PATH}`;
 
 const UserDistribution = () => {
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [approved, setApproved] = useState(0);
-  const [buyers, setBuyers] = useState(0);
-  const [sellers, setSellers] = useState(0);
+  const [conversionRate, setConversionRate] = useState(0);
+  const [totalConversions, setTotalConversions] = useState(0);
+  const [totalClicks, setTotalClicks] = useState(0);
+  const [ads, setAds] = useState([]);
+  const connectionRef = useRef(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchInitialData = async () => {
+      try {
+        const adsResponse = await apiGetAllAdsAsync();
+        const adsData = adsResponse.data;
+        setAds(adsData);
 
-      const response  = await apiFetchAllUsersAsync();
-      const users = response.data;
-      setTotalUsers(users.length);
-      setApproved(users.filter((u) => u.isApproved).length);
-      setBuyers(
-        users.filter(
-          (u) =>
-            Array.isArray(u.roles)
-              ? u.roles.includes('Buyer')
-              : u.roles === 'Buyer'
-        ).length
-      );
-      setSellers(
-        users.filter(
-          (u) =>
-            Array.isArray(u.roles)
-              ? u.roles.includes('Seller')
-              : u.roles === 'Seller'
-        ).length
-      );
+        // Calculate initial conversions and clicks
+        const totalConversions = adsData.reduce(
+          (sum, ad) => sum + (ad.conversions || 0),
+          0
+        );
+        const totalClicks = adsData.reduce(
+          (sum, ad) => sum + (ad.clicks || 0),
+          0
+        );
+
+        setTotalConversions(totalConversions);
+        setTotalClicks(totalClicks);
+        setConversionRate(
+          totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0
+        );
+      } catch (error) {
+        console.error('Error fetching initial ads data:', error);
+      }
     };
 
-    fetchUsers();
-  }, []);
+    fetchInitialData();
+
+    // Initialize SignalR connection
+    const jwtToken = localStorage.getItem('token');
+    if (!jwtToken) {
+      console.warn('No JWT token found. SignalR connection not started.');
+      return;
+    }
+
+    const newConnection = new HubConnectionBuilder()
+      .withUrl(HUB_URL, {
+        accessTokenFactory: () => jwtToken,
+      })
+      .withAutomaticReconnect([0, 2000, 10000, 30000])
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    connectionRef.current = newConnection;
+
+    const startConnection = async () => {
+      try {
+        await newConnection.start();
+        console.log('SignalR Connected to AdvertisementHub!');
+      } catch (err) {
+        console.error('SignalR Connection Error:', err);
+      }
+    };
+
+    startConnection();
+
+    // Register event handlers
+    newConnection.on('ReceiveAdUpdate', (updatedAd) => {
+      console.log('Received Ad Update:', updatedAd);
+      setAds((prevAds) => {
+        const updatedAds = prevAds.map((ad) =>
+          ad.id === updatedAd.id ? updatedAd : ad
+        );
+
+        // If the ad is new, add it
+        if (!updatedAds.some((ad) => ad.id === updatedAd.id)) {
+          updatedAds.push(updatedAd);
+        }
+
+        // Recalculate conversions and clicks
+        const totalConversions = updatedAds.reduce(
+          (sum, ad) => sum + (ad.conversions || 0),
+          0
+        );
+        const totalClicks = updatedAds.reduce(
+          (sum, ad) => sum + (ad.clicks || 0),
+          0
+        );
+
+        setTotalConversions(totalConversions);
+        setTotalClicks(totalClicks);
+        setConversionRate(
+          totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0
+        );
+
+        return updatedAds;
+      });
+    });
+
+    newConnection.on('ReceiveClickTimestamp', () => {
+      console.log('Received Click Timestamp');
+      setTotalClicks((prev) => {
+        const newTotalClicks = prev + 1;
+        setConversionRate(
+          newTotalClicks > 0 ? (totalConversions / newTotalClicks) * 100 : 0
+        );
+        return newTotalClicks;
+      });
+    });
+
+    newConnection.on('ReceiveConversionTimestamp', () => {
+      console.log('Received Conversion Timestamp');
+      setTotalConversions((prev) => {
+        const newTotalConversions = prev + 1;
+        setConversionRate(
+          totalClicks > 0 ? (newTotalConversions / totalClicks) * 100 : 0
+        );
+        return newTotalConversions;
+      });
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (
+        connectionRef.current &&
+        connectionRef.current.state === 'Connected'
+      ) {
+        console.log('Stopping SignalR connection on component unmount.');
+        connectionRef.current
+          .stop()
+          .catch((err) =>
+            console.error('Error stopping SignalR connection:', err)
+          );
+      }
+    };
+  }, [totalClicks, totalConversions]);
 
   const gaugeData = [
-    { name: 'Approved', value: approved, color: '#0F766E' },
-    { name: 'Remaining', value: totalUsers - approved, color: '#E5E7EB' },
+    { name: 'Conversion Rate', value: conversionRate, color: gaugeColor },
+    { name: 'Remaining', value: 100 - conversionRate, color: bgColor },
   ];
 
   return (
@@ -54,10 +162,10 @@ const UserDistribution = () => {
     >
       <CardContent sx={{ flexShrink: 0 }}>
         <Typography variant='h6' align='center'>
-          Approved Users
+          Conversion Rate (All Ads)
         </Typography>
         <Typography variant='body2' align='center' color='text.secondary'>
-          of {totalUsers.toLocaleString()} total users
+          {totalConversions} conversions / {totalClicks} clicks
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, position: 'relative' }}>
@@ -87,24 +195,9 @@ const UserDistribution = () => {
           }}
         >
           <Typography variant='h5' sx={{ color: 'primary.dark' }}>
-            {totalUsers > 0
-              ? Math.round((approved / totalUsers) * 100)
-              : 0}
-            %
+            {totalClicks > 0 ? conversionRate.toFixed(1) : 0}%
           </Typography>
         </Box>
-      </Box>
-      <Box
-        sx={{
-          flexShrink: 0,
-          display: 'flex',
-          justifyContent: 'space-between',
-          px: 3,
-          pb: 2,
-        }}
-      >
-        <Typography variant='body2'>Buyers: {buyers}</Typography>
-        <Typography variant='body2'>Sellers: {sellers}</Typography>
       </Box>
     </Card>
   );
