@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Typography, Box } from '@mui/material';
+import { Grid, Typography, Box, Pagination } from '@mui/material';
 import KpiCard from '@components/KpiCard';
 import AnalyticsChart from '@components/AnalyticsChart';
 import CountryStatsPanel from '@components/CountryStatsPanel';
@@ -14,6 +14,7 @@ import {
   apiFetchAllUsersAsync,
   apiGetAllStoresAsync,
   apiGetStoreProductsAsync,
+  apiFetchAdsWithProfitAsync,
 } from '../api/api.js';
 import { subMonths } from 'date-fns';
 
@@ -21,6 +22,19 @@ const AnalyticsPage = () => {
   const [products, setProducts] = useState([]);
   const [stores, setStores] = useState([]);
   const [adsData, setAdsData] = useState([]);
+  const [currentProductPage, setCurrentProductPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 5;
+
+  const handlePageChange = (event, value) => {
+    setCurrentProductPage(value);
+  };
+
+  const paginatedProducts = products.slice(
+    (currentProductPage - 1) * PRODUCTS_PER_PAGE,
+    currentProductPage * PRODUCTS_PER_PAGE
+  );
+
+  const pageCount = Math.ceil(products.length / PRODUCTS_PER_PAGE);
 
   useEffect(() => {
     const loadAds = async () => {
@@ -360,17 +374,44 @@ const AnalyticsPage = () => {
         </Grid>
       </Box>
 
-      <Box sx={{ width: 1210, mt: 6 }}>
-        {products.map((product, i) => (
-          <Grid container spacing={2} key={`prod-summary-${i}`}>
+      <Box sx={{ width: '100%', mt: 6 }} id='products-section'>
+        {products.length === 0 && (
+          <Typography sx={{ textAlign: 'center', my: 4 }}>
+            No products to display or still loading...
+          </Typography>
+        )}
+        {paginatedProducts.map((product, i) => (
+          <Grid
+            container
+            spacing={2}
+            key={
+              product.id ||
+              `prod-summary-${(currentProductPage - 1) * PRODUCTS_PER_PAGE + i}`
+            }
+            sx={{ mb: 2 }}
+          >
             <Grid item xs={12} md={6}>
               <ProductsSummary product={product} ads={adsData} />
             </Grid>
             <Grid item xs={12} md={6}>
+              {/*jel ovo ima smisla ovd?*/}
               <RevenueMetrics />
             </Grid>
           </Grid>
         ))}
+
+        {pageCount > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, pb: 4 }}>
+            <Pagination
+              count={pageCount}
+              page={currentProductPage}
+              onChange={handlePageChange}
+              color='primary'
+              showFirstButton
+              showLastButton
+            />
+          </Box>
+        )}
       </Box>
     </Box>
   );
