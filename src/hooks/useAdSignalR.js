@@ -21,6 +21,7 @@ export function useAdSignalR() {
       return;
     }
 
+
     const newConnection = new HubConnectionBuilder()
       .withUrl(HUB_URL, {
         accessTokenFactory: () => jwtToken,
@@ -96,3 +97,102 @@ export function useAdSignalR() {
     adUpdatesHistory,
   };
 }
+
+
+export function useAdSignalRwithId(adId) {
+  const connectionRef = useRef(null);
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [latestAdUpdate, setLatestAdUpdate] = useState(null);
+  const [latestClickTime, setLatestClickTime] = useState(null);
+  const [latestViewTime, setLatestViewTime] = useState(null);
+  const [latestConversionTime, setLatestConversionTime] = useState(null);
+  const [adUpdatesHistory, setAdUpdatesHistory] = useState([]);
+
+  useEffect(() => {
+    if (!adId) return;
+
+    const jwtToken = localStorage.getItem('token');
+    if (!jwtToken) {
+      setConnectionStatus('Auth Token Missing');
+      return;
+    }
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(HUB_URL, {
+        accessTokenFactory: () => jwtToken,
+      })
+      .withAutomaticReconnect([0, 2000, 10000, 30000])
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    connectionRef.current = connection;
+    setConnectionStatus('Connecting...');
+
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        setConnectionStatus('Connected');
+      } catch (err) {
+        console.error('SignalR Connection Error:', err);
+        setConnectionStatus('Error');
+      }
+    };
+
+    startConnection();
+
+    // === Filteruj po adId u svakom handleru ===
+    connection.on('ReceiveAdUpdate', (adUpdate) => {
+      if (adUpdate.id !== adId) return;
+      setLatestAdUpdate(adUpdate);
+      setAdUpdatesHistory(prev => [
+        { type: 'Ad Update', data: adUpdate, time: new Date() },
+        ...prev.slice(0, 9),
+      ]);
+    });
+
+    connection.on('ReceiveClickTimestamp', ({ adId: clickAdId, timestamp }) => {
+      if (clickAdId !== adId) return;
+      setLatestClickTime(timestamp);
+      setAdUpdatesHistory(prev => [
+        { type: 'Click', data: timestamp, time: new Date() },
+        ...prev.slice(0, 9),
+      ]);
+    });
+
+    connection.on('ReceiveViewTimestamp', ({ adId: viewAdId, timestamp }) => {
+      if (viewAdId !== adId) return;
+      setLatestViewTime(timestamp);
+      setAdUpdatesHistory(prev => [
+        { type: 'View', data: timestamp, time: new Date() },
+        ...prev.slice(0, 9),
+      ]);
+    });
+
+    connection.on('ReceiveConversionTimestamp', ({ adId: convAdId, timestamp }) => {
+      if (convAdId !== adId) return;
+      setLatestConversionTime(timestamp);
+      setAdUpdatesHistory(prev => [
+        { type: 'Conversion', data: timestamp, time: new Date() },
+        ...prev.slice(0, 9),
+      ]);
+    });
+
+    connection.onclose(() => setConnectionStatus('Disconnected'));
+    connection.onreconnecting(() => setConnectionStatus('Reconnecting...'));
+    connection.onreconnected(() => setConnectionStatus('Connected'));
+
+    return () => {
+      connection.stop();
+    };
+  }, [adId]);
+
+  return {
+    connectionStatus,
+    latestAdUpdate,
+    latestClickTime,
+    latestViewTime,
+    latestConversionTime,
+    adUpdatesHistory,
+  };
+}
+

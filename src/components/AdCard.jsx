@@ -22,6 +22,7 @@ import {
 import { toast } from 'react-hot-toast';
 import DeleteConfirmationModal from './DeleteAdConfirmation';
 import EditAdModal from './EditAdModal';
+import AdvertisementDetailsModal from './AdvertisementDetailsModal';
 import { apiFetchApprovedUsersAsync } from '../api/api';
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 import defaultAdImage from '@images/bazaarAd.jpg';
@@ -29,9 +30,9 @@ import defaultAdImage from '@images/bazaarAd.jpg';
 
 const IconStat = ({ icon, value, label, bg }) => (
   <Stack
-    direction="row"
+    direction='row'
     spacing={1}
-    alignItems="center"
+    alignItems='center'
     sx={{ flexShrink: 0, minWidth: 140 }}
   >
     <Box
@@ -48,10 +49,10 @@ const IconStat = ({ icon, value, label, bg }) => (
       {icon}
     </Box>
     <Box>
-      <Typography variant="subtitle2" fontWeight="bold">
+      <Typography variant='subtitle2' fontWeight='bold'>
         {value}
       </Typography>
-      <Typography variant="caption" color="text.secondary">
+      <Typography variant='caption' color='text.secondary'>
         {label}
       </Typography>
     </Box>
@@ -93,7 +94,6 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
     }
   };
 
-
   const handleDetails = () => {
     try {
       onViewDetails(ad.id);
@@ -110,12 +110,12 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
       <Paper
         elevation={3}
         sx={{
-          p: 2,
+          p: 1.5,
           borderRadius: 3,
           width: '100%',
-          maxWidth: '1200px',
-          minWidth: '1200px',
-          minHeight: 120,
+          maxWidth: '1000px',
+          minWidth: '1000px',
+          minHeight: 100,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -124,15 +124,20 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
       >
         {/* Left: Image + Description */}
         <Box
-          sx={{ display: 'flex', alignItems: 'center', minWidth: 360, gap: 2 }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 260,
+            gap: 1.5,
+          }}
         >
           <Box
             component='img'
             src={defaultAdImage}
             alt='Ad'
             sx={{
-              width: 60,
-              height: 60,
+              width: 48,
+              height: 48,
               borderRadius: 2,
               objectFit: 'cover',
               flexShrink: 0,
@@ -142,14 +147,14 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
             <Box
               sx={{
                 backgroundColor: '#f3e8ff',
-                px: 1.2,
-                py: 0.3,
+                px: 1,
+                py: 0.2,
                 borderRadius: 1,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mb: 0.5,
-                height: 24,
+                height: 20,
               }}
             >
               <Typography variant='caption' fontWeight={500} color='#9333ea'>
@@ -159,18 +164,18 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
               </Typography>
             </Box>
             <Typography
-              variant='subtitle1'
+              variant='subtitle2'
               fontWeight={600}
               noWrap
               sx={{
-                maxWidth: 250,
+                maxWidth: 180,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}
             >
               {adItem?.description || 'No Description'}
             </Typography>
-            <Box sx={{ mt: 0.5 }}>
+            <Box sx={{ mt: 0.3 }}>
               {adItem?.productId && (
                 <Tooltip title='Product Link'>
                   <a
@@ -178,7 +183,7 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                     target='_blank'
                     rel='noopener noreferrer'
                   >
-                    <LucideLink size={18} style={{ verticalAlign: 'middle' }} />
+                    <LucideLink size={16} style={{ verticalAlign: 'middle' }} />
                   </a>
                 </Tooltip>
               )}
@@ -190,8 +195,8 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
                     rel='noopener noreferrer'
                   >
                     <Store
-                      size={18}
-                      style={{ marginLeft: 8, verticalAlign: 'middle' }}
+                      size={16}
+                      style={{ marginLeft: 6, verticalAlign: 'middle' }}
                     />
                   </a>
                 </Tooltip>
@@ -206,41 +211,86 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            minWidth: 620,
-            gap: 2,
+            minWidth: 500,
+            gap: 1.5,
+            flexWrap: 'wrap',
           }}
         >
-          <Box sx={{ width: 140 }}>
+          <Box sx={{ width: 90 }}>
             <IconStat
-              icon={<Eye size={20} color='#fff' />}
+              icon={<Eye size={18} color='#fff' />}
               value={ad.views}
               label='Views'
               bg='#0284c7'
             />
           </Box>
-          <Box sx={{ width: 140 }}>
+          <Box sx={{ width: 90 }}>
             <IconStat
-              icon={<Hand size={20} color='#fff' />}
+              icon={<Hand size={18} color='#fff' />}
               value={ad.clicks}
               label='Clicks'
               bg='#0d9488'
             />
           </Box>
-          <Box sx={{ width: 170 }}>
+          <Box sx={{ width: 120 }}>
             <IconStat
-              icon={<Clock size={20} color='#fff' />}
+              icon={<Clock size={18} color='#fff' />}
               value={dateRange}
-              label='Active Period'
+              label='Active'
               bg='#8b5cf6'
             />
           </Box>
-          <Box sx={{ width: 130 }}>
+          <Box sx={{ width: 170 }}>
+            <Box
+              sx={{
+                width: 500,
+                maxWidth: 170,
+                minHeight: 48,
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                background: '#f3f4f6',
+                borderRadius: 2,
+                p: 0.7,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 0.2,
+                flexShrink: 1,
+              }}
+            >
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                <Hand size={12} color='#0d9488' /> Click Price:{' '}
+                <b style={{ marginLeft: 2 }}>{ad.clickPrice ?? 'Mock'}</b>
+              </Typography>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                <Eye size={18} color='#0284c7' /> View Price:{' '}
+                <b style={{ marginLeft: 2 }}>{ad.viewPrice ?? 'Mock'}</b>
+              </Typography>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                <CheckCircle size={18} color='#f59e0b' /> Conversion Price:{' '}
+                <b style={{ marginLeft: 2 }}>{ad.conversionPrice ?? 'Mock'}</b>
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ width: 80 }}>
             <IconStat
               icon={
                 ad.isActive ? (
-                  <CheckCircle size={20} color='#fff' />
+                  <CheckCircle size={18} color='#fff' />
                 ) : (
-                  <XCircle size={20} color='#fff' />
+                  <XCircle size={18} color='#fff' />
                 )
               }
               value={ad.isActive ? 'Active' : 'Inactive'}
@@ -253,29 +303,33 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
         {/* Right: Actions */}
         <Stack
           direction='row'
-          spacing={1}
+          spacing={0.5}
           alignItems='center'
           justifyContent='flex-end'
-          sx={{ minWidth: 120 }}
+          sx={{ minWidth: 80 }}
         >
           <Tooltip title='Details'>
-            <IconButton onClick={handleDetails}>
-              <Info size={18} />
+            <IconButton size='small' onClick={handleDetails}>
+              <Info size={16} />
             </IconButton>
           </Tooltip>
           <Tooltip title='Edit'>
-            <IconButton onClick={() => setIsEditOpen(true)}>
-              <Pencil size={18} />
+            <IconButton size='small' onClick={() => setIsEditOpen(true)}>
+              <Pencil size={16} />
             </IconButton>
           </Tooltip>
           <Tooltip title='Delete'>
-            <IconButton color='error' onClick={() => setIsDeleteOpen(true)}>
-              <Trash2 size={18} />
+            <IconButton
+              size='small'
+              color='error'
+              onClick={() => setIsDeleteOpen(true)}
+            >
+              <Trash2 size={16} />
             </IconButton>
           </Tooltip>
         </Stack>
-
-        {/* Modals */}
+        {/* ...modals... */}
+      </Paper>
         <EditAdModal
           open={isEditOpen}
           ad={ad}
@@ -288,7 +342,6 @@ const AdCard = ({ ad, onDelete, onEdit, onViewDetails }) => {
           onClose={() => setIsDeleteOpen(false)}
           onConfirm={handleDelete}
         />
-      </Paper>
     </Box>
   );
 };
