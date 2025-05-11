@@ -1,43 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Paper,
-  Typography,
-  Box,
-  Grid,
-  Divider,
-} from '@mui/material';
-import {
-  Megaphone,
-  ShoppingBag,
-  CheckCircle,
-  TrendingUp,
-} from 'lucide-react';
+import { Paper, Typography, Box, Grid, Divider } from '@mui/material';
+import { Megaphone, ShoppingBag, CheckCircle, TrendingUp } from 'lucide-react';
 import { apiFetchAdsWithProfitAsync } from '@api/api';
 
-const ProductSummary = ({ product }) => {
+const ProductSummary = ({ product, ads }) => {
   const [adsData, setAdsData] = useState([]);
 
   useEffect(() => {
     const loadAds = async () => {
-      try {
-        const ads = await apiFetchAdsWithProfitAsync();
-        console.log('✅ Fetched ads with profit:', ads);
+      if (!ads) {
+        try {
+          const ads = await apiFetchAdsWithProfitAsync();
+          console.log('✅ Fetched ads with profit:', ads);
+          setAdsData(ads);
+        } catch (error) {
+          console.error('❌ Error loading ads:', error);
+        }
+      } else {
         setAdsData(ads);
-      } catch (error) {
-        console.error('❌ Error loading ads:', error);
       }
     };
 
     loadAds();
   }, []);
 
-  
   const totalViews = adsData.reduce((sum, ad) => sum + ad.views, 0);
   const totalClicks = adsData.reduce((sum, ad) => sum + ad.clicks, 0);
   const totalConversions = adsData.reduce((sum, ad) => sum + ad.conversions, 0);
   const totalProfit = adsData.reduce((sum, ad) => sum + ad.profit, 0);
-
- return (
+  console.log(product);
+  return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', mb: 4 }}>
       <Paper sx={{ p: 3 }}>
         <Box
@@ -49,10 +41,12 @@ const ProductSummary = ({ product }) => {
             mb: 2,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 0 } }}>
-            <ShoppingBag size={24} color="#2563EB" />
-            <Typography variant="h4" sx={{ ml: 1.5, fontWeight: 'bold' }}>
-              {product?.productName || 'Unknown Product'}
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, md: 0 } }}
+          >
+            <ShoppingBag size={24} color='#2563EB' />
+            <Typography variant='h4' sx={{ ml: 1.5, fontWeight: 'bold' }}>
+              {product?.name || 'Unknown Product'}
             </Typography>
           </Box>
         </Box>
@@ -62,12 +56,12 @@ const ProductSummary = ({ product }) => {
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Views
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Megaphone size={18} color="#6B7280" />
-                <Typography variant="h6" component="div" sx={{ ml: 1 }}>
+                <Megaphone size={18} color='#6B7280' />
+                <Typography variant='h6' component='div' sx={{ ml: 1 }}>
                   {totalViews > 0 ? totalViews : 0}
                 </Typography>
               </Box>
@@ -76,12 +70,12 @@ const ProductSummary = ({ product }) => {
 
           <Grid item xs={12} sm={6} md={3}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Clicks
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <CheckCircle size={18} color="#10B981" />
-                <Typography variant="h6" component="div" sx={{ ml: 1 }}>
+                <CheckCircle size={18} color='#10B981' />
+                <Typography variant='h6' component='div' sx={{ ml: 1 }}>
                   {totalClicks > 0 ? totalClicks : 0}
                 </Typography>
               </Box>
@@ -90,12 +84,12 @@ const ProductSummary = ({ product }) => {
 
           <Grid item xs={12} sm={6} md={3}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 Conversions
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TrendingUp size={18} color="#3B82F6" />
-                <Typography variant="h6" component="div" sx={{ ml: 1 }}>
+                <TrendingUp size={18} color='#3B82F6' />
+                <Typography variant='h6' component='div' sx={{ ml: 1 }}>
                   {totalConversions > 0 ? totalConversions : 0}
                 </Typography>
               </Box>
@@ -104,10 +98,10 @@ const ProductSummary = ({ product }) => {
 
           <Grid item xs={12}>
             <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">
+              <Typography variant='subtitle2' color='text.secondary'>
                 Total Earned Profit from Ads
               </Typography>
-              <Typography variant="h5" color="success.main">
+              <Typography variant='h5' color='success.main'>
                 ${totalProfit > 0 ? totalProfit.toFixed(2) : 0}
               </Typography>
             </Box>
