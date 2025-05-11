@@ -90,16 +90,21 @@ const AdPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleAddAd = async (newAd) => {
-    const nextId = Math.max(...ads.map((a) => a.id)) + 1;
-    setAds((prev) => [...prev, { ...newAd, id: nextId }]);
-
+const handleAddAd = async (newAd) => {
+  try {
     const response = await apiCreateAdAsync(newAd);
-        if (response.status < 400) {
-          const res = await apiGetAllAdsAsync();
-          setAds(res.data);
-        }
-  };
+    const updated = await apiGetAllAdsAsync();
+    setAds(updated.data);
+    if (response.status < 400 && response.data) {
+
+      setIsModalOpen(false); // zatvori modal ako treba
+    } else {
+      console.error('Greška pri kreiranju oglasa:', response);
+    }
+  } catch (error) {
+    console.error('API error:', error);
+  }
+};
 
   const handlePageChange = (page) => {
     setCurrentPage(page);

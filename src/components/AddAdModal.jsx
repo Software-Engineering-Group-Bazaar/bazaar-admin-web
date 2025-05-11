@@ -246,22 +246,7 @@ const AddAdModal = ({ open, onClose }) => {
               </Typography>
             )}
 
-            {formData.AdData.map((item, index) => (
-              <Box
-                key={index}
-                sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}
-              >
-                <Typography variant="body2">
-                  <strong>Ad Text:</strong> {item.Description}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Store:</strong> {item.StoreLink}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Product:</strong> {item.ProductLink}
-                </Typography>
-              </Box>
-            ))}
+
 
             <TextField
               name="clickPrice"
@@ -372,7 +357,22 @@ const AddAdModal = ({ open, onClose }) => {
             >
               Add Item
             </Button>
-
+            {formData.AdData.map((item, index) => (
+              <Box
+                key={index}
+                sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}
+              >
+                <Typography variant="body2">
+                  <strong>Ad Text:</strong> {item.Description}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Store:</strong> {item.StoreLink}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Product:</strong> {item.ProductLink}
+                </Typography>
+              </Box>
+            ))}
             <Box display="flex" gap="1.2px" justifyContent="flex-end" mt={2}>
               <Button
                 variant="outlined"
