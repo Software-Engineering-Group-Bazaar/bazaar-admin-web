@@ -9,16 +9,18 @@ import {
 } from '@mui/material';
 import ImageUploader from './ImageUploader';
 import { apiGetStoreProductsAsync } from '@api/api';
+
 const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
   const [formData, setFormData] = useState({
     Image: '',
     StoreLink: '',
     ProductLink: '',
-    Description: '',
+    Description: ''
   });
 
   const [errors, setErrors] = useState({});
   const [products, setProducts] = useState([]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -45,18 +47,26 @@ const AddAdItemModal = ({ open, onClose, onAddItem, stores }) => {
     }
   };
 
-
   const handleSubmit = () => {
     const err = {};
     if (!formData.Description.trim()) err.Description = 'Required';
     if (!formData.ProductLink) err.ProductLink = 'Required';
     if (!formData.StoreLink) err.StoreLink = 'Required';
     if (!formData.Image) err.Image = 'Image is required';
-
     setErrors(err);
     if (Object.keys(err).length > 0) return;
 
     onAddItem(formData);
+
+    setFormData({
+      Image: '',
+      StoreLink: '',
+      ProductLink: '',
+      Description: '',
+      AdType: '',
+      Triggers: [],
+    });
+
     onClose();
   };
 

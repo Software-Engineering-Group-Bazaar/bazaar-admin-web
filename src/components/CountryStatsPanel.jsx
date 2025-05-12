@@ -140,7 +140,7 @@ const CountryStatsPanel = () => {
     fetchData();
   }, []);
 
-  const labels = ['Revenue by Regions', 'Orders by Regions'];
+  const labels = ['Orders Revenue by Regions', 'Orders by Regions'];
   const keys = ['revenue', 'orders'];
   const currentData = data[keys[tab]] || [];
 

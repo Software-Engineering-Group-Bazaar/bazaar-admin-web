@@ -7,18 +7,41 @@ function getWidth(percent, maxWidth) {
 const FunnelCurved = ({ steps, width = 700, height = 200 }) => {
   const stepHeight = height / steps.length;
   const maxWidth = width;
+
   return (
     <svg width={width} height={height}>
       {steps.map((step, i) => {
-        if (i === steps.length - 1) return null;
-        const next = steps[i + 1];
+        const isLast = i === steps.length - 1;
+        const next = isLast ? step : steps[i + 1];
         const y1 = i * stepHeight;
         const y2 = (i + 1) * stepHeight;
         const w1 = getWidth(step.percent, maxWidth);
         const w2 = getWidth(next.percent, maxWidth);
         const x1 = (maxWidth - w1) / 2;
         const x2 = (maxWidth - w2) / 2;
-        // Manje zakrivljenosti za više horizontalan izgled
+
+        // Ako je zadnji segment, dodaj zaobljeni donji kraj
+        if (isLast) {
+          const radius = 10;
+          return (
+            <path
+              key={i}
+              d={`
+                M ${x1},${y1}
+                L ${x1},${y2 - radius}
+                Q ${x1},${y2} ${x1 + radius},${y2}
+                L ${x1 + w1 - radius},${y2}
+                Q ${x1 + w1},${y2} ${x1 + w1},${y2 - radius}
+                L ${x1 + w1},${y1}
+                Z
+              `}
+              fill={step.color}
+              opacity={0.95}
+            />
+          );
+        }
+
+        // Standardni segmenti sa zakrivljenjem
         const c1 = y1 + stepHeight * 0.9;
         const c2 = y2 - stepHeight * 0.8;
         return (
@@ -36,6 +59,7 @@ const FunnelCurved = ({ steps, width = 700, height = 200 }) => {
           />
         );
       })}
+
       {/* Tekst u sredini svakog stepa */}
       {steps.map((step, i) => {
         const y = i * stepHeight + stepHeight / 2 + 6;
