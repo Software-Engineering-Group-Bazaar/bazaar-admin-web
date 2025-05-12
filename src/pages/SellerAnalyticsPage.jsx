@@ -212,7 +212,7 @@ const storeToSummary = (store, ads, products, clicks, views, conversions) => {
   const c_processed = clicks
     .map((adDetail) => {
       const adConfig = ads.find((ad) => ad.id === adDetail.id);
-      if (!adConfig || typeof adConfig.clickPrice !== 'number') return [];
+      if (!adConfig) return [];
       return (adDetail.clicks || []).map(() => adConfig.clickPrice); // Array of prices, one for each click
     })
     .flat();
@@ -220,7 +220,7 @@ const storeToSummary = (store, ads, products, clicks, views, conversions) => {
   const v_processed = views
     .map((adDetail) => {
       const adConfig = ads.find((ad) => ad.id === adDetail.id);
-      if (!adConfig || typeof adConfig.viewPrice !== 'number') return [];
+      if (!adConfig) return [];
       return (adDetail.views || []).map(() => adConfig.viewPrice);
     })
     .flat();
@@ -228,7 +228,7 @@ const storeToSummary = (store, ads, products, clicks, views, conversions) => {
   const cc_processed = conversions
     .map((adDetail) => {
       const adConfig = ads.find((ad) => ad.id === adDetail.id);
-      if (!adConfig || typeof adConfig.conversionPrice !== 'number') return [];
+      if (!adConfig) return [];
       return (adDetail.conversions || []).map(() => adConfig.conversionPrice);
     })
     .flat();
@@ -409,8 +409,8 @@ const SellerAnalytics = ({
                       gap: 0.5,
                     }}
                   >
-                    {item.change < 0 ? '↓' : '↑'}{' '}
-                    {Math.abs(item.change).toFixed(1)}% vs last month
+                    {/* {item.change < 0 ? '↓' : '↑'}{' '}
+                    {Math.abs(item.change).toFixed(1)}% vs last month */}
                   </Typography>
                 )}
               </CardContent>
