@@ -118,7 +118,7 @@ export default function AdStackedBarChart() {
         borderRadius: 4,
         boxShadow: 3,
         bgcolor: '#fff',
-        width: '585px',
+        width: '570px',
         height: '480px',
         margin: '0 10px',
       }}

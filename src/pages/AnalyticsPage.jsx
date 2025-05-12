@@ -547,9 +547,9 @@ const AnalyticsPage = () => {
       </Grid>
 
       {/* Glavni graf + countries */}
-      <Grid container spacing={3} mb={4}>
+      <Grid container spacing={3} mb={4} width={'1200px'}>
         <Grid item xs={12} md={9}>
-          <Box sx={{ height: 420, width: '100%' }}>
+          <Box sx={{ height: 420, width: '750px' }}>
             {' '}
             {/* Responsive width */}
             <AnalyticsChart />
@@ -569,31 +569,52 @@ const AnalyticsPage = () => {
       <Box sx={{ width: '100%', mt: 4 }}>
         {' '}
         {/* Responsive width */}
-        <Grid container spacing={2}>
+        <Grid container spacing={2} width={'1200px'}>
           <Grid item xs={12} md={4}>
             {' '}
             {/* Responsive width */}
-            <Box sx={{ height: 340, display: 'flex', flexDirection: 'column' }}>
+            <Box
+              sx={{
+                height: 340,
+                width: 375,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <OrdersByStatus />
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
             {' '}
             {/* Responsive width */}
-            <Box sx={{ height: 340, display: 'flex', flexDirection: 'column' }}>
+            <Box
+              sx={{
+                height: 340,
+                width: 380,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <UserDistribution />
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
             {' '}
             {/* Responsive width */}
-            <Box sx={{ height: 340, display: 'flex', flexDirection: 'column' }}>
+            <Box
+              sx={{
+                height: 340,
+                width: 380,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <RevenueByStore />
             </Box>
           </Grid>
         </Grid>
         {/* Charts from develop */}
-        <Box sx={{ width: '100%', mt: 4 }}>
+        <Box sx={{ width: '100%', mt: 5 }}>
           <Grid container spacing={3} mb={3}>
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -602,7 +623,7 @@ const AnalyticsPage = () => {
             </Grid>
           </Grid>
 
-          <Grid container spacing={3} mb={3}>
+          <Grid container spacing={2.5} mb={3}>
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <ParetoChart />
@@ -630,11 +651,6 @@ const AnalyticsPage = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <SalesChart />
               </Box>
-            </Grid>
-            <Grid item xs={12} md={12}>
-              {' '}
-              {/* Added a spot for RealtimeEventsList */}
-              <RealtimeEventsList />
             </Grid>
           </Grid>
         </Box>

@@ -30,7 +30,7 @@ const ProductSummary = ({ product, ads }) => {
   const totalProfit = adsData.reduce((sum, ad) => sum + ad.profit, 0);
   console.log(product);
   return (
-    <Box sx={{ width: '100%', mb: 4 }}>
+    <Box sx={{ width: '1170px', mb: 4 }}>
       <Paper sx={{ p: 3 }}>
         <Box
           sx={{
@@ -97,13 +97,22 @@ const ProductSummary = ({ product, ads }) => {
           </Grid>
 
           <Grid item xs={12}>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant='subtitle2' color='text.secondary'>
-                Total Earned Profit from Ads
-              </Typography>
-              <Typography variant='h5' color='success.main'>
-                ${totalProfit > 0 ? totalProfit.toFixed(2) : 0}
-              </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                ml: 88,
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+              }}
+            >
+              <Box>
+                <Typography variant='subtitle2' color='text.secondary'>
+                  Total Earned Profit from Ads
+                </Typography>
+                <Typography variant='h5' color='success.main'>
+                  ${totalProfit > 0 ? totalProfit.toFixed(2) : 0}
+                </Typography>
+              </Box>
             </Box>
           </Grid>
         </Grid>
