@@ -23,11 +23,15 @@ import {
   apiFetchAllUsersAsync, // Used in develop's fetchInitialData, not in HEAD's kpis
   apiGetAllStoresAsync,
   apiGetStoreProductsAsync,
-  apiFetchAdsWithProfitAsync, // From HEAD, for ProductsSummary
+  apiFetchAdsWithProfitAsync,
+  apiFetchAdClicksAsync,
+  apiFetchAdViewsAsync,
+  apiFetchAdConversionsAsync, // From HEAD, for ProductsSummary
 } from '../api/api.js';
 // format and parseISO were in develop but not used in the conflicting part, subMonths is used by both
 import { subMonths, format, parseISO } from 'date-fns'; // Added format, parseISO from develop imports
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'; // From develop
+import SellerAnalytics from './SellerAnalyticsPage.jsx';
 
 // --- SignalR Setup (from develop) ---
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
@@ -71,6 +75,16 @@ const AnalyticsPage = () => {
   const [currentProductPage, setCurrentProductPage] = useState(1);
   const PRODUCTS_PER_PAGE = 5; // Or your desired number
 
+  const [stores, setStores] = useState([]);
+  // const [adsDataForStoreSummary, setAdsDataForStoreSummary] = useState([]); // This might not be needed if ads state is comprehensive
+  const [currentStorePage, setCurrentStorePage] = useState(1);
+  const STORES_PER_PAGE = 1;
+
+  const [storeSpecificClickData, setStoreSpecificClickData] = useState([]);
+  const [storeSpecificViewData, setStoreSpecificViewData] = useState([]);
+  const [storeSpecificConversionData, setStoreSpecificConversionData] =
+    useState([]);
+
   // --- Pagination Logic (from HEAD) ---
   const handlePageChange = (event, value) => {
     setCurrentProductPage(value);
@@ -86,8 +100,16 @@ const AnalyticsPage = () => {
     (currentProductPage - 1) * PRODUCTS_PER_PAGE,
     currentProductPage * PRODUCTS_PER_PAGE
   );
-
   const pageCount = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+
+  const handleStorePageChange = (event, value) => {
+    setCurrentStorePage(value);
+    paginatedStores = [stores[value - 1]];
+    // paginatedStores will be derived directly in render or useEffect based on currentStorePage
+  };
+
+  let paginatedStores = [stores[0]];
+  const storePageCount = Math.ceil(stores.length / STORES_PER_PAGE);
 
   // --- SignalR useEffect (from develop) ---
   useEffect(() => {
@@ -211,6 +233,7 @@ const AnalyticsPage = () => {
     try {
       // Fetch stores first to get products
       const stores = await apiGetAllStoresAsync();
+      setStores(stores);
       let allFetchedProducts = [];
       let productsThisMonthCount = 0;
       let productsPrevMonthCount = 0;
@@ -258,6 +281,25 @@ const AnalyticsPage = () => {
           : [];
       console.log('Initial Ads Data:', initialAdsData);
       setAds(initialAdsData);
+
+      const clickidk = [];
+      for (const ad of ads) {
+        const r = (await apiFetchAdClicksAsync(ad.id)).data;
+        clickidk.push({ id: ad.id, clicks: r });
+      }
+      setStoreSpecificClickData(clickidk);
+      const viewidk = [];
+      for (const ad of ads) {
+        const r = (await apiFetchAdViewsAsync(ad.id)).data;
+        viewidk.push({ id: ad.id, views: r });
+      }
+      setStoreSpecificViewData(viewidk);
+      const ccidk = [];
+      for (const ad of ads) {
+        const r = (await apiFetchAdConversionsAsync(ad.id)).data;
+        ccidk.push({ id: ad.id, conversions: r });
+      }
+      setStoreSpecificConversionData(ccidk);
 
       // Fetch ads with profit for ProductsSummary (from HEAD)
       const adsWithProfitResponse = await apiFetchAdsWithProfitAsync();
@@ -708,6 +750,73 @@ const AnalyticsPage = () => {
           </Box>
         )}
       </Box>
+
+      {/* Store List with Pagination (from HEAD) */}
+      <Box sx={{ width: '100%', mt: 6 }} id='storeanal-section'>
+        {' '}
+        {/* Responsive width */}
+        <Typography variant='h5' sx={{ mb: 2, color: 'primary.dark' }}>
+          Store Performance
+        </Typography>
+        {stores.length === 0 && (
+          <Typography sx={{ textAlign: 'center', my: 4 }}>
+            No stores to display or still loading...
+          </Typography>
+        )}
+        {stores.length &&
+          [stores[currentStorePage - 1]].map((store, i) => (
+            <Grid
+              container
+              spacing={2}
+              key={
+                store.id ||
+                `storeanal-section-${(currentProductPage - 1) * 1 + i}`
+              }
+              sx={{ mb: 2 }}
+            >
+              <Grid item xs={12} md={6}>
+                {/* Ensure adsDataForSummary is correctly populated and passed */}
+                <SellerAnalytics
+                  store={store}
+                  ads={ads.filter((ad) => ad.adData[0].storeId == store.id)}
+                  products={products.filter((p) => p.storeId == store.id)}
+                  allClicks={storeSpecificClickData.filter((c) =>
+                    ads
+                      .filter((ad) => ad.adData[0].storeId == store.id)
+                      .map((ad) => ad.id)
+                      .includes(c.id)
+                  )}
+                  allViews={storeSpecificViewData.filter((c) =>
+                    ads
+                      .filter((ad) => ad.adData[0].storeId == store.id)
+                      .map((ad) => ad.id)
+                      .includes(c.id)
+                  )}
+                  allConversions={storeSpecificConversionData.filter((c) =>
+                    ads
+                      .filter((ad) => ad.adData[0].storeId == store.id)
+                      .map((ad) => ad.id)
+                      .includes(c.id)
+                  )}
+                />
+              </Grid>
+            </Grid>
+          ))}
+        {pageCount > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, pb: 4 }}>
+            <Pagination
+              count={stores.length}
+              page={currentStorePage}
+              onChange={handleStorePageChange}
+              color='primary'
+              showFirstButton
+              showLastButton
+            />
+          </Box>
+        )}
+      </Box>
+
+      <Box sx={{ width: '100%', mt: 6 }} id='seller-section'></Box>
       <Box sx={{ width: '100%', mt: 6 }} id='revenue-section'>
         {/* //jel ovo ima smisla ovd? (Comment from HEAD)
                   // If RevenueMetrics is global, it should be outside this map.
