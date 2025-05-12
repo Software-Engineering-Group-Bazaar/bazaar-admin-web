@@ -1006,13 +1006,13 @@ export const apiFetchAllUsersAsync = async () => {
  * Pretvara listu stringova (["Search", "Buy"]) u bit-flag broj*/
 const convertTriggersToBitFlag = (triggers) => {
   const triggerMap = {
-    search: 1, 
-    buy: 2,     
-    view: 4     
+    search: 1,
+    buy: 2,
+    view: 4,
   };
 
   if (!Array.isArray(triggers)) return 0;
-  
+
   return triggers.reduce((acc, trigger) => {
     const lowerTrigger = trigger.toLowerCase();
     return acc | (triggerMap[lowerTrigger] || 0);
@@ -1031,19 +1031,32 @@ export const apiCreateAdAsync = async (adData) => {
     formData.append('ViewPrice', parseFloat(adData.viewPrice));
     formData.append('ConversionPrice', parseFloat(adData.conversionPrice));
     formData.append('AdType', adData.AdType);
-    if(Array.isArray(adData.Triggers)){
+    if (Array.isArray(adData.Triggers)) {
       adData.Triggers.forEach((item, index) => {
-        formData.append(`Triggers[${index}]`, String(item))
-      })
+        formData.append(`Triggers[${index}]`, String(item));
+      });
     }
     if (Array.isArray(adData.AdData)) {
       console.log(adData.AdData[0].StoreLink);
       adData.AdData.forEach((item, index) => {
-        formData.append(`AdDataItems[${index}].storeId`, String(item.StoreLink));
-        formData.append(`AdDataItems[${index}].productId`, String(item.ProductLink));
-        formData.append(`AdDataItems[${index}].description`, item.Description ?? '');
+        formData.append(
+          `AdDataItems[${index}].storeId`,
+          String(item.StoreLink)
+        );
+        formData.append(
+          `AdDataItems[${index}].productId`,
+          String(item.ProductLink)
+        );
+        formData.append(
+          `AdDataItems[${index}].description`,
+          item.Description ?? ''
+        );
         if (item.Image) {
-          formData.append(`AdDataItems[${index}].imageFile`, item.Image, item.Image.name);
+          formData.append(
+            `AdDataItems[${index}].imageFile`,
+            item.Image,
+            item.Image.name
+          );
         }
       });
     }
@@ -1245,6 +1258,36 @@ export const apiGetGeographyAsync = async () => {
   }
 };
 
+export const apiFetchAdClicksAsync = async (id) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
+  return axios.get(
+    `${baseApiUrl}/api/AdminAnalytics/advertisement/${id}/clicks`
+  );
+};
+
+export const apiFetchAdViewsAsync = async (id) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
+  return axios.get(
+    `${baseApiUrl}/api/AdminAnalytics/advertisement/${id}/views`
+  );
+};
+
+export const apiFetchAdConversionsAsync = async (id) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
+  return axios.get(
+    `${baseApiUrl}/api/AdminAnalytics/advertisement/${id}/conversions`
+  );
+};
+
 export const apiFetchAdsWithProfitAsync = async () => {
   try {
     const token = localStorage.getItem('token');
@@ -1252,22 +1295,26 @@ export const apiFetchAdsWithProfitAsync = async () => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await axios.get(`${baseApiUrl}/api/AdminAnalytics/advertisements`);
+    const response = await axios.get(
+      `${baseApiUrl}/api/AdminAnalytics/advertisements`
+    );
     const ads = response.data;
 
     const allProductIds = []; // Za skupljanje svih productId vrednosti
 
-    const adsWithProfit = ads.map(ad => {
+    const adsWithProfit = ads.map((ad) => {
       const profit =
-        (ad.clicks * ad.clickPrice) +
-        (ad.views * ad.viewPrice) +
-        (ad.conversions * ad.conversionPrice);
+        ad.clicks * ad.clickPrice +
+        ad.views * ad.viewPrice +
+        ad.conversions * ad.conversionPrice;
 
       // Izdvajanje productId-ova iz adData
       const adData = ad.adData ?? [];
       const productIds = adData
-        .filter(item => item.productId !== null && item.productId !== undefined)
-        .map(item => item.productId);
+        .filter(
+          (item) => item.productId !== null && item.productId !== undefined
+        )
+        .map((item) => item.productId);
 
       // Ispis pojedinačnih productId-ova za svaki oglas
       console.log(`📦 Ad #${ad.id} - productId-ovi:`, productIds);
@@ -1303,7 +1350,10 @@ export const apiFetchAdsWithProfitAsync = async () => {
     localStorage.setItem('adProductIds', JSON.stringify(uniqueProductIds));
 
     // Ispis svih sačuvanih ID-eva
-    console.log('✅ Svi sačuvani productId-ovi u localStorage:', uniqueProductIds);
+    console.log(
+      '✅ Svi sačuvani productId-ovi u localStorage:',
+      uniqueProductIds
+    );
 
     return adsWithProfit;
   } catch (error) {
@@ -1321,7 +1371,11 @@ export const apiFetchProductsByIdsAsync = async () => {
 
     const storedProductIds = JSON.parse(localStorage.getItem('adProductIds'));
 
-    if (!storedProductIds || !Array.isArray(storedProductIds) || storedProductIds.length === 0) {
+    if (
+      !storedProductIds ||
+      !Array.isArray(storedProductIds) ||
+      storedProductIds.length === 0
+    ) {
       console.warn('⚠️ Nema productId vrednosti u localStorage.');
       return [];
     }
@@ -1330,7 +1384,9 @@ export const apiFetchProductsByIdsAsync = async () => {
 
     const productRequests = storedProductIds.map(async (productId) => {
       try {
-        const response = await axios.get(`${baseApiUrl}/api/Admin/products/${productId}`);
+        const response = await axios.get(
+          `${baseApiUrl}/api/Admin/products/${productId}`
+        );
         console.log(`✅ Proizvod ${productId} uspešno dohvaćen.`);
         return response.data;
       } catch (err) {
@@ -1342,9 +1398,12 @@ export const apiFetchProductsByIdsAsync = async () => {
     const allProducts = await Promise.all(productRequests);
 
     // Filtriraj neuspešne (null) odgovore
-    const validProducts = allProducts.filter(p => p !== null);
+    const validProducts = allProducts.filter((p) => p !== null);
 
-    console.log('✅ Ukupno uspešno dohvaćenih proizvoda:', validProducts.length);
+    console.log(
+      '✅ Ukupno uspešno dohvaćenih proizvoda:',
+      validProducts.length
+    );
     return validProducts;
   } catch (error) {
     console.error('❌ Globalna greška pri dohvaćanju proizvoda:', error);
