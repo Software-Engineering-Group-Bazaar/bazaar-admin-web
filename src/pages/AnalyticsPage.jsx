@@ -74,9 +74,15 @@ const AnalyticsPage = () => {
   // --- Pagination Logic (from HEAD) ---
   const handlePageChange = (event, value) => {
     setCurrentProductPage(value);
+    console.log(`curr:${currentProductPage} value${value}`);
+    console.log(paginatedProducts);
+    paginatedProducts = products.slice(
+      (value - 1) * PRODUCTS_PER_PAGE,
+      value * PRODUCTS_PER_PAGE
+    );
   };
 
-  const paginatedProducts = products.slice(
+  var paginatedProducts = products.slice(
     (currentProductPage - 1) * PRODUCTS_PER_PAGE,
     currentProductPage * PRODUCTS_PER_PAGE
   );
@@ -680,7 +686,12 @@ const AnalyticsPage = () => {
           >
             <Grid item xs={12} md={6}>
               {/* Ensure adsDataForSummary is correctly populated and passed */}
-              <ProductsSummary product={product} ads={adsDataForSummary} />
+              <ProductsSummary
+                product={product}
+                ads={adsDataForSummary.filter((a) =>
+                  a.adData.map((b) => b.productId).includes(product.id)
+                )}
+              />
             </Grid>
           </Grid>
         ))}
