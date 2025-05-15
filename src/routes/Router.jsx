@@ -18,7 +18,7 @@ import OrdersPage from '@pages/OrdersPage';
 import AnalyticsPage from '@pages/AnalyticsPage'
 import AdPage from '@pages/AdPage'
 import SellerAnalyticsPage from '@pages/SellerAnalyticsPage';
-
+import ChatPage from '@pages/ChatPage'
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
@@ -141,16 +141,25 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path='/chat'
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <ChatPage />
+                </ThemeProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path='/'
           element={
             <Navigate to={isAuthenticated() ? '/users' : '/login'} replace />
           }
         />
-        <Route 
-          path="/analytics/seller" 
-          element={
-          <SellerAnalyticsPage/>} 
-        />
+        <Route path='/analytics/seller' element={<SellerAnalyticsPage />} />
       </Routes>
     </Router>
   );
