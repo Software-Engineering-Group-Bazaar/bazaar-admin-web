@@ -15,10 +15,11 @@ import theme from '@styles/theme';
 import Sidebar from '@components/Sidebar';
 import CategoriesPage from '@pages/CategoriesPage';
 import OrdersPage from '@pages/OrdersPage';
-import AnalyticsPage from '@pages/AnalyticsPage'
-import AdPage from '@pages/AdPage'
+import AnalyticsPage from '@pages/AnalyticsPage';
+import AdPage from '@pages/AdPage';
 import SellerAnalyticsPage from '@pages/SellerAnalyticsPage';
-
+import TicketCard from '../components/TicketCard';
+import TicketListSection from '../components/TicketListSection';
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
@@ -141,16 +142,25 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path='/ticket'
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <TicketListSection />
+                </ThemeProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path='/'
           element={
             <Navigate to={isAuthenticated() ? '/users' : '/login'} replace />
           }
         />
-        <Route 
-          path="/analytics/seller" 
-          element={
-          <SellerAnalyticsPage/>} 
-        />
+        <Route path='/analytics/seller' element={<SellerAnalyticsPage />} />
       </Routes>
     </Router>
   );
