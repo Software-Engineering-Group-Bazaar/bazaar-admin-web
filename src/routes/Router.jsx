@@ -15,8 +15,8 @@ import theme from '@styles/theme';
 import Sidebar from '@components/Sidebar';
 import CategoriesPage from '@pages/CategoriesPage';
 import OrdersPage from '@pages/OrdersPage';
-import AnalyticsPage from '@pages/AnalyticsPage'
-import AdPage from '@pages/AdPage'
+import AnalyticsPage from '@pages/AnalyticsPage';
+import AdPage from '@pages/AdPage';
 import SellerAnalyticsPage from '@pages/SellerAnalyticsPage';
 import ChatPage from '@pages/ChatPage'
 
