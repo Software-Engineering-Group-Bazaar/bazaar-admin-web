@@ -10,6 +10,15 @@ import {
   UserPlus,
   TrendingUp,
   TrendingDown,
+  Eye, // Added Eye for views
+  MousePointer, // Added MousePointer for clicks
+  Repeat, // Added Repeat for conversions
+  BarChart, // Added BarChart for totalAds (changed from generic)
+  PieChart, // Added PieChart for distribution/summary (generic)
+  CreditCard, // Used for one revenue type
+  Wallet, // Used for another revenue type
+  Banknote, // Used for the third revenue type
+  LineChart, // Another option for totalAds or general analytics
 } from 'lucide-react';
 
 const iconMap = {
@@ -21,6 +30,13 @@ const iconMap = {
   activeStores: <CheckCircle size={32} color='#7c2d12' />,
   approvedUsers: <ShieldCheck size={32} color='#7c2d12' />,
   newUsers: <UserPlus size={32} color='#7c2d12' />,
+  totalAds: <LineChart size={32} color='#7c2d12' />, // Updated icon for totalAds
+  views: <Eye size={32} color='#7c2d12' />, // Icon for views
+  clicks: <MousePointer size={32} color='#7c2d12' />, // Icon for clicks
+  conversions: <Repeat size={32} color='#7c2d12' />, // Icon for conversions
+  conversionRevenue: <CreditCard size={32} color='#7c2d12' />, // Updated icon for conversion revenue
+  clicksRevenue: <Wallet size={32} color='#7c2d12' />, // Updated icon for clicks revenue
+  viewsRevenue: <Banknote size={32} color='#7c2d12' />, // Updated icon for views revenue
 };
 
 const KpiCard = ({ label, value, percentageChange = 0, type = 'orders' }) => {

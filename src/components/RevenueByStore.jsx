@@ -69,6 +69,7 @@ const RevenueByStore = () => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        p: 1,
       }}
     >
       <CardContent sx={{ flexShrink: 0 }}>

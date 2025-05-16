@@ -46,7 +46,9 @@ const ProductSummary = ({ product, ads }) => {
           >
             <ShoppingBag size={24} color='#2563EB' />
             <Typography variant='h4' sx={{ ml: 1.5, fontWeight: 'bold' }}>
-              {product?.name || 'Unknown Product'}
+              {product?.name.length > 54
+                ? `${product.name.substring(0, 54)}...`
+                : product.name || 'Unknown Product'}{' '}
             </Typography>
           </Box>
         </Box>
@@ -99,8 +101,8 @@ const ProductSummary = ({ product, ads }) => {
           <Grid item xs={12}>
             <Box
               sx={{
-                display: 'flex',
-                ml: 88,
+                display: 'fixed',
+                ml: 80,
                 justifyContent: 'flex-end',
                 alignItems: 'center',
               }}

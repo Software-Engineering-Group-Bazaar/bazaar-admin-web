@@ -778,7 +778,7 @@ const AnalyticsPage = () => {
                 {/* Ensure adsDataForSummary is correctly populated and passed */}
                 <SellerAnalytics
                   store={store}
-                  ads={ads.filter((ad) => ad.adData[0].storeId == store.id)}
+                  ads={ads.filter((ad) => ad.adData?.[0]?.storeId === store.id)}
                   products={products.filter((p) => p.storeId == store.id)}
                   allClicks={storeSpecificClickData.filter((c) =>
                     ads

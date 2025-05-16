@@ -336,6 +336,7 @@ const SellerAnalytics = ({
         px: { xs: 1, md: 3 },
         pt: 4,
         pb: 6,
+        width: '1170px',
         bgcolor: '#f5f7fa',
         minHeight: 'auto',
         border: '1px solid #e0e0e0',
@@ -352,7 +353,7 @@ const SellerAnalytics = ({
         </Typography>
       </Box>
 
-      <Grid container spacing={2} mb={3} justifyContent='center'>
+      <Grid container spacing={3} mb={3} justifyContent='center'>
         {' '}
         {/* Adjusted spacing */}
         {topStats.map((item, idx) => (
@@ -364,7 +365,7 @@ const SellerAnalytics = ({
                 backgroundColor: '#fff',
                 borderRadius: 3,
                 boxShadow: 2,
-                p: 1.5,
+                width: '200px',
                 height: '100%',
               }}
             >
@@ -373,7 +374,7 @@ const SellerAnalytics = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 0.5,
-                  p: '12px !important',
+                  p: '16px !important',
                 }}
               >
                 <Box
@@ -419,7 +420,7 @@ const SellerAnalytics = ({
         ))}
       </Grid>
 
-      <Grid container spacing={3} justifyContent='center'>
+      <Grid container spacing={3} justifyContent='center' sx={{ maxWidth: 1170 }}>
         {' '}
         {/* Adjusted spacing */}
         {[
@@ -448,6 +449,7 @@ const SellerAnalytics = ({
                 borderRadius: 3,
                 boxShadow: 2,
                 p: 2,
+                width: '350px',
               }}
             >
               <Typography variant='subtitle1' fontWeight={600} mb={2}>
