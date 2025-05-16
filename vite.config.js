@@ -23,6 +23,7 @@ export default defineConfig({
       "@services": "/src/services",
       "@context": "/src/context",
       '@api': "/src/api",
+      '@models': "/src/models"
 
     }, 
   },
