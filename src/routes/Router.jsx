@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children }) => {
 const Layout = ({ children }) => (
   <div style={{ display: 'flex' }}>
     <Sidebar />
-    <div style={{ flex: 1, padding: '2rem' }}>{children}</div>
+    <div style={{ flex: 1 }}>{children}</div>
   </div>
 );
 

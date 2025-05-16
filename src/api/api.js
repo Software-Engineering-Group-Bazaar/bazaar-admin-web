@@ -1410,3 +1410,78 @@ export const apiFetchProductsByIdsAsync = async () => {
     return [];
   }
 };
+
+
+export const apiFetchAllTicketsAsync = async ({
+  status = '',
+  pageNumber = 1,
+  pageSize = 20,
+} = {}) => {
+  apiSetAuthHeader();
+  try {
+    const params = [];
+    if (status) params.push(`status=${encodeURIComponent(status)}`);
+    if (pageNumber) params.push(`pageNumber=${pageNumber}`);
+    if (pageSize) params.push(`pageSize=${pageSize}`);
+    const query = params.length ? `?${params.join('&')}` : '';
+    const res = await axios.get(`${baseApiUrl}/api/Tickets/all${query}`);
+    return { status: res.status, data: res.data };
+  } catch (err) {
+    console.error('Error fetching tickets:', err);
+    return { status: err.response?.status || 500, data: [] };
+  }
+};
+
+export const apiUpdateTicketStatusAsync = async (ticketId, newStatus) => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.put(
+      `${baseApiUrl}/api/Tickets/${ticketId}/status`,
+      { newStatus }
+    );
+    return { status: res.status, data: res.data };
+  } catch (err) {
+    console.error('Error updating ticket status:', err);
+    return { status: err.response?.status || 500, data: null };
+  }
+};
+
+export const apiFetchAllConversationsAsync = async () => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.get(`${baseApiUrl}/api/Chat/conversations`);
+    return { status: res.status, data: res.data };
+  } catch (err) {
+    console.error('Error fetching conversations:', err);
+    return { status: err.response?.status || 500, data: [] };
+  }
+};
+
+export const apiFetchMessagesForConversationAsync = async (
+  conversationId,
+  page = 1,
+  pageSize = 30
+) => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.get(
+      `${baseApiUrl}/api/Chat/conversations/${conversationId}/messages?page=${page}&pageSize=${pageSize}`
+    );
+    return { status: res.status, data: res.data };
+  } catch (err) {
+    console.error('Error fetching messages:', err);
+    return { status: err.response?.status || 500, data: [] };
+  }
+};
+
+export const apiDeleteTicketAsync = async (ticketId) => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.delete(`${baseApiUrl}/api/Tickets/${ticketId}`);
+    return { status: res.status };
+  } catch (err) {
+    console.error('Error deleting ticket:', err);
+    return { status: err.response?.status || 500 };
+  }
+};
+
