@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
@@ -33,21 +34,21 @@ const statusOptions = [
 const getStatusColor = (status) => {
   switch (status.toLowerCase()) {
     case 'confirmed':
-      return '#0288d1'; // plava
+      return '#0288d1';
     case 'rejected':
-      return '#d32f2f'; // crvena
+      return '#d32f2f';
     case 'ready':
-      return '#388e3c'; // zelena
+      return '#388e3c';
     case 'sent':
-      return '#fbc02d'; // žuta
+      return '#fbc02d';
     case 'delivered':
-      return '#1976d2'; // tamno plava
+      return '#1976d2';
     case 'cancelled':
-      return '#b71c1c'; // tamno crvena
+      return '#b71c1c';
     case 'requested':
-      return '#757575'; // siva
+      return '#757575';
     default:
-      return '#9e9e9e'; // fallback siva
+      return '#9e9e9e';
   }
 };
 
@@ -62,6 +63,8 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
     new Date(narudzba.time).toISOString().slice(0, 16)
   );
   const [products, setProducts] = useState(narudzba.proizvodi || []);
+  const [deliveryAddress] = useState(narudzba.deliveryAddress);
+  const [receivingAddress] = useState(narudzba.receivingAddress);
 
   useEffect(() => {
     const fetchMappings = async () => {
@@ -75,13 +78,8 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
         (u) => u.userName === narudzba.buyerId || u.email === narudzba.buyerId
       );
 
-      if (storeEntry) {
-        setStoreId(storeEntry.id);
-      }
-
-      if (userEntry) {
-        setBuyerId(userEntry.id);
-      }
+      if (storeEntry) setStoreId(storeEntry.id);
+      if (userEntry) setBuyerId(userEntry.id);
     };
 
     fetchMappings();
@@ -110,7 +108,6 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
 
     if (!storeId) {
       alert('Greška: Store ID nije validan.');
-      console.log(storeId);
       return;
     }
 
@@ -134,6 +131,8 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
           quantity: Number(p.quantity),
         };
       }),
+      deliveryAddressId: deliveryAddress?.id,
+      receivingAddressId: receivingAddress?.id,
     };
 
     const res = await apiUpdateOrderAsync(narudzba.id, payload);
@@ -163,7 +162,6 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
         },
       }}
     >
-      {/* Bubble Background */}
       <Box
         sx={{
           position: 'absolute',
@@ -217,8 +215,6 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
       <DialogContent
         sx={{ position: 'relative', zIndex: 1, px: 3, pt: 3, pb: 4 }}
       >
-        {/* Bubble Background */}
-
         <IconButton
           onClick={onClose}
           sx={{
@@ -355,6 +351,30 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
                 {new Date(narudzba.time).toLocaleString()}
               </Typography>
             )}
+          </Box>
+
+          <Box display='flex' justifyContent='space-between' mb={1}>
+            <Typography color='text.secondary'>Delivery Address:</Typography>
+            <Box textAlign='right'>
+              <Typography fontWeight={600}>
+                {deliveryAddress?.address}
+              </Typography>
+              <Typography variant='caption' color='text.secondary'>
+                {deliveryAddress?.city}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box display='flex' justifyContent='space-between' mb={1}>
+            <Typography color='text.secondary'>Receiving Address:</Typography>
+            <Box textAlign='right'>
+              <Typography fontWeight={600}>
+                {receivingAddress?.address}
+              </Typography>
+              <Typography variant='caption' color='text.secondary'>
+                {receivingAddress?.city}
+              </Typography>
+            </Box>
           </Box>
         </Box>
 
