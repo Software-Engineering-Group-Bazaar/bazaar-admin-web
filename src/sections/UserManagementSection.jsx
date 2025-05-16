@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { Box } from "@mui/material";
-import UserList from "../components/UserList.jsx";
-import ConfirmDialog from "../components/ConfirmDialog.jsx";
-import UserDetailsModal from "@components/UserDetailsModal";
-import { apiUpdateUserAsync, apiToggleUserAvailabilityAsync } from "@api/api";
+import React, { useState } from 'react';
+import { Box } from '@mui/material';
+import UserList from '../components/UserList.jsx';
+import ConfirmDialog from '../components/ConfirmDialog.jsx';
+import UserDetailsModal from '@components/UserDetailsModal';
+import { apiUpdateUserAsync, apiToggleUserAvailabilityAsync } from '@api/api';
 
 export default function UserManagementSection({
   allUsers,
@@ -36,27 +36,27 @@ export default function UserManagementSection({
   const handleEdit = async (updatedUser) => {
     try {
       if (updatedUser.toggleAvailabilityOnly) {
-        onEdit(updatedUser); 
+        onEdit(updatedUser);
 
         const response = await apiToggleUserAvailabilityAsync(
           updatedUser.id,
           updatedUser.isActive
         );
+        console.log('RESP:', response);
 
-        if (response.statusText==="OK") {
-          onEdit({ ...updatedUser, isActive: response.isActive });
+        if (response.statusText === 'OK') {
+          onEdit({ ...updatedUser, isActive: updatedUser.isActive });
         }
       } else {
         const response = await apiUpdateUserAsync(updatedUser);
-        if (response.status!==400) {
+        if (response.status !== 400) {
           onEdit(response.data);
         }
       }
     } catch (err) {
-      console.error("Error editing user:", err);
+      console.error('Error editing user:', err);
     }
   };
-
 
   return (
     <Box>
@@ -73,7 +73,7 @@ export default function UserManagementSection({
         open={confirmDialogOpen}
         onClose={cancelDelete}
         onConfirm={confirmDelete}
-        message="Are you sure you want to delete this user?"
+        message='Are you sure you want to delete this user?'
       />
     </Box>
   );
