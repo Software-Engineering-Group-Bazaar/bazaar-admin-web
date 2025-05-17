@@ -10,6 +10,7 @@ import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import ads from '../data/ads.js';
+import sha256 from "crypto-js/sha256";
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
 const API_ENV_DEV = 'dev';
@@ -1409,4 +1410,19 @@ export const apiFetchProductsByIdsAsync = async () => {
     console.error('❌ Globalna greška pri dohvaćanju proizvoda:', error);
     return [];
   }
+};
+
+//rute
+export const createRouteAsync = async (orders, directionsResponse) => {
+  const rawData = JSON.stringify(directionsResponse);
+  const hash = sha256(rawData).toString();
+
+  const payload = {
+    data: rawData,
+    hash,
+    orderIds: orders.map(o => o.id)
+  };
+
+  const response = await axios.post("/routes", payload);
+  return response.data;
 };
