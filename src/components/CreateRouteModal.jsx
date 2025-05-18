@@ -11,7 +11,8 @@ import {
 } from "@mui/material";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import sha256 from "crypto-js/sha256";
-import { apiFetchOrdersAsync, createRouteAsync } from "@api/api";
+import { apiFetchOrdersAsync, createRouteAsync, fetchAdressesAsync } from "@api/api";
+import { apiGetStoreByIdAsync } from "../api/api";
 
 const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,7 +25,22 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
   const fetchOrders = async () => {
     try {
       const fetched = await apiFetchOrdersAsync();
-      setAllOrders(fetched);
+      console.log(fetched);
+      const addresses = await fetchAdressesAsync(); // all addresses
+      const enrichedOrders = await Promise.all(
+        fetched.map(async (order) => {
+          const store = await apiGetStoreByIdAsync(order.storeName); // fetch per order
+          const buyerAddress = addresses.find(addr => addr.id === order.addressId)?.address || "Unknown";
+
+          return {
+            ...order,
+            senderAddress: store.address,
+            buyerAddress: buyerAddress
+          };
+        })
+      );
+
+      setAllOrders(enrichedOrders);
     } catch (err) {
       console.error("Greška prilikom učitavanja narudžbi:", err);
     }
@@ -34,7 +50,6 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
     fetchOrders();
   }
 }, [open]);
-
 
   const handleToggleOrder = (order) => {
     const exists = selectedOrders.some((o) => o.id === order.id);
@@ -55,11 +70,11 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
 
       setLoading(true);
 
-      const origin = selectedOrders[0].address?.streetAddress;
-      const destination = selectedOrders[selectedOrders.length - 1].address?.streetAddress;
+      const origin = selectedOrders[0].senderAddress;
+      const destination = selectedOrders[selectedOrders.length - 1].buyerAddress;
       const waypoints = selectedOrders
         .slice(1, -1)
-        .map((order) => `via:${order.address?.streetAddress}`)
+        .map((order) => `via:${order.buyerAddress}`)
         .join("|");
 
 
@@ -78,8 +93,8 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
         return;
       }
 
-      await createRouteAsync(selectedOrders, directionsJson);
-      onCreateRoute(selectedOrders);
+      onCreateRoute(selectedOrders,directionsJson);
+      onClose();
     } catch (err) {
       console.error("Greška pri kreiranju rute:", err);
       alert("Došlo je do greške.");
@@ -175,7 +190,7 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
                     Order #{order.id}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {order.address?.streetAddress || "?"}
+                    {`${order.senderAddress?.toString() || "?"} - ${order.buyerAddress?.toString() || "?"}`}
                   </Typography>
                 </Box>
               </Box>
@@ -240,7 +255,7 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
                     Order #{order.id}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {order.address?.streetAddress || "?"}
+                    {`${order.senderAddress?.toString() || "?"} - ${order.buyerAddress?.toString() || "?"}`}
                   </Typography>
                 </Box>
               </Box>

@@ -885,7 +885,7 @@ export const apiFetchOrdersAsync = async () => {
       status: order.status,
       buyerName: order.buyerId,
       storeName: order.storeId,
-      deliveryAddress: 'Not available',
+      addressId: order.addressId,
       createdAt: order.time,
       totalPrice: order.total,
       isCancelled: order.status === 1,
@@ -1504,4 +1504,35 @@ export const apiDeleteTicketAsync = async (ticketId) => {
   }
 };
 
+export const fetchAdressesAsync = async () => {
+  apiSetAuthHeader();
+  try{
+    const res = await axios.get(`${baseApiUrl}/api/user-profile/address`);
+    return res.data;
+  } catch(err) {
+    console.error("Error finding address.", err);
+    return { status: err.response?.status || 500 };
+  }
+};
 
+export const apiGetRoutesAsync = async () => {
+  apiSetAuthHeader();
+  try{
+    const res = await axios.get(`${baseApiUrl}/api/Delivery/routes`);
+    return res.data;
+  } catch(err) {
+    console.error("Error getting routes.", err);
+    return { status: err.response?.status || 500 };
+  } 
+};
+
+export const apiDeleteRouteAsync = async (id) => {
+  apiSetAuthHeader();
+  try{
+    const res = await axios.delete(`${baseApiUrl}/api/Delivery/routes/${id}`);
+    return res.status;
+  } catch(err) {
+    console.error("Error getting routes.", err);
+    return { status: err.response?.status || 500 };
+  } 
+};
