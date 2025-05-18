@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import sha256 from "crypto-js/sha256";
-import { apiFetchOrdersAsync, createRouteAsync, fetchAdressesAsync } from "@api/api";
+import { apiFetchOrdersAsync, createRouteAsync, fetchAdressesAsync, fetchAdressByIdAsync, getGoogle } from "@api/api";
 import { apiGetStoreByIdAsync } from "../api/api";
 
 const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
@@ -27,15 +27,16 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
       const fetched = await apiFetchOrdersAsync();
       console.log(fetched);
       const addresses = await fetchAdressesAsync(); // all addresses
+      
       const enrichedOrders = await Promise.all(
         fetched.map(async (order) => {
           const store = await apiGetStoreByIdAsync(order.storeName); // fetch per order
-          const buyerAddress = addresses.find(addr => addr.id === order.addressId)?.address || "Unknown";
-
+          const buyerAddress = await fetchAdressByIdAsync(order.addressId);
+          console.log(buyerAddress);
           return {
             ...order,
             senderAddress: store.address,
-            buyerAddress: buyerAddress
+            buyerAddress: buyerAddress.address
           };
         })
       );
@@ -77,23 +78,9 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
         .map((order) => `via:${order.buyerAddress}`)
         .join("|");
 
+      const directions = await getGoogle(origin,destination,waypoints);
 
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(
-        origin
-      )}&destination=${encodeURIComponent(
-        destination
-      )}&waypoints=${encodeURIComponent(waypoints)}&key=${apiKey}`;
-
-      const response = await fetch(url);
-      const directionsJson = await response.json();
-
-      if (directionsJson.status !== "OK") {
-        alert("Greška kod Google Maps API.");
-        return;
-      }
-
-      onCreateRoute(selectedOrders,directionsJson);
+      onCreateRoute(selectedOrders,directions);
       onClose();
     } catch (err) {
       console.error("Greška pri kreiranju rute:", err);

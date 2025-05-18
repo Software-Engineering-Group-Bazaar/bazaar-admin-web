@@ -58,7 +58,7 @@ const RouteCard = ({route, onViewDetails, onDelete}) => {
           marginTop: 13
         }}
       >
-        Ruta
+        Ruta {route?.id}
       </Typography>
 
       {/* Buttons */}
