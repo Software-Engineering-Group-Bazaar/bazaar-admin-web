@@ -29,6 +29,7 @@ import { FiClipboard } from 'react-icons/fi';
 import { FiBarChart2 } from 'react-icons/fi';
 import { HiOutlineMegaphone } from 'react-icons/hi2';
 import { FiMessageCircle } from 'react-icons/fi';
+import { FaRoute } from 'react-icons/fa';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -80,6 +81,12 @@ const Sidebar = () => {
       icon: <FiMessageCircle />,
       label: 'Chat',
       path: '/chat',
+      badge: null,
+    },
+     {
+      icon: <FaRoute />,
+      label: 'Routes',
+      path: '/routes',
       badge: null,
     },
   ];
