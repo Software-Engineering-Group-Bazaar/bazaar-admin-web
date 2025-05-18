@@ -1,24 +1,47 @@
 // @components/ChatMessage.jsx
-import { Box, Paper, Typography, Stack, Link as MuiLink } from '@mui/material';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { Box, Paper, Typography, Stack } from '@mui/material';
 
-export default function ChatMessage({ isAdmin, text, time, attachment }) {
+export default function ChatMessage({
+  sender,
+  isAdmin,
+  text,
+  time,
+  attachment,
+  isPrivate = false,
+}) {
   return (
     <Stack direction='row' justifyContent={isAdmin ? 'flex-end' : 'flex-start'}>
       <Paper
         elevation={0}
         sx={{
           p: 2,
-          bgcolor: isAdmin ? '#e3f2fd' : '#fff',
+          bgcolor: isAdmin
+            ? isPrivate
+              ? '#e0e0e0'
+              : '#e3f2fd'
+            : isPrivate
+              ? '#a7c7e7'
+              : '#fff',
           maxWidth: 480,
           borderRadius: 3,
           borderTopRightRadius: isAdmin ? 0 : 12,
           borderTopLeftRadius: isAdmin ? 12 : 0,
         }}
       >
+        {!isAdmin && (
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            sx={{ mb: 0.5, display: 'block' }}
+          >
+            {sender}
+          </Typography>
+        )}
+
         <Typography variant='body1' sx={{ mb: attachment ? 1 : 0 }}>
           {text}
         </Typography>
+
         {attachment && (
           <Stack
             direction='row'
@@ -42,13 +65,35 @@ export default function ChatMessage({ isAdmin, text, time, attachment }) {
             </MuiLink>
           </Stack>
         )}
-        <Typography
-          variant='caption'
-          color='text.secondary'
-          sx={{ display: 'block', textAlign: 'right', mt: 0.5 }}
+
+        <Stack
+          direction='row'
+          spacing={1}
+          alignItems='center'
+          justifyContent='flex-end'
         >
-          {time}
-        </Typography>
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            sx={{ display: 'block', mt: 0.5 }}
+          >
+            {time}
+          </Typography>
+
+          {isPrivate && (
+            <Typography
+              variant='caption'
+              sx={{
+                fontStyle: 'italic',
+                color: '#999',
+                display: 'block',
+                mt: 0.5,
+              }}
+            >
+              Private
+            </Typography>
+          )}
+        </Stack>
       </Paper>
     </Stack>
   );

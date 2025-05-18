@@ -2,7 +2,7 @@
 import { Box, Typography, Stack, Chip } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
 
-export default function ChatHeader() {
+export default function ChatHeader({ username }) {
   return (
     <Box
       sx={{
@@ -15,7 +15,7 @@ export default function ChatHeader() {
     >
       <Stack direction='row' alignItems='center' spacing={2}>
         <Box>
-          <Typography fontWeight={600}>Regina Polyakova</Typography>
+          <Typography fontWeight={600}>{username || 'User'}</Typography>
           <Stack direction='row' alignItems='center' spacing={1}>
             <CircleIcon sx={{ color: '#4ade80', fontSize: 12 }} />
             <Typography variant='body2' color='success.main'>

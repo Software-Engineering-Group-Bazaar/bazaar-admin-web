@@ -253,7 +253,9 @@ function SalesChart() {
                   noWrap // Prevent long names from breaking layout
                   title={item.name}
                 >
-                  {item.name}
+                  {item.name.length > 16
+                    ? `${item.name.substring(0, 16)}...`
+                    : item.name}{' '}
                 </Typography>
               </Box>
 

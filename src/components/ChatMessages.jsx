@@ -1,53 +1,16 @@
 // @components/ChatMessages.jsx
 import { Box } from '@mui/material';
 import ChatMessage from './ChatMessage';
+import { useEffect, useRef } from 'react';
 
-const messages = [
-  {
-    id: 1,
-    sender: 'Regina Polyakova',
-    isAdmin: false,
-    text: "Hello! Have you already prepared financial statements for the last month? I can't find it anywhere. Tomorrow it will be necessary to print all the documents and hand them over to the customer at the meeting.",
-    time: '09:42',
-  },
-  {
-    id: 2,
-    sender: 'Admin',
-    isAdmin: true,
-    text: "Hi! Of course! I've made it! I sent you all the documents two days ago by email. This is what happens when you do not read messages for several days. But it is ok, here you go. Don't lose them...",
-    time: '10:12',
-  },
-  {
-    id: 3,
-    sender: 'Regina Polyakova',
-    isAdmin: false,
-    text: "Oh, there's such a bunch of emails. I just can not find yours among the other. I promise not to lose your letters anymore. See you at the meeting tomorrow!",
-    time: '10:15',
-  },
-  {
-    id: 4,
-    sender: 'Regina Polyakova',
-    isAdmin: false,
-    text: "Hello! Have you already prepared financial statements for the last month? I can't find it anywhere. Tomorrow it will be necessary to print all the documents and hand them over to the customer at the meeting.",
-    time: '09:42',
-  },
-  {
-    id: 5,
-    sender: 'Admin',
-    isAdmin: true,
-    text: "Hi! Of course! I've made it! I sent you all the documents two days ago by email. This is what happens when you do not read messages for several days. But it is ok, here you go. Don't lose them...",
-    time: '10:12',
-  },
-  {
-    id: 6,
-    sender: 'Regina Polyakova',
-    isAdmin: false,
-    text: "Oh, there's such a bunch of emails. I just can not find yours among the other. I promise not to lose your letters anymore. See you at the meeting tomorrow!",
-    time: '10:15',
-  },
-];
+export default function ChatMessages({ messages = [], userId }) {
+  const messagesEndRef = useRef(null);
 
-export default function ChatMessages() {
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   return (
     <Box
       sx={{
@@ -59,12 +22,25 @@ export default function ChatMessages() {
         display: 'flex',
         flexDirection: 'column',
         gap: 3,
-        width: '1050px'
+        width: '700px',
+        scrollbarWidth: 'none', // Firefox
+        '&::-webkit-scrollbar': { display: 'none' }, // Chrome/Safari
       }}
     >
       {messages.map((msg) => (
-        <ChatMessage key={msg.id} {...msg} />
+        <ChatMessage
+          key={msg.id}
+          sender={msg.senderUsername}
+          isAdmin={msg.senderUserId === userId}
+          text={msg.content}
+          time={new Date(msg.sentAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+          isPrivate={msg.isPrivate}
+        />
       ))}
+      <div ref={messagesEndRef} />
     </Box>
   );
 }

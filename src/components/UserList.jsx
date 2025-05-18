@@ -292,7 +292,7 @@ export default function UserList({
                           onEdit({
                             ...user,
                             isActive: !user.isActive,
-                            toggleActiveOnly: true, // da backend zna
+                            toggleAvailabilityOnly: true, // da backend zna
                           });
                         }}
                       >

@@ -1,3 +1,4 @@
+// @components/TicketCard.jsx
 import React from 'react';
 import {
   Card,
@@ -15,23 +16,46 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 export default function TicketCard({
   ticket,
+  selected,
+  unlocked,
+  onClick,
   onOpenChat,
   onDelete,
   onResolve,
 }) {
-  const { title, description, createdAt, resolved } = ticket;
+  const { title, description, createdAt, status } = ticket;
+
+  const chatIconColor =
+    status === 'Requested'
+      ? '#bdbdbd'
+      : status === 'Open'
+        ? '#43a047'
+        : '#bdbdbd';
+
+  const statusColor =
+    status === 'Requested'
+      ? 'warning'
+      : status === 'Open'
+        ? '#4CAF50'
+        : status === 'Resolved'
+          ? '#2196F3'
+          : 'default';
 
   return (
     <Card
+      onClick={onClick}
       sx={{
         display: 'flex',
         alignItems: 'stretch',
         mb: 2,
-        boxShadow: 3,
+        boxShadow: selected ? 6 : 3,
         borderRadius: 3,
         minHeight: 140,
-        transition: 'box-shadow 0.2s',
-        '&:hover': { boxShadow: 6 },
+        transition: 'box-shadow 0.2s, border 0.2s',
+        border: selected ? '2px solid #1976d2' : '2px solid transparent',
+        cursor: 'pointer',
+        position: 'relative',
+        '&:hover': { boxShadow: 8 },
       }}
     >
       <CardContent sx={{ flex: 1, pr: 0 }}>
@@ -43,27 +67,24 @@ export default function TicketCard({
         </Typography>
         <Stack direction='row' spacing={2} alignItems='center'>
           <Typography variant='caption' color='text.secondary'>
-            {new Date(createdAt).toLocaleString() /*provjeri jel ok*/}
+            {new Date(createdAt).toLocaleString()}
           </Typography>
           <Chip
-            label={resolved ? 'Resolved' : 'Open'}
-            color={resolved ? 'success' : 'warning'}
-            size='small'
-            icon={
-              resolved ? (
-                <CheckCircleIcon fontSize='small' />
-              ) : (
-                <RadioButtonUncheckedIcon fontSize='big' />
-              )
+            label={status}
+            color={
+              status === 'Open'
+                ? 'primary'
+                : status === 'Resolved'
+                  ? 'success'
+                  : 'default'
             }
+            size='small'
             sx={{
               fontWeight: 500,
-              ...(resolved
-                ? {}
-                : {
-                    color: '#fff', // bijeli tekst
-                    backgroundColor: '#8c0108', // crvena pozadina
-                  }),
+              ...(status === 'Requested' && {
+                color: '#fff',
+                backgroundColor: '#8c0108',
+              }),
             }}
           />
         </Stack>
@@ -75,30 +96,30 @@ export default function TicketCard({
           justifyContent: 'center',
           alignItems: 'center',
           px: 2,
-          gap: 1.5,
+          gap: 1,
           borderLeft: '1px solid #f0f0f0',
           minWidth: 60,
+          zIndex: 2,
         }}
+        onClick={(e) => e.stopPropagation()} // spriječi bubbling na card
       >
-        <IconButton
-          color='primary'
-          onClick={() => onOpenChat(ticket)}
-          size='large'
-        >
-          <ChatIcon />
+        <IconButton onClick={onOpenChat} size='large'>
+          <ChatIcon
+            sx={{ color: ticket.status === 'Open' ? '#43a047' : '#bdbdbd' }}
+          />
         </IconButton>
         <IconButton color='error' onClick={() => onDelete(ticket)} size='large'>
           <DeleteIcon sx={{ color: '#000000' }} />
         </IconButton>
         <IconButton
-          color={resolved ? 'success' : 'warning'}
+          color='success'
           onClick={() => onResolve(ticket)}
           size='large'
-          disabled={resolved}
+          disabled={status === 'Resolved'}
         >
           <CheckCircleIcon
             sx={{
-              color: resolved ? '#43a047' : '#8c0108',
+              color: status === 'Resolved' ? '#43a047' : '#8c0108',
             }}
           />
         </IconButton>
