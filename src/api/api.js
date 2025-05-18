@@ -1485,3 +1485,65 @@ export const apiDeleteTicketAsync = async (ticketId) => {
   }
 };
 
+
+/**
+ * Fetches all routes
+ * @returns {Promise<{status: number, data: Array}>} 
+ */
+export const apiGetAllRoutesAsync = async () => {
+  if (API_ENV_DEV === API_FLAG) {
+    const mockRoutes = [
+      {
+        id: 0,
+        ownerId: "mockOwner",
+        orderIds: [1, 2, 3],
+        routeData: {
+          data: {
+            routes: [
+              {
+                legs: [
+                  {
+                    start_location: { lat: 43.85, lng: 18.38 },
+                    end_location: { lat: 43.86, lng: 18.39 }
+                  }
+                ]
+              }
+            ]
+          },
+          hash: "mockHash"
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
+    return { status: 200, data: mockRoutes };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.get(
+        `${baseApiUrl}/api/Delivery/routes`
+      );
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Error fetching routes:', error);
+      return { status: error.response?.status || 500, data: [] };
+    }
+  }
+};
+
+export const apiDeleteRouteAsync = async (Id) => {
+  if (API_ENV_DEV === API_FLAG) {
+    return { status: 204, data: null };
+  } else {
+    apiSetAuthHeader();
+    try {
+      const response = await axios.delete(`${baseApiUrl}/api/Delivery/routes/${Id}`);
+      console.log('Deleted successfully:', response.status);
+      return { status: response.status, data: response.data };
+    } catch (error) {
+      console.error('Error deleting route:', error);
+      return { status: error.response?.status || 500, data: null };
+    }
+  }
+};
