@@ -1418,11 +1418,13 @@ export const createRouteAsync = async (orders, directionsResponse) => {
   const hash = sha256(rawData).toString();
 
   const payload = {
-    data: rawData,
-    hash,
-    orderIds: orders.map(o => o.id)
+    orderIds: orders.map(o => o.id),
+    routeData:{
+     data: rawData,
+     hash: hash
+    }
   };
 
-  const response = await axios.post("/routes", payload);
+  const response = await axios.post(`${baseApiUrl}/api/Delivery/routes`, payload);
   return response.data;
 };
