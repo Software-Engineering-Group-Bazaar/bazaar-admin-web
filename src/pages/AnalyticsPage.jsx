@@ -604,7 +604,7 @@ const AnalyticsPage = () => {
           </Box>
         </Grid>
         <Grid item xs={12} md={3}>
-          <Box sx={{ height: 420, width: '100%' }}>
+          <Box sx={{ height: 420, width: '395px' }}>
             {' '}
             {/* Responsive width */}
             <CountryStatsPanel />
