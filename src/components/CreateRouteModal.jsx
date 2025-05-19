@@ -96,6 +96,7 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
       await apiCreateRouteAsync(route, selectedOrders);
 
       //onCreateRoute(selectedOrders, directions);
+      onCreateRoute(route);
       onClose();
     } catch (err) {
       console.error('Greška pri kreiranju rute:', err);

@@ -886,6 +886,8 @@ export const apiFetchOrdersAsync = async () => {
       status: order.status,
       buyerName: order.buyerId,
       storeName: order.storeId,
+      buyerId: order.buyerId,
+      storeId: order.storeId,
       addressId: order.addressId,
       createdAt: order.time,
       totalPrice: order.total,
