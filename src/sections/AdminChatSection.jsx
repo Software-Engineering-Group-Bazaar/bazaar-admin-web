@@ -99,6 +99,7 @@ export default function AdminChatSection({ ticket, conversation }) {
         <Box
           sx={{
             position: 'relative',
+            overflowY: 'auto',
             flex: 1,
             display: 'flex',
             flexDirection: 'column',

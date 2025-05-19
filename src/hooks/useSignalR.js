@@ -17,7 +17,7 @@ export const useSignalR = (conversationId, userId) => {
       }
 
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`http://localhost:5054/chathub`, {
+        .withUrl(`https://bazaar-system.duckdns.org/chathub`, {
           accessTokenFactory: () => storedToken,
         })
         .withAutomaticReconnect()
