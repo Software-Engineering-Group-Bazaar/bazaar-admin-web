@@ -23,20 +23,14 @@ const RoutesHeader = ({ onAddRoute }) => {
         borderBottom: '1px solid #e0e0e0',
       }}
     >
-<<<<<<< HEAD
       <Box sx={{ textAlign: 'left', marginLeft: 2 }}>
         <Typography variant='h5' fontWeight='bold' color='text.primary'>
-=======
-      <Box sx={{ textAlign: "left" , marginLeft: 2}}>
-        <Typography variant="h5" fontWeight="bold" color="text.primary">
->>>>>>> develop
           All Routes
         </Typography>
         <Typography variant='body2' color='text.secondary'>
           Admin Panel &gt; Routes
         </Typography>
       </Box>
-<<<<<<< HEAD
       <Button
         variant='contained'
         onClick={onAddRoute}
@@ -54,24 +48,6 @@ const RoutesHeader = ({ onAddRoute }) => {
       >
         Create Route
       </Button>
-=======
-                <Button
-                  variant='contained'
-                  onClick={onAddRoute}
-                  sx={{ marginRight: 5,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    backgroundColor: '#34c759',
-                    color: '#000',
-                    '&:hover': {
-                      backgroundColor: '#28a745',
-                    },
-                  }}
-                >
-                  Create Route
-                </Button>
->>>>>>> develop
     </Box>
   );
 };
