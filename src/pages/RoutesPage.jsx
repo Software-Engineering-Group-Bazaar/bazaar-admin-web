@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Grid } from '@mui/material';
 import RouteCard from '@components/RouteCard';
@@ -11,6 +12,17 @@ import {
   apiDeleteRouteAsync,
 } from '../api/api';
 import { sha256 } from 'js-sha256';
+=======
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Grid } from "@mui/material";
+import RouteCard from "@components/RouteCard";
+import UserManagementPagination from "@components/UserManagementPagination";
+import RoutesHeader from "@sections/RoutesHeader";
+import RouteDetailsModal from "@components/RouteDetailsModal";
+import { sha256 } from "js-sha256";
+import CreateRouteModal from "@components/CreateRouteModal"
+import { createRouteAsync, apiGetRoutesAsync, apiDeleteRouteAsync } from "../api/api";
+>>>>>>> develop
 
 const generateMockRoutes = (page, perPage) => {
   const totalRoutes = 42;
@@ -87,7 +99,32 @@ const RoutesPage = () => {
   );
 
   const handleCreate = () => {
+<<<<<<< HEAD
     setIsCreateModalOpen(true);
+=======
+   setIsCreateModalOpen(true);
+  }
+
+  const handleCreateRoute = async(orders,mapsresponse) => {
+  try {
+    const rez = await createRouteAsync(orders,mapsresponse);
+      setRoutes(prev => [...prev, rez]);
+      console.log("Uradjeno");
+      setIsCreateModalOpen(false);
+
+  } catch (error) {
+    console.error('API error:', error);
+  }
+  }
+  const handleDelete = async (id) => {
+    try{
+      const rez = await apiDeleteRouteAsync(id);
+      const newroutes = await apiGetRoutesAsync();
+      setRoutes(newroutes);
+    }catch(err){
+      console.log("Greska pri brisanju",err);
+    }
+>>>>>>> develop
   };
 
   const handleCreateRoute = async (orders, mapsresponse) => {
@@ -142,8 +179,14 @@ const RoutesPage = () => {
           px: 2,
         }}
       >
+<<<<<<< HEAD
         <RoutesHeader onAddRoute={handleCreate} />
 
+=======
+        <RoutesHeader onAddRoute={handleCreate}/>
+        
+        
+>>>>>>> develop
         <Grid
           container
           spacing={3}
@@ -177,11 +220,20 @@ const RoutesPage = () => {
           onClose={() => setIsModalOpen(false)}
         />
       </Box>
+<<<<<<< HEAD
       <CreateRouteModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreateRoute={handleCreateRoute}
       />
+=======
+
+        <CreateRouteModal
+          open={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreateRoute={handleCreateRoute}
+        />      
+>>>>>>> develop
     </Box>
   );
 };

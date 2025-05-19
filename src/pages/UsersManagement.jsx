@@ -29,6 +29,7 @@ const UsersManagements = () => {
       setIsLoading(true);
       try {
         const users = await apiFetchApprovedUsersAsync();
+        console.log(users);
         setAllUsers(users);
       } catch (err) {
         console.error("Greška pri dohvaćanju korisnika:", err);

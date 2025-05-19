@@ -885,7 +885,7 @@ export const apiFetchOrdersAsync = async () => {
       status: order.status,
       buyerName: order.buyerId,
       storeName: order.storeId,
-      deliveryAddress: 'Not available',
+      addressId: order.addressId,
       createdAt: order.time,
       totalPrice: order.total,
       isCancelled: order.status === 1,
@@ -1564,5 +1564,64 @@ export const apiDeleteRouteAsync = async (Id) => {
       console.error('Error deleting route:', error);
       return { status: error.response?.status || 500, data: null };
     }
+  }
+};
+
+export const fetchAdressesAsync = async () => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.get(`${baseApiUrl}/api/user-profile/address`);
+    return res.data;
+  } catch (err) {
+    console.error('Error finding address.', err);
+    return { status: err.response?.status || 500 };
+  }
+};
+
+export const fetchAdressByIdAsync = async (id) => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.get(`${baseApiUrl}/api/user-profile/address/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error('Error finding address.', err);
+    return { status: err.response?.status || 500 };
+  }
+};
+
+export const apiGetRoutesAsync = async () => {
+  apiSetAuthHeader();
+  try {
+    const res = await axios.get(`${baseApiUrl}/api/Delivery/routes`);
+    return res.data;
+  } catch (err) {
+    console.error('Error getting routes.', err);
+    return { status: err.response?.status || 500 };
+  }
+};
+
+export const getGoogle = async (origin, destination, waypoints) => {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(
+    origin
+  )}&destination=${encodeURIComponent(
+    destination
+  )}&waypoints=${encodeURIComponent(waypoints)}&key=${apiKey}`;
+
+  try {
+    const response = await axios.get(url);
+    const directionsJson = response.data; // Axios automatically parses the JSON
+
+    if (directionsJson.status !== 'OK') {
+      alert('Google Maps API Error: ' + directionsJson.status);
+      return null;
+    }
+
+    return directionsJson;
+  } catch (err) {
+    console.error('Error fetching directions:', err);
+    alert('An error occurred while fetching directions.');
+    return null;
   }
 };
