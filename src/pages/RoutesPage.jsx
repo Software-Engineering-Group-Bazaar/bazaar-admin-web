@@ -5,7 +5,11 @@ import UserManagementPagination from '@components/UserManagementPagination';
 import RoutesHeader from '@sections/RoutesHeader';
 import RouteDetailsModal from '@components/RouteDetailsModal';
 import CreateRouteModal from '../components/CreateRouteModal';
-import { apiGetAllRoutesAsync, apiDeleteRouteAsync } from '../api/api';
+import {
+  createRouteAsync,
+  apiGetAllRoutesAsync,
+  apiDeleteRouteAsync,
+} from '../api/api';
 import { sha256 } from 'js-sha256';
 
 const generateMockRoutes = (page, perPage) => {
