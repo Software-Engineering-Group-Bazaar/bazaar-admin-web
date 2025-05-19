@@ -10,10 +10,11 @@ import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import ads from '../data/ads.js';
-import sha256 from "crypto-js/sha256";
+import sha256 from 'crypto-js/sha256';
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
 const API_ENV_DEV = 'dev';
+const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 console.log('Mock', API_FLAG);
 console.log('api ', baseApiUrl);
@@ -1412,24 +1413,25 @@ export const apiFetchProductsByIdsAsync = async () => {
   }
 };
 
-
 //rute
 export const createRouteAsync = async (orders, directionsResponse) => {
   const rawData = JSON.stringify(directionsResponse);
   const hash = sha256(rawData).toString();
 
   const payload = {
-    orderIds: orders.map(o => o.id),
-    routeData:{
-     data: rawData,
-     hash: hash
-    }
+    orderIds: orders.map((o) => o.id),
+    routeData: {
+      data: rawData,
+      hash: hash,
+    },
   };
 
-  const response = await axios.post(`${baseApiUrl}/api/Delivery/routes`, payload);
+  const response = await axios.post(
+    `${baseApiUrl}/api/Delivery/routes`,
+    payload
+  );
   return response.data;
 };
-
 
 export const apiFetchAllTicketsAsync = async ({
   status = '',
@@ -1506,46 +1508,46 @@ export const apiDeleteTicketAsync = async (ticketId) => {
 
 export const fetchAdressesAsync = async () => {
   apiSetAuthHeader();
-  try{
+  try {
     const res = await axios.get(`${baseApiUrl}/api/user-profile/address`);
     return res.data;
-  } catch(err) {
-    console.error("Error finding address.", err);
+  } catch (err) {
+    console.error('Error finding address.', err);
     return { status: err.response?.status || 500 };
   }
 };
 
 export const fetchAdressByIdAsync = async (id) => {
-    apiSetAuthHeader();
-  try{
+  apiSetAuthHeader();
+  try {
     const res = await axios.get(`${baseApiUrl}/api/user-profile/address/${id}`);
     return res.data;
-  } catch(err) {
-    console.error("Error finding address.", err);
+  } catch (err) {
+    console.error('Error finding address.', err);
     return { status: err.response?.status || 500 };
   }
 };
 
 export const apiGetRoutesAsync = async () => {
   apiSetAuthHeader();
-  try{
+  try {
     const res = await axios.get(`${baseApiUrl}/api/Delivery/routes`);
     return res.data;
-  } catch(err) {
-    console.error("Error getting routes.", err);
+  } catch (err) {
+    console.error('Error getting routes.', err);
     return { status: err.response?.status || 500 };
-  } 
+  }
 };
 
 export const apiDeleteRouteAsync = async (id) => {
   apiSetAuthHeader();
-  try{
+  try {
     const res = await axios.delete(`${baseApiUrl}/api/Delivery/routes/${id}`);
     return res.status;
-  } catch(err) {
-    console.error("Error getting routes.", err);
+  } catch (err) {
+    console.error('Error getting routes.', err);
     return { status: err.response?.status || 500 };
-  } 
+  }
 };
 
 export const getGoogle = async (origin, destination, waypoints) => {
@@ -1572,4 +1574,90 @@ export const getGoogle = async (origin, destination, waypoints) => {
     alert('An error occurred while fetching directions.');
     return null;
   }
+};
+
+/**
+ * Fetches the optimal route from Google Directions API.
+ * @async
+ * @param {string[]} locs - Array of location strings (addresses or lat/lng).
+ * @param {string} transportMode - 'driving' or 'walking'.
+ * @returns {Promise<any|null>} The first route object from the API response or null.
+ */
+export const apiExternGetOptimalRouteAsync = async (locs, transportMode) => {
+  if (!locs) return null;
+  if (locs.length < 2) {
+    console.warn('Need at least an origin and destination for a route.');
+    return null;
+  }
+  try {
+    const origin = locs[0];
+    const destination = locs[locs.length - 1];
+    // const waypointsParam = locs.slice(1, -1).map(loc => ({ location: loc, stopover: true }));
+
+    const waypointsString = locs
+      .slice(1, -1)
+      .map((loc) => encodeURIComponent(loc))
+      .join('|');
+    if (!origin || !destination) return;
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=optimize:true|${waypointsString}&mode=${transportMode}&key=${googleMapsApiKey}`;
+
+    console.log('Requesting directions URL:', url);
+    const response = await fetch(url);
+    if (!response.ok)
+      throw new Error(`Error fetching route: ${response.statusText}`);
+
+    const data = await response.json();
+    if (data.status !== 'OK')
+      throw new Error(
+        `API error: ${data.status} - ${data.error_message || 'Unknown error'}`
+      );
+
+    //setOptimalRouteData(data.routes[0]);
+    //await saveDataToLocalStorage(data, `route-${transportMode}.json`);
+    console.log(data.routes[0]);
+    return data.routes[0];
+  } catch (error) {
+    console.error('Error fetching optimal route:', error);
+    //window.alert(t('Error fetching route. Please check console.'));
+    return null;
+  }
+};
+
+export const apiCreateRouteAsync = async (route, orders) => {
+  if (route == '' || !route) return;
+  apiSetAuthHeader();
+  const payload = {
+    orderIds: orders.map((o) => o.id),
+    routeData: {
+      data: route,
+      hash: 'hash',
+    },
+  };
+  const response = await axios.post(
+    `${baseApiUrl}/api/Delivery/routes`,
+    JSON.stringify(payload),
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  return response.data;
+};
+
+export const apiGetOrderAddresses = async (orders) => {
+  const addresses = [];
+  for (let index = 0; index < orders.length; index++) {
+    const addr = await fetchAdressByIdAsync(orders[index].addressId);
+    if (orders[index].storeId) {
+      const store = await apiGetStoreByIdAsync(orders[index].storeId);
+      addresses.push(store.address);
+    }
+    addresses.push(addr.address);
+  }
+  return addresses;
+};
+
+export const apiGetAllRoutesAsync = async () => {
+  return axios.get(`${baseApiUrl}/api/Delivery/routes`);
 };
