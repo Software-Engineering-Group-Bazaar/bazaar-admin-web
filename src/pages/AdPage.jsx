@@ -11,7 +11,10 @@ import {
   apiGetAllAdsAsync,
   apiDeleteAdAsync,
   apiUpdateAdAsync,
+  apiGetAllStoresAsync,
+  apiGetProductCategoriesAsync,
 } from '../api/api';
+import products from '../data/products';
 const generateMockAds = () => {
   return Array.from({ length: 26 }, (_, i) => ({
     id: i + 1,
@@ -37,6 +40,7 @@ const AdPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ads, setAds] = useState([]);
+  const [stores, setStores] = useState([]);
   const [selectedAd, setSelectedAd] = useState(null);
 
   const { latestAdUpdate } = useAdSignalR();
@@ -56,17 +60,21 @@ const AdPage = () => {
   );
 
   useEffect(() => {
-    async function fetchAds() {
+    async function fetchAllAdData() {
       setIsLoading(true);
       try{
       const rez = await apiGetAllAdsAsync();
+      const stores = await apiGetAllStoresAsync();
+      const productCategories = await apiGetProductCategoriesAsync();
       setAds(rez.data);
+      setStores(stores);
       } catch (err) {
         console.error("Greška pri dohvaćanju reklama:", err);
       } 
       setIsLoading(false);
     };
-    fetchAds();
+
+    fetchAllAdData();
   }, []);
 
   // === 2. Real-time update preko SignalR ===
@@ -160,6 +168,7 @@ const handleAddAd = async (newAd) => {
           <Box key={ad.id} mb={2}>
             <AdCard
               ad={ad}
+              stores={stores}
               onDelete={handleDelete}
               onEdit={handleEdit}
               onViewDetails={handleViewDetails}

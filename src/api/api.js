@@ -10,7 +10,6 @@ import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import ads from '../data/ads.js';
-import sha256 from "crypto-js/sha256";
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
 const API_ENV_DEV = 'dev';
@@ -1197,6 +1196,8 @@ export const apiUpdateAdAsync = async (advertisementId, adData) => {
     formData.append('StartTime', new Date(adData.startTime).toISOString());
     formData.append('EndTime', new Date(adData.endTime).toISOString());
     formData.append('IsActive', adData.isActive);
+    formData.append("AdType", adData.adType);
+    formData.append("Triggers", adData.triggers);
 
     adData.newAdDataItems.forEach((item, index) => {
       formData.append(`NewAdDataItems[${index}].storeId`, item.storeId);
@@ -1413,24 +1414,6 @@ export const apiFetchProductsByIdsAsync = async () => {
 };
 
 
-//rute
-export const createRouteAsync = async (orders, directionsResponse) => {
-  const rawData = JSON.stringify(directionsResponse);
-  const hash = sha256(rawData).toString();
-
-  const payload = {
-    orderIds: orders.map(o => o.id),
-    routeData:{
-     data: rawData,
-     hash: hash
-    }
-  };
-
-  const response = await axios.post(`${baseApiUrl}/api/Delivery/routes`, payload);
-  return response.data;
-};
-
-
 export const apiFetchAllTicketsAsync = async ({
   status = '',
   pageNumber = 1,
@@ -1503,5 +1486,4 @@ export const apiDeleteTicketAsync = async (ticketId) => {
     return { status: err.response?.status || 500 };
   }
 };
-
 
