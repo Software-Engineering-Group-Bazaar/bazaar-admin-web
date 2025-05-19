@@ -10,7 +10,7 @@ import pendingUsers from '../data/pendingUsers.js';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import ads from '../data/ads.js';
-import sha256 from "crypto-js/sha256";
+import sha256 from 'crypto-js/sha256';
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
 const API_ENV_DEV = 'dev';
@@ -1412,24 +1412,25 @@ export const apiFetchProductsByIdsAsync = async () => {
   }
 };
 
-
 //rute
 export const createRouteAsync = async (orders, directionsResponse) => {
   const rawData = JSON.stringify(directionsResponse);
   const hash = sha256(rawData).toString();
 
   const payload = {
-    orderIds: orders.map(o => o.id),
-    routeData:{
-     data: rawData,
-     hash: hash
-    }
+    orderIds: orders.map((o) => o.id),
+    routeData: {
+      data: rawData,
+      hash: hash,
+    },
   };
 
-  const response = await axios.post(`${baseApiUrl}/api/Delivery/routes`, payload);
+  const response = await axios.post(
+    `${baseApiUrl}/api/Delivery/routes`,
+    payload
+  );
   return response.data;
 };
-
 
 export const apiFetchAllTicketsAsync = async ({
   status = '',
@@ -1504,18 +1505,16 @@ export const apiDeleteTicketAsync = async (ticketId) => {
   }
 };
 
-
-<<<<<<< HEAD
 /**
  * Fetches all routes
- * @returns {Promise<{status: number, data: Array}>} 
+ * @returns {Promise<{status: number, data: Array}>}
  */
 export const apiGetAllRoutesAsync = async () => {
   if (API_ENV_DEV === API_FLAG) {
     const mockRoutes = [
       {
         id: 0,
-        ownerId: "mockOwner",
+        ownerId: 'mockOwner',
         orderIds: [1, 2, 3],
         routeData: {
           data: {
@@ -1524,13 +1523,13 @@ export const apiGetAllRoutesAsync = async () => {
                 legs: [
                   {
                     start_location: { lat: 43.85, lng: 18.38 },
-                    end_location: { lat: 43.86, lng: 18.39 }
-                  }
-                ]
-              }
-            ]
+                    end_location: { lat: 43.86, lng: 18.39 },
+                  },
+                ],
+              },
+            ],
           },
-          hash: "mockHash"
+          hash: 'mockHash',
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -1541,9 +1540,7 @@ export const apiGetAllRoutesAsync = async () => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.get(
-        `${baseApiUrl}/api/Delivery/routes`
-      );
+      const response = await axios.get(`${baseApiUrl}/api/Delivery/routes`);
       return { status: response.status, data: response.data };
     } catch (error) {
       console.error('Error fetching routes:', error);
@@ -1558,7 +1555,9 @@ export const apiDeleteRouteAsync = async (Id) => {
   } else {
     apiSetAuthHeader();
     try {
-      const response = await axios.delete(`${baseApiUrl}/api/Delivery/routes/${Id}`);
+      const response = await axios.delete(
+        `${baseApiUrl}/api/Delivery/routes/${Id}`
+      );
       console.log('Deleted successfully:', response.status);
       return { status: response.status, data: response.data };
     } catch (error) {
@@ -1567,5 +1566,3 @@ export const apiDeleteRouteAsync = async (Id) => {
     }
   }
 };
-=======
->>>>>>> develop
