@@ -1605,12 +1605,14 @@ export const apiExternGetOptimalRouteAsync = async (locs, transportMode) => {
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=optimize:true|${waypointsString}&mode=${transportMode}&key=${googleMapsApiKey}`;
     const netlifyFunctionEndpoint = `/api/netlify/directions`;
     console.log('Requesting directions URL:', url);
+
     // const response = await axios.get(netlifyFunctionEndpoint, {
     //   params: {
     //     url: url, // Pass the partial URL
     //   },
     // });
     const response = await fetch(url, { method: 'GET', mode: 'no-cors' });
+
     if (!response.ok)
       throw new Error(`Error fetching route: ${response.statusText}`);
 
