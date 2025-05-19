@@ -92,10 +92,7 @@ const RoutesPage = () => {
       //const response = generateMockRoutes(currentPage, perPage);
       const response = await apiGetRoutesAsync();
       setRoutes(
-        response.data.slice(
-          currentPage * perPage,
-          currentPage * perPage + perPage
-        )
+        response.slice(currentPage * perPage, currentPage * perPage + perPage)
       );
     };
     fetchRoutes();
