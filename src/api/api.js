@@ -11,6 +11,7 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import ads from '../data/ads.js';
 import sha256 from 'crypto-js/sha256';
+//import { GET } from 'superagent';
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
 const API_ENV_DEV = 'dev';
@@ -1604,11 +1605,12 @@ export const apiExternGetOptimalRouteAsync = async (locs, transportMode) => {
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=optimize:true|${waypointsString}&mode=${transportMode}&key=${googleMapsApiKey}`;
     const netlifyFunctionEndpoint = `/api/netlify/directions`;
     console.log('Requesting directions URL:', url);
-    const response = await axios.get(netlifyFunctionEndpoint, {
-      params: {
-        url: url, // Pass the partial URL
-      },
-    });
+    // const response = await axios.get(netlifyFunctionEndpoint, {
+    //   params: {
+    //     url: url, // Pass the partial URL
+    //   },
+    // });
+    const response = await fetch(url, { method: 'GET', mode: 'no-cors' });
     if (!response.ok)
       throw new Error(`Error fetching route: ${response.statusText}`);
 
