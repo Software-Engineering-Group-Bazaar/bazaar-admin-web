@@ -1549,7 +1549,7 @@ export const apiDeleteRouteAsync = async (id) => {
 };
 
 export const getGoogle = async (origin, destination, waypoints) => {
-  const apiKey = 'AIzaSyAiW6HWTmBB84hHGcxxUdPHwRcc6vpbPRo';
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(
     origin
