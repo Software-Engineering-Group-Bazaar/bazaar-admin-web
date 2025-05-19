@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Search, CheckSquare, Square } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Search, CheckSquare, Square } from 'lucide-react';
 import {
   Modal,
   Box,
@@ -8,49 +8,60 @@ import {
   Button,
   InputAdornment,
   Chip,
-} from "@mui/material";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import sha256 from "crypto-js/sha256";
-import { apiFetchOrdersAsync, createRouteAsync, fetchAdressesAsync, fetchAdressByIdAsync, getGoogle } from "@api/api";
-import { apiGetStoreByIdAsync } from "../api/api";
+} from '@mui/material';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import sha256 from 'crypto-js/sha256';
+import {
+  apiFetchOrdersAsync,
+  createRouteAsync,
+  fetchAdressesAsync,
+  fetchAdressByIdAsync,
+  getGoogle,
+} from '@api/api';
+import {
+  apiCreateRouteAsync,
+  apiExternGetOptimalRouteAsync,
+  apiGetOrderAddresses,
+  apiGetStoreByIdAsync,
+} from '../api/api';
 
 const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
- useEffect(() => {
-  const fetchOrders = async () => {
-    try {
-      const fetched = await apiFetchOrdersAsync();
-      console.log(fetched);
-      const addresses = await fetchAdressesAsync(); // all addresses
-      
-      const enrichedOrders = await Promise.all(
-        fetched.map(async (order) => {
-          const store = await apiGetStoreByIdAsync(order.storeName); // fetch per order
-          const buyerAddress = await fetchAdressByIdAsync(order.addressId);
-          console.log(buyerAddress);
-          return {
-            ...order,
-            senderAddress: store.address,
-            buyerAddress: buyerAddress.address
-          };
-        })
-      );
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const fetched = await apiFetchOrdersAsync();
+        console.log(fetched);
+        const addresses = await fetchAdressesAsync(); // all addresses
 
-      setAllOrders(enrichedOrders);
-    } catch (err) {
-      console.error("Greška prilikom učitavanja narudžbi:", err);
+        const enrichedOrders = await Promise.all(
+          fetched.map(async (order) => {
+            const store = await apiGetStoreByIdAsync(order.storeName); // fetch per order
+            const buyerAddress = await fetchAdressByIdAsync(order.addressId);
+            console.log(buyerAddress);
+            return {
+              ...order,
+              senderAddress: store.address,
+              buyerAddress: buyerAddress.address,
+            };
+          })
+        );
+
+        setAllOrders(enrichedOrders);
+      } catch (err) {
+        console.error('Greška prilikom učitavanja narudžbi:', err);
+      }
+    };
+
+    if (open) {
+      fetchOrders();
     }
-  };
-
-  if (open) {
-    fetchOrders();
-  }
-}, [open]);
+  }, [open]);
 
   const handleToggleOrder = (order) => {
     const exists = selectedOrders.some((o) => o.id === order.id);
@@ -67,24 +78,28 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
 
   const handleCreateRoute = async () => {
     try {
-      
-
       setLoading(true);
 
       const origin = selectedOrders[0].senderAddress;
-      const destination = selectedOrders[selectedOrders.length - 1].buyerAddress;
+      const destination =
+        selectedOrders[selectedOrders.length - 1].buyerAddress;
       const waypoints = selectedOrders
         .slice(1, -1)
         .map((order) => `via:${order.buyerAddress}`)
-        .join("|");
+        .join('|');
 
-      const directions = await getGoogle(origin,destination,waypoints);
+      //const directions = await getGoogle(origin, destination, waypoints);
 
-      onCreateRoute(selectedOrders,directions);
+      const locations = await apiGetOrderAddresses(selectedOrders);
+
+      const route = await apiExternGetOptimalRouteAsync(locations, 'driving');
+      await apiCreateRouteAsync(route, selectedOrders);
+
+      //onCreateRoute(selectedOrders, directions);
       onClose();
     } catch (err) {
-      console.error("Greška pri kreiranju rute:", err);
-      alert("Došlo je do greške.");
+      console.error('Greška pri kreiranju rute:', err);
+      alert('Došlo je do greške.');
     } finally {
       setLoading(false);
     }
@@ -94,27 +109,27 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
     <Modal open={open} onClose={onClose}>
       <Box
         sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           width: 450,
-          bgcolor: "background.paper",
+          bgcolor: 'background.paper',
           borderRadius: 2,
           boxShadow: 24,
           p: 3,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <LocalShippingIcon color="primary" sx={{ mr: 1 }} />
-          <Typography variant="h6" fontWeight="bold">
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <LocalShippingIcon color='primary' sx={{ mr: 1 }} />
+          <Typography variant='h6' fontWeight='bold'>
             Create Route
           </Typography>
         </Box>
 
         <TextField
           fullWidth
-          placeholder="Search by order ID..."
+          placeholder='Search by order ID...'
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -123,8 +138,8 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
           onFocus={() => setShowSearchResults(true)}
           InputProps={{
             startAdornment: (
-              <InputAdornment position="start">
-                <Search fontSize="small" />
+              <InputAdornment position='start'>
+                <Search fontSize='small' />
               </InputAdornment>
             ),
             sx: { borderRadius: 1 },
@@ -136,10 +151,10 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
           <Box
             sx={{
               border: 1,
-              borderColor: "divider",
+              borderColor: 'divider',
               borderRadius: 1,
               maxHeight: 200,
-              overflow: "auto",
+              overflow: 'auto',
               mb: 2,
             }}
           >
@@ -149,35 +164,31 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
                 onClick={() => handleToggleOrder(order)}
                 sx={{
                   p: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  "&:hover": { bgcolor: "action.hover" },
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' },
                   borderBottom: 1,
-                  borderColor: "divider",
+                  borderColor: 'divider',
                 }}
               >
                 {selectedOrders.some((o) => o.id === order.id) ? (
                   <CheckSquare
                     size={18}
-                    color="#4a0404"
-                    style={{ marginRight: 12, marginLeft: -4 }} 
+                    color='#4a0404'
+                    style={{ marginRight: 12, marginLeft: -4 }}
                   />
-
                 ) : (
                   <Square
                     size={18}
-                    color="#ccc"
+                    color='#ccc'
                     style={{ marginRight: 12, marginLeft: -4 }}
                   />
-
                 )}
                 <Box>
-                  <Typography fontWeight="medium">
-                    Order #{order.id}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {`${order.senderAddress?.toString() || "?"} - ${order.buyerAddress?.toString() || "?"}`}
+                  <Typography fontWeight='medium'>Order #{order.id}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    {`${order.senderAddress?.toString() || '?'} - ${order.buyerAddress?.toString() || '?'}`}
                   </Typography>
                 </Box>
               </Box>
@@ -188,32 +199,32 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
         <Box
           sx={{
             border: 1,
-            borderColor: "divider",
+            borderColor: 'divider',
             borderRadius: 1,
             p: 2,
             minHeight: 200,
             mb: 2,
           }}
         >
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-            <Typography variant="subtitle2">Selected Orders</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant='subtitle2'>Selected Orders</Typography>
             <Chip
               label={`${selectedOrders.length} selected`}
-              size="small"
-              color="primary"
+              size='small'
+              color='primary'
             />
           </Box>
 
           {selectedOrders.length === 0 ? (
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 height: 150,
               }}
             >
-              <Typography color="text.secondary">
+              <Typography color='text.secondary'>
                 No orders selected. Search to add orders.
               </Typography>
             </Box>
@@ -224,25 +235,23 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
                 onClick={() => handleToggleOrder(order)}
                 sx={{
                   p: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  "&:hover": { bgcolor: "action.hover" },
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' },
                   borderBottom: 1,
-                  borderColor: "divider",
+                  borderColor: 'divider',
                 }}
               >
                 <CheckSquare
-                    size={18}
-                    color="#4a0404"
-                    style={{ marginRight: 12, marginLeft: -4 }} 
-                  />
+                  size={18}
+                  color='#4a0404'
+                  style={{ marginRight: 12, marginLeft: -4 }}
+                />
                 <Box>
-                  <Typography fontWeight="medium">
-                    Order #{order.id}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {`${order.senderAddress?.toString() || "?"} - ${order.buyerAddress?.toString() || "?"}`}
+                  <Typography fontWeight='medium'>Order #{order.id}</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    {`${order.senderAddress?.toString() || '?'} - ${order.buyerAddress?.toString() || '?'}`}
                   </Typography>
                 </Box>
               </Box>
@@ -250,18 +259,18 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
           )}
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Button onClick={onClose}>Cancel</Button>
           <Button
-            variant="contained"
+            variant='contained'
             onClick={handleCreateRoute}
             disabled={selectedOrders.length === 0 || loading}
             sx={{
-              backgroundColor: "#4a0404",
-              "&:hover": { backgroundColor: "#3a0202" },
+              backgroundColor: '#4a0404',
+              '&:hover': { backgroundColor: '#3a0202' },
             }}
           >
-            {loading ? "Creating..." : "Create Route"}
+            {loading ? 'Creating...' : 'Create Route'}
           </Button>
         </Box>
       </Box>

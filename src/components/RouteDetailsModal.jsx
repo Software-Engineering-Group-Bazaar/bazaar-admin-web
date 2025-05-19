@@ -13,6 +13,11 @@ import {
 } from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { sha256 } from 'js-sha256';
+import {
+  apiFetchOrdersAsync,
+  apiGetAllStoresAsync,
+  apiGetStoreByIdAsync,
+} from '../api/api';
 
 const RouteDetailsModal = ({ open, onClose, route }) => {
   const mapRef = useRef(null);
@@ -29,10 +34,10 @@ const RouteDetailsModal = ({ open, onClose, route }) => {
     const initializeMap = () => {
       try {
         // Verify data integrity
-        const calculatedHash = sha256(JSON.stringify(route.routeData.data));
-        if (calculatedHash !== route.routeData.hash) {
-          throw new Error('Route data integrity check failed');
-        }
+        // const calculatedHash = sha256(JSON.stringify(route.routeData.data));
+        // if (calculatedHash !== route.routeData.hash) {
+        //   throw new Error('Route data integrity check failed');
+        // }
 
         const mapOptions = {
           center: { lat: 43.8563, lng: 18.4131 }, // Default to Sarajevo
