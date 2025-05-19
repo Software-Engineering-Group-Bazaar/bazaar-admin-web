@@ -5,8 +5,8 @@ import UserManagementPagination from "@components/UserManagementPagination";
 import RoutesHeader from "@sections/RoutesHeader";
 import RouteDetailsModal from "@components/RouteDetailsModal";
 import { sha256 } from "js-sha256";
-
-
+import CreateRouteModal from "@components/CreateRouteModal"
+import { createRouteAsync, apiGetRoutesAsync, apiDeleteRouteAsync } from "../api/api";
 
 const generateMockRoutes = (page, perPage) => {
   const totalRoutes = 42;
@@ -57,7 +57,7 @@ const generateMockRoutes = (page, perPage) => {
 const RoutesPage = () => {
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 8;
@@ -72,8 +72,29 @@ const RoutesPage = () => {
 
   const totalPages = Math.ceil(42 / perPage); // hardkodirano za mock
 
+  const handleCreate = () => {
+   setIsCreateModalOpen(true);
+  }
+
+  const handleCreateRoute = async(orders,mapsresponse) => {
+  try {
+    const rez = await createRouteAsync(orders,mapsresponse);
+      setRoutes(prev => [...prev, rez]);
+      console.log("Uradjeno");
+      setIsCreateModalOpen(false);
+
+  } catch (error) {
+    console.error('API error:', error);
+  }
+  }
   const handleDelete = async (id) => {
-    setRoutes((prev) => prev.filter((r) => r.id !== id));
+    try{
+      const rez = await apiDeleteRouteAsync(id);
+      const newroutes = await apiGetRoutesAsync();
+      setRoutes(newroutes);
+    }catch(err){
+      console.log("Greska pri brisanju",err);
+    }
   };
 
   const handleViewDetails = (id) => {
@@ -102,8 +123,9 @@ const RoutesPage = () => {
           px: 2,
         }}
       >
-        <RoutesHeader />
-
+        <RoutesHeader onAddRoute={handleCreate}/>
+        
+        
         <Grid
           container
           spacing={3}
@@ -137,6 +159,12 @@ const RoutesPage = () => {
           onClose={() => setIsModalOpen(false)}
         />
       </Box>
+
+        <CreateRouteModal
+          open={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreateRoute={handleCreateRoute}
+        />      
     </Box>
   );
 };
