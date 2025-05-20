@@ -114,7 +114,7 @@ setTotalPages(Math.ceil(totalItems / perPage));
     try {
       
       const rez = await apiCreateRouteAsync(orders);
-      const rute = await apiGetAllRoutesAsync();
+      const rute = await apiGetRoutesAsync();
       setRoutes(rute);
       console.log('Uradjeno');
       setIsCreateModalOpen(false);
@@ -125,7 +125,7 @@ setTotalPages(Math.ceil(totalItems / perPage));
   const handleDelete = async (id) => {
     try {
       const rez = await apiDeleteRouteAsync(id);
-      const newroutes = await apiGetAllRoutesAsync();
+      const newroutes = await apiGetRoutesAsync();
       setRoutes(newroutes);
     } catch (err) {
       console.log('Greska pri brisanju', err);
