@@ -92,9 +92,16 @@ const RoutesPage = () => {
       //const response = generateMockRoutes(currentPage, perPage);
       const response = await apiGetRoutesAsync();
       console.log(response);
-      setRoutes(
-        response.slice(currentPage * perPage, currentPage * perPage + perPage)
-      );
+    const totalItems = response.length;
+    const totalPages = Math.ceil(totalItems / perPage);
+
+    // Clamp currentPage to stay within valid bounds
+    const safePage = Math.min(currentPage, totalPages - 1);
+
+    const start = safePage * perPage;
+    const end = start + perPage;
+
+    setRoutes(response.slice(start, end));
     };
     fetchRoutes();
   }, [currentPage]);
