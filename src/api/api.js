@@ -1634,7 +1634,7 @@ export const apiExternGetOptimalRouteAsync = async (locs, transportMode) => {
 };
 
 export const apiCreateRouteAsync = async (orders) => {
-  if (route == '' || !route) return;
+  if (orders.length==0) return;
   apiSetAuthHeader();
   const payload = {
     orderIds: orders.map((o) => o.id),

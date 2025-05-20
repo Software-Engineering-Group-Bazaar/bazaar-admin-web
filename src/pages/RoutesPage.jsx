@@ -9,7 +9,7 @@ import RouteDisplayModal from '../components/RouteDisplayModal';
 import { sha256 } from 'js-sha256';
 import CreateRouteModal from '@components/CreateRouteModal';
 import {
-  createRouteAsync,
+  apiCreateRouteAsync,
   apiGetRoutesAsync,
   apiDeleteRouteAsync,
 } from '../api/api';
@@ -91,6 +91,7 @@ const RoutesPage = () => {
     const fetchRoutes = async () => {
       //const response = generateMockRoutes(currentPage, perPage);
       const response = await apiGetRoutesAsync();
+      console.log(response);
       setRoutes(
         response.slice(currentPage * perPage, currentPage * perPage + perPage)
       );
@@ -104,10 +105,10 @@ const RoutesPage = () => {
     setIsCreateModalOpen(true);
   };
 
-  const handleCreateRoute = async (route) => {
+  const handleCreateRoute = async (orders) => {
     try {
       
-      const rez = await createRouteAsync(orders);
+      const rez = await apiCreateRouteAsync(orders);
       const rute = await apiGetRoutesAsync();
       setRoutes(rute);
       console.log('Uradjeno');
@@ -134,7 +135,6 @@ const RoutesPage = () => {
   };
 
   return (
-    <LoadScript googleMapsApiKey={API_KEY} libraries={['places']}>
       <Box
         sx={{
           width: '100%',
@@ -196,7 +196,6 @@ const RoutesPage = () => {
           onCreateRoute={handleCreateRoute}
         />
       </Box>
-    </LoadScript>
   );
 };
 
