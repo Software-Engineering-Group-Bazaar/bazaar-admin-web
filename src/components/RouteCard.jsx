@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import mapa from '@images/routing-pointa-ppointb.png';
 import DeleteConfirmationModal from './DeleteRouteConfirmation';
+import RouteDetailsModal from './RouteDetailsModal';
 const RouteCard = ({route, onViewDetails, onDelete}) => {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -67,7 +68,7 @@ const RouteCard = ({route, onViewDetails, onDelete}) => {
           variant="contained"
           color="primary"
           size="small"
-          onClick={handleViewDetails}
+          onClick={() => setDetailsOpen(true)}
           sx={{ flex: 1 }}
         >
           Details
@@ -88,6 +89,12 @@ const RouteCard = ({route, onViewDetails, onDelete}) => {
           Delete
         </Button>
       </Box>
+      <RouteDetailsModal
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        route={route}
+      />
+
       <DeleteConfirmationModal
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}

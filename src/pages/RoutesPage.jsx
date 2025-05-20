@@ -189,9 +189,9 @@ const RoutesPage = () => {
             onPageChange={setCurrentPage}
           />
 
-          <RouteDisplayModal
+          <RouteDetailsModal
             open={isModalOpen}
-            routeData={isModalOpen ? selectedRoute.routeData.data : null}
+            routeData={selectedRoute}
             onClose={() => setIsModalOpen(false)}
             googleMapsApiKey={API_KEY}
           />
