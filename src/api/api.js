@@ -1633,18 +1633,14 @@ export const apiExternGetOptimalRouteAsync = async (locs, transportMode) => {
   }
 };
 
-export const apiCreateRouteAsync = async (route, orders) => {
+export const apiCreateRouteAsync = async (orders) => {
   if (route == '' || !route) return;
   apiSetAuthHeader();
   const payload = {
     orderIds: orders.map((o) => o.id),
-    routeData: {
-      data: route,
-      hash: 'hash',
-    },
   };
   const response = await axios.post(
-    `${baseApiUrl}/api/Delivery/routes`,
+    `${baseApiUrl}/api/Delivery/routes/create`,
     JSON.stringify(payload),
     {
       headers: {

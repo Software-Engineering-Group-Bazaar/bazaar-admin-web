@@ -79,26 +79,7 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
   const handleCreateRoute = async () => {
     try {
       setLoading(true);
-
-      const origin = selectedOrders[0].senderAddress;
-      const destination =
-        selectedOrders[selectedOrders.length - 1].buyerAddress;
-      const waypoints = selectedOrders
-        .slice(1, -1)
-        .map((order) => `via:${order.buyerAddress}`)
-        .join('|');
-
-      //const directions = await getGoogle(origin, destination, waypoints);
-
-      const locations = await apiGetOrderAddresses(selectedOrders);
-
-      const route = await apiExternGetOptimalRouteAsync(locations, 'driving');
-      await apiCreateRouteAsync(route, selectedOrders);
-
-      //onCreateRoute(selectedOrders, directions);
-
-      onCreateRoute(route);
-
+      onCreateRoute(selectedOrders);
       onClose();
     } catch (err) {
       console.error('Greška pri kreiranju rute:', err);

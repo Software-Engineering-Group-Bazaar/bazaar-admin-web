@@ -106,9 +106,10 @@ const RoutesPage = () => {
 
   const handleCreateRoute = async (route) => {
     try {
-      //const rez = await createRouteAsync(orders, mapsresponse);
-
-      setRoutes((prev) => [...prev, route]);
+      
+      const rez = await createRouteAsync(orders);
+      const rute = await apiGetRoutesAsync();
+      setRoutes(rute);
       console.log('Uradjeno');
       setIsCreateModalOpen(false);
     } catch (error) {
