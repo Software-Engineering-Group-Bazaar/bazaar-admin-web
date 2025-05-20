@@ -4,8 +4,6 @@ import RouteCard from '@components/RouteCard';
 import UserManagementPagination from '@components/UserManagementPagination';
 import RoutesHeader from '@sections/RoutesHeader';
 import RouteDetailsModal from '@components/RouteDetailsModal';
-import RouteDetailsModal2 from '../components/RouteDisplayModal';
-import RouteDisplayModal from '../components/RouteDisplayModal';
 import { sha256 } from 'js-sha256';
 import CreateRouteModal from '@components/CreateRouteModal';
 import {
@@ -85,6 +83,7 @@ const RoutesPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const perPage = 8;
 
   useEffect(() => {
@@ -92,21 +91,20 @@ const RoutesPage = () => {
       //const response = generateMockRoutes(currentPage, perPage);
       const response = await apiGetRoutesAsync();
       console.log(response);
-    const totalItems = response.length;
-    const totalPages = Math.ceil(totalItems / perPage);
+const totalItems = response.length;
+setTotalPages(Math.ceil(totalItems / perPage));
 
     // Clamp currentPage to stay within valid bounds
-    const safePage = Math.min(currentPage, totalPages - 1);
+    const safePage = Math.max(0, Math.min(currentPage - 1, totalPages - 1));
 
-    const start = safePage * perPage;
-    const end = start + perPage;
+     const start = safePage * perPage;
+     const end = start + perPage;
 
     setRoutes(response.slice(start, end));
     };
     fetchRoutes();
-  }, [currentPage]);
+  }, [currentPage,perPage]);
 
-  const totalPages = Math.ceil(42 / perPage); // hardkodirano za mock
 
   const handleCreate = () => {
     setIsCreateModalOpen(true);
@@ -116,7 +114,7 @@ const RoutesPage = () => {
     try {
       
       const rez = await apiCreateRouteAsync(orders);
-      const rute = await apiGetRoutesAsync();
+      const rute = await apiGetAllRoutesAsync();
       setRoutes(rute);
       console.log('Uradjeno');
       setIsCreateModalOpen(false);
@@ -127,7 +125,7 @@ const RoutesPage = () => {
   const handleDelete = async (id) => {
     try {
       const rez = await apiDeleteRouteAsync(id);
-      const newroutes = await apiGetRoutesAsync();
+      const newroutes = await apiGetAllRoutesAsync();
       setRoutes(newroutes);
     } catch (err) {
       console.log('Greska pri brisanju', err);
@@ -193,7 +191,6 @@ const RoutesPage = () => {
             open={isModalOpen}
             routeData={selectedRoute}
             onClose={() => setIsModalOpen(false)}
-            googleMapsApiKey={API_KEY}
           />
         </Box>
 

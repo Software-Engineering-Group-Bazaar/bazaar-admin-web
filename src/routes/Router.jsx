@@ -163,7 +163,7 @@ const AppRoutes = () => {
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   {/* <RoutesPage /> */}
-                  <RoutesPage2 />
+                  <RoutesPage />
                 </ThemeProvider>
               </Layout>
             </ProtectedRoute>

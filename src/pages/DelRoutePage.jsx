@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import RouteMap from '../components/RouteMap'; // Assuming RouteMap is in src/components/
 import RoutesHeader from '@sections/RoutesHeader';
+import CreateRouteModal from "../components/CreateRouteModal";
 // MUI Imports
 import {
   Box,
@@ -20,7 +21,7 @@ import {
 import MapIcon from '@mui/icons-material/Map'; // Example icon
 import DirectionsIcon from '@mui/icons-material/Directions';
 import ListAltIcon from '@mui/icons-material/ListAlt';
-import { apiGetAllRoutesAsync } from '../api/api';
+import { apiGetRoutesAsync, apiCreateRouteAsync } from '../api/api';
 
 // You might want to wrap your App in a ThemeProvider in App.jsx or main.jsx
 // import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -32,22 +33,20 @@ function RoutesPage2() {
   const [selectedRouteData, setSelectedRouteData] = useState(null);
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     const fetchRouteList = async () => {
       setIsLoadingList(true);
       setError(null);
       try {
         //const response = await fetch('/api/routes'); // EXAMPLE: /api/routes
-        const response = await apiGetAllRoutesAsync();
+        const response = await apiGetRoutesAsync();
         // if (!response.ok) {
         //   throw new Error(`HTTP error! status: ${response.status}`);
         // }
-        console.log(response);
-        const data = await response.data;
-
-        setRouteList(data);
+        console.log(response.data);
+        setRouteList(response.data);
       } catch (e) {
         console.error('Failed to fetch route list:', e);
         setError('Failed to load route list. ' + e.message);
@@ -96,6 +95,23 @@ function RoutesPage2() {
     setSelectedRouteId(routeId);
   }, []);
 
+    const handleCreate = () => {
+    setIsCreateModalOpen(true);
+  };
+
+    const handleCreateRoute = async (orders) => {
+      try {
+        
+        const rez = await apiCreateRouteAsync(orders);
+        const rute = await apiGetRoutesAsync();
+        setRouteList(rute);
+        console.log('Uradjeno');
+        setIsCreateModalOpen(false);
+      } catch (error) {
+        console.error('API error:', error);
+      }
+    };
+
   return (
     <Box
     //   sx={{
@@ -113,7 +129,7 @@ function RoutesPage2() {
         {' '}
         {/* Overall page container */}
         <Grid container spacing={2} sx={{ height: '100%' }}>
-          <RoutesHeader onAddRoute={() => {}} /> {/* Adjust height as needed */}
+          <RoutesHeader onAddRoute={handleCreate} /> {/* Adjust height as needed */}
           {/* Routes List Panel */}
           <Grid
             item
@@ -291,6 +307,11 @@ function RoutesPage2() {
           </Grid>
         </Grid>
       </Container>
+              <CreateRouteModal
+                open={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onCreateRoute={handleCreateRoute}
+              />
     </Box>
   );
 }

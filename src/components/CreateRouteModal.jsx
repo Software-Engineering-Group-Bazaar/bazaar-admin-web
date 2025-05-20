@@ -36,7 +36,6 @@ const CreateRouteModal = ({ open, onClose, onCreateRoute }) => {
     const fetchOrders = async () => {
       try {
         const fetched = await apiFetchOrdersAsync();
-        console.log(fetched);
         const addresses = await fetchAdressesAsync(); // all addresses
 
         const enrichedOrders = await Promise.all(

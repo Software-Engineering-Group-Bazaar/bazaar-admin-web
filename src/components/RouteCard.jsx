@@ -3,7 +3,7 @@ import { Box, Typography, Button } from '@mui/material';
 import mapa from '@images/routing-pointa-ppointb.png';
 import DeleteConfirmationModal from './DeleteRouteConfirmation';
 import RouteDetailsModal from './RouteDetailsModal';
-const RouteCard = ({route, onViewDetails, onDelete}) => {
+const RouteCard = ({route, onViewDetails, onDelete, googleMapsApiKey}) => {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -92,7 +92,7 @@ const RouteCard = ({route, onViewDetails, onDelete}) => {
       <RouteDetailsModal
         open={detailsOpen}
         onClose={() => setDetailsOpen(false)}
-        route={route}
+        routeData={route}
       />
 
       <DeleteConfirmationModal
