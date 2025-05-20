@@ -18,8 +18,9 @@ import OrdersPage from '@pages/OrdersPage';
 import AnalyticsPage from '@pages/AnalyticsPage';
 import AdPage from '@pages/AdPage';
 import SellerAnalyticsPage from '@pages/SellerAnalyticsPage';
-import ChatPage from '@pages/ChatPage'
+import ChatPage from '@pages/ChatPage';
 import RoutesPage from '@pages/RoutesPage';
+import RoutesPage2 from '../pages/DelRoutePage';
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
@@ -161,7 +162,8 @@ const AppRoutes = () => {
               <Layout>
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
-                  <RoutesPage />
+                  {/* <RoutesPage /> */}
+                  <RoutesPage2 />
                 </ThemeProvider>
               </Layout>
             </ProtectedRoute>

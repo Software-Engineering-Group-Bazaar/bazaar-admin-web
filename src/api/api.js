@@ -1665,5 +1665,6 @@ export const apiGetOrderAddresses = async (orders) => {
 };
 
 export const apiGetAllRoutesAsync = async () => {
+  apiSetAuthHeader();
   return axios.get(`${baseApiUrl}/api/Delivery/routes`);
 };
