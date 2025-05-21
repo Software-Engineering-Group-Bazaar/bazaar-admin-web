@@ -52,14 +52,17 @@ const OrdersTable = ({
   const formatOrderId = (id) => `#${String(id).padStart(5, '0')}`;
 
   const columns = [
-    { label: 'Order #', field: 'id' },
-    { label: 'Buyer', field: 'buyerName' },
-    { label: 'Store', field: 'storeName' },
-    { label: 'Status', field: 'status' },
-    { label: 'Total', field: 'totalPrice' },
-    { label: 'Created', field: 'createdAt' },
-    { label: '', field: 'actions' },
-  ];
+  { label: 'Order #', field: 'id' },
+  { label: 'Buyer', field: 'buyerName' },
+  { label: 'Store', field: 'storeName' },
+  { label: 'Delivery Address', field: 'deliveryAddress' },
+  { label: 'Receiving Address', field: 'receivingAddress' },
+  { label: 'Status', field: 'status' },
+  { label: 'Total', field: 'totalPrice' },
+  { label: 'Created', field: 'createdAt' },
+  { label: '', field: 'actions' },
+];
+
 
   return (
     <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
@@ -121,6 +124,14 @@ const OrdersTable = ({
               </TableCell>
               <TableCell>{order.buyerName}</TableCell>
               <TableCell>{order.storeName}</TableCell>
+
+              <TableCell>
+  {order.deliveryAddress?.address ?? 'null'}, {order.deliveryAddress?.city ?? 'null'}
+</TableCell>
+<TableCell>
+  {order.receivingAddress?.address ?? 'null'}, {order.receivingAddress?.city ?? 'null'}
+</TableCell>
+
               <TableCell>
                 <Chip
                   label={order.status}
@@ -159,9 +170,14 @@ const OrdersTable = ({
                 </Tooltip>
               </TableCell>
             </TableRow>
+
+
           ))}
         </TableBody>
       </Table>
+
+  
+
     </TableContainer>
   );
 };
