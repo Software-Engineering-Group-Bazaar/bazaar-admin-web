@@ -1201,6 +1201,8 @@ export const apiUpdateAdAsync = async (advertisementId, adData) => {
     formData.append('StartTime', new Date(adData.startTime).toISOString());
     formData.append('EndTime', new Date(adData.endTime).toISOString());
     formData.append('IsActive', adData.isActive);
+    formData.append('AdType', adData.adType);
+    formData.append('Triggers', adData.triggers);
 
     adData.newAdDataItems.forEach((item, index) => {
       formData.append(`NewAdDataItems[${index}].storeId`, item.storeId);
@@ -1634,7 +1636,7 @@ export const apiExternGetOptimalRouteAsync = async (locs, transportMode) => {
 };
 
 export const apiCreateRouteAsync = async (orders) => {
-  if (orders.length==0) return;
+  if (orders.length == 0) return;
   apiSetAuthHeader();
   const payload = {
     orderIds: orders.map((o) => o.id),
