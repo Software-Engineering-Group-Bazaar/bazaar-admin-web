@@ -1670,3 +1670,11 @@ export const apiGetAllRoutesAsync = async () => {
   apiSetAuthHeader();
   return axios.get(`${baseApiUrl}/api/Delivery/routes`);
 };
+
+export const apiFetchDeliveryAddressByIdAsync = async (addressId) => {
+  const res = await axios.get(
+    `${baseApiUrl}/api/user-profile/address/${addressId}`
+  );
+  console.log('RESPONSE Adrese: ', res);
+  return res.data; // Vraća objekat adrese
+};
