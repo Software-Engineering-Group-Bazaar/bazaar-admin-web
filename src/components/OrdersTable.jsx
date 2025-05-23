@@ -31,6 +31,8 @@ const getStatusColor = (status) => {
       return '#1976d2'; // tamno plava
     case 'cancelled':
       return '#b71c1c'; // tamno crvena
+    case 'requested': // Dodaj boju i za requested
+        return '#03e8fc';
     default:
       return '#9e9e9e'; // siva
   }
@@ -55,6 +57,8 @@ const OrdersTable = ({
     { label: 'Order #', field: 'id' },
     { label: 'Buyer', field: 'buyerName' },
     { label: 'Store', field: 'storeName' },
+    { label: 'Delivery Address', field: 'deliveryAddress' }, // NOVA KOLONA
+    { label: 'Store Address', field: 'storeAddress' },     // NOVA KOLONA
     { label: 'Status', field: 'status' },
     { label: 'Total', field: 'totalPrice' },
     { label: 'Created', field: 'createdAt' },
@@ -121,12 +125,14 @@ const OrdersTable = ({
               </TableCell>
               <TableCell>{order.buyerName}</TableCell>
               <TableCell>{order.storeName}</TableCell>
+              <TableCell>{order.deliveryAddress}</TableCell> {/* NOVA ĆELIJA */}
+              <TableCell>{order.storeAddress}</TableCell>  {/* NOVA ĆELIJA */}
               <TableCell>
                 <Chip
                   label={order.status}
                   size='small'
                   sx={{
-                    backgroundColor: getStatusColor(order.status.toLowerCase()),
+                    backgroundColor: getStatusColor(order.status?.toLowerCase()), // OPREZ: provjeri da li status može biti null/undefined
                     color: '#fff',
                     fontWeight: 500,
                     fontSize: '0.75rem',
@@ -139,11 +145,12 @@ const OrdersTable = ({
               </TableCell>
               <TableCell>${order.totalPrice}</TableCell>
               <TableCell>
-                {new Date(order.createdAt).toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
+                {order.createdAt ? // Provjeri da createdAt postoji
+                  new Date(order.createdAt).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  }) : 'N/A'}
               </TableCell>
               <TableCell align='right'>
                 <Tooltip title='Delete Order'>
