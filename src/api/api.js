@@ -515,6 +515,17 @@ export const apiGetAllStoresAsync = async () => {
   }
 };
 
+export const apiGetMonthlyStoreRevenueAsync = async (id) => {
+ apiSetAuthHeader();
+    const formData = {
+    id: id,
+    from: firstDayOfMonth.toISOString(), // Convert to ISO string and remove the time part
+    to: lastDayOfMonth.toISOString()  // Convert to ISO string and remove the time part
+    }
+    const rev = await axios.get(`${baseApiUrl}/api/Admin/store/${id}/income`);
+    return rev;
+
+};
 // DELETE product category
 export const apiDeleteProductCategoryAsync = async (categoryId) => {
   if (API_ENV_DEV === API_FLAG) {
