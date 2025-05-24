@@ -19,6 +19,7 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [tax, setTax] = useState(''); 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -34,6 +35,7 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
       setCategoryId(store.categoryId || '');
       setDescription(store.description || '');
       setAddress(store.address || '');
+      setTax(store.tax?.toString() || ''); 
     }
   }, [store]);
 
@@ -47,6 +49,7 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
       address,
       categoryId,
       description,
+      tax: parseFloat(tax), 
       isActive: store.isOnline ?? true,
     };
 
@@ -142,7 +145,23 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
             margin='normal'
             required
           />
-
+          <TextField
+            label='Tax (%)'
+            type='number'
+            fullWidth
+            value={tax}
+            onChange={(e) => setTax(e.target.value)}
+            margin='normal'
+            required
+            inputProps={{
+              min: 0,
+              step: 0.01,
+              style: {
+                 backgroundColor: 'white',
+                 color: 'black',
+                },
+               }}
+          />
           <Button
             type='submit'
             fullWidth
