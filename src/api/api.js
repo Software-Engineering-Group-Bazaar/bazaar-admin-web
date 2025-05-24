@@ -11,6 +11,7 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import ads from '../data/ads.js';
 import sha256 from 'crypto-js/sha256';
+import { format } from 'date-fns';
 //import { GET } from 'superagent';
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 const API_FLAG = import.meta.env.VITE_API_FLAG;
@@ -497,6 +498,7 @@ export const apiUpdateStoreAsync = async (store) => {
       categoryId: store.categoryId,
       description: store.description,
       isActive: store.isActive,
+      tax: store.tax
     });
   }
 };
@@ -510,20 +512,21 @@ export const apiGetAllStoresAsync = async () => {
   } else {
     apiSetAuthHeader();
     const stores = await axios.get(`${baseApiUrl}/api/Admin/stores`);
-    console.log(stores);
     return stores.data;
   }
 };
 
 export const apiGetMonthlyStoreRevenueAsync = async (id) => {
  apiSetAuthHeader();
-    const formData = {
-    id: id,
-    from: firstDayOfMonth.toISOString(), // Convert to ISO string and remove the time part
-    to: lastDayOfMonth.toISOString()  // Convert to ISO string and remove the time part
-    }
-    const rev = await axios.get(`${baseApiUrl}/api/Admin/store/${id}/income`);
-    return rev;
+ const now = new Date();
+ const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // ✅ define it here
+ const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // ✅ and here
+ const from = format(firstDayOfMonth, 'yyyy-MM-dd');
+ const to = format(lastDayOfMonth, 'yyyy-MM-dd');
+
+    const rev = await axios.get(`${baseApiUrl}/api/Admin/store/${id}/income?from=${from}&to=${to}`);
+    console.log(rev);
+    return rev.data;
 
 };
 // DELETE product category
@@ -1686,6 +1689,5 @@ export const apiFetchDeliveryAddressByIdAsync = async (addressId) => {
   const res = await axios.get(
     `${baseApiUrl}/api/user-profile/address/${addressId}`
   );
-  console.log('RESPONSE Adrese: ', res);
   return res.data; // Vraća objekat adrese
 };

@@ -45,8 +45,17 @@ const StoreCard = ({ store }) => {
 
   useEffect(() => {
     apiGetStoreCategoriesAsync().then(setCategories);
-    const rez = apiGetMonthlyStoreRevenueAsync(store.id);
-    setRevenue(rez);
+    const fetchRevenue = async () => {
+    try {
+      const rez = await apiGetMonthlyStoreRevenueAsync(store.id);
+      console.log(rez.taxedIncome); // ✅ This will now work
+      setRevenue(rez);
+    } catch (error) {
+      console.error("Failed to fetch revenue:", error);
+    }
+  };
+
+  fetchRevenue();
   }, []);
 
   const handleStatusClick = (e) => setAnchorEl(e.currentTarget);
