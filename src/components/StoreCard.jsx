@@ -27,11 +27,13 @@ import EditStoreModal from '@components/EditStoreModal';
 import ConfirmDeleteStoreModal from '@components/ConfirmDeleteStoreModal';
 import StoreProductsList from '@components/StoreProductsList';
 import * as XLSX from 'xlsx';
+import { apiGetStoreByIdAsync } from '../api/api';
 
 const StoreCard = ({ store }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuAnchor, setMenuAnchor] = useState(null);
-  const [isOnline, setIsOnline] = useState(store.isActive);
+  const [storeData, setStoreData] = useState(store);
+  const [isOnline, setIsOnline] = useState(storeData.isActive);
   const [openModal, setOpenModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
@@ -47,7 +49,7 @@ const StoreCard = ({ store }) => {
     apiGetStoreCategoriesAsync().then(setCategories);
     const fetchRevenue = async () => {
     try {
-      const rez = await apiGetMonthlyStoreRevenueAsync(store.id);
+      const rez = await apiGetMonthlyStoreRevenueAsync(storeData.id);
       console.log(rez.taxedIncome); // ✅ This will now work
       setRevenue(rez);
     } catch (error) {
@@ -62,12 +64,12 @@ const StoreCard = ({ store }) => {
   const handleStatusChange = async (newStatus) => {
     setUpdating(true);
     const matchedCategory = categories.find(
-      (cat) => cat.name === store.categoryName
+      (cat) => cat.name === storeData.categoryName
     );
     if (!matchedCategory) return;
 
     const updatedStore = {
-      ...store,
+      ...storeData,
       isActive: newStatus,
       categoryId: matchedCategory.id,
     };
@@ -79,7 +81,7 @@ const StoreCard = ({ store }) => {
   };
 
   const handleExportCSV = async () => {
-    const response = await apiExportProductsToCSVAsync(store.id);
+    const response = await apiExportProductsToCSVAsync(storeData.id);
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
@@ -90,7 +92,7 @@ const StoreCard = ({ store }) => {
   };
 
   const handleExportExcel = async () => {
-    const response = await apiExportProductsToExcelAsync(store.id);
+    const response = await apiExportProductsToExcelAsync(storeData.id);
     console.log('PREOVJERA', response.data);
 
     const blob = response.data;
@@ -146,7 +148,7 @@ const StoreCard = ({ store }) => {
       try {
         const res = await apiCreateProductAsync({
           ...product,
-          storeId: store.id,
+          storeId: storeData.id,
         });
         console.log('Response from apiCreateProductAsync:', res);
 
@@ -162,6 +164,16 @@ const StoreCard = ({ store }) => {
     console.log(`✅ ${success} created, ❌ ${fail} failed`);
   };
 
+  const onUpdate = async (targetstore) =>{
+   try{
+    const rez = await apiUpdateStoreAsync(targetstore);
+    const newstore = await apiGetStoreByIdAsync(targetstore.id);
+    setStoreData(newstore);
+   }catch(err){
+    console.log(err);
+   }
+
+  };
   return (
     <>
       <Box
@@ -232,7 +244,7 @@ const StoreCard = ({ store }) => {
                 '&:hover .edit-icon': { opacity: 1 },
               }}
             >
-              {store.name}
+              {storeData.name}
               <IconButton
                 className='edit-icon'
                 size='small'
@@ -248,7 +260,7 @@ const StoreCard = ({ store }) => {
                 variant='body2'
                 sx={{ fontSize: '0.75rem', color: '#607d8b' }}
               >
-                {store.address}
+                {storeData.address}
               </Typography>
             </Box>
           </Box>
@@ -267,7 +279,7 @@ const StoreCard = ({ store }) => {
             overflow: 'hidden',
           }}
         >
-          {store.description}
+          {storeData.description}
         </Typography>
         
         <Typography
@@ -278,7 +290,7 @@ const StoreCard = ({ store }) => {
           fontSize: '0.85rem',
           }}
         >
-        Tax: {store.tax}
+        Tax: {(storeData.tax*100).toFixed(2)}
         </Typography>
 
         <Typography
@@ -373,25 +385,26 @@ const StoreCard = ({ store }) => {
           <MenuItem onClick={handleExportExcel}>📤 Export Excel</MenuItem>
         </Menu>
         {/* Products List */}
-        <StoreProductsList storeId={store.id} />
+        <StoreProductsList storeId={storeData.id} />
       </Box>
 
       <AddProductModal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        storeID={store.id}
+        storeID={storeData.id}
       />
       <EditStoreModal
         open={openEditModal}
         onClose={() => setOpenEditModal(false)}
         store={store}
+        onStoreUpdated={onUpdate}
       />
       <ConfirmDeleteStoreModal
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
-        storeName={store.name}
+        storeName={storeData.name}
         onConfirm={async () => {
-          const res = await apiDeleteStoreAsync(store.id);
+          const res = await apiDeleteStoreAsync(storeData.id);
           if (res.success) window.location.reload();
         }}
       />

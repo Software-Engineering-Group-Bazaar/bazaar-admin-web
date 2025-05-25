@@ -49,18 +49,13 @@ const StoreEditModal = ({ open, onClose, store, onStoreUpdated }) => {
       address,
       categoryId,
       description,
-      tax: parseFloat(tax), 
+      tax: parseFloat(tax)/100, 
       isActive: store.isOnline ?? true,
     };
 
-    const response = await apiUpdateStoreAsync(updatedData);
-
-    if (response?.status === 200 || response?.success) {
-      onStoreUpdated?.(updatedData);
+      await onStoreUpdated(updatedData);
       onClose();
-    }
-
-    setLoading(false);
+      setLoading(false);
   };
 
   return (
