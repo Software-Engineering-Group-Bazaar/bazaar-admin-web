@@ -29,7 +29,7 @@ import {
   apiFetchAdViewsAsync,
   apiFetchAdConversionsAsync, // From HEAD, for ProductsSummary
   apiGetStoreIncomeAsync, 
-  apiGetAdminProfitAsync
+  apiGetMonthlyStoreRevenueAsync
 } from '../api/api.js';
 // format and parseISO were in develop but not used in the conflicting part, subMonths is used by both
 import { subMonths, format, parseISO } from 'date-fns'; // Added format, parseISO from develop imports
@@ -328,23 +328,18 @@ const AnalyticsPage = () => {
         calculatedProductsChange
       );
 
-      const adsWithProfitResp = await apiFetchAdsWithProfitAsync();
-      const adsWithProfit = adsWithProfitResp?.data || [];
 
-      const noww= new Date();
-
-      const from = new Date(noww.getFullYear(), noww.getMonth(), 1);
-      const to = new Date(noww.getFullYear(), noww.getMonth() + 1, 0); 
 
       const earningsStats = await Promise.all(
         stores.map(async (store) => {
           try {
-            const income = await apiGetStoreIncomeAsync(store.id, from, to);
+            const income = await apiGetMonthlyStoreRevenueAsync(store.id); 
+            console.log("ispis "+income.storeId+" total income "+income.totalIncome+" taxed income "+income.taxedIncome);// 👈 nova funkcija
             return {
-              storeId: income.StoreId,
-              name: income.StoreName ?? store.name,
-              storeRevenue: income.TotalIncome ,
-              adminProfit: income.TaxedIncome,
+              storeId: income.storeId,
+              name: income.storeName,
+              storeRevenue: income.totalIncome,
+              adminProfit: income.taxedIncome,
               taxRate: (store.tax) * 100,
             };
           } catch (err) {
@@ -352,8 +347,8 @@ const AnalyticsPage = () => {
             return {
               storeId: store.id,
               name: store.name,
-              storeRevenue: 0,
-              adminProfit: 0,
+              storeRevenue: 999,
+              adminProfit: 999,
               taxRate: (store.tax) * 100,
             };
           }
@@ -362,9 +357,6 @@ const AnalyticsPage = () => {
 
       setStoreStats(earningsStats);
 
-      
-      const adminProfit = await apiGetAdminProfitAsync(from, to, stores.map(s => s.id));
-      setTotalAdminProfit(adminProfit);
 
       // Other initial data if needed (orders, users - not directly used for KPIs in develop's version)
       // const ordersData = await apiFetchOrdersAsync();
