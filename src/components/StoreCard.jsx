@@ -19,6 +19,7 @@ import {
   apiExportProductsToCSVAsync,
   apiExportProductsToExcelAsync,
   apiCreateProductAsync,
+  apiGetMonthlyStoreRevenueAsync
 } from '@api/api';
 import AddProductModal from '@components/NewProductModal';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -38,12 +39,23 @@ const StoreCard = ({ store }) => {
   const [updating, setUpdating] = useState(false);
   const fileInputRef = useRef();
   const [parsedProducts, setParsedProducts] = useState([]);
-
+  const [revenue, setRevenue] = useState(0);
   const openStatus = Boolean(anchorEl);
   const openMenu = Boolean(menuAnchor);
 
   useEffect(() => {
     apiGetStoreCategoriesAsync().then(setCategories);
+    const fetchRevenue = async () => {
+    try {
+      const rez = await apiGetMonthlyStoreRevenueAsync(store.id);
+      console.log(rez.taxedIncome); // ✅ This will now work
+      setRevenue(rez);
+    } catch (error) {
+      console.error("Failed to fetch revenue:", error);
+    }
+  };
+
+  fetchRevenue();
   }, []);
 
   const handleStatusClick = (e) => setAnchorEl(e.currentTarget);
@@ -256,6 +268,39 @@ const StoreCard = ({ store }) => {
           }}
         >
           {store.description}
+        </Typography>
+        
+        <Typography
+         variant="body2"
+         color="text.secondary"
+         sx={{
+          mt: 1,
+          fontSize: '0.85rem',
+          }}
+        >
+        Tax: {store.tax}
+        </Typography>
+
+        <Typography
+         variant="body2"
+         color="text.secondary"
+         sx={{
+          mt: 1,
+          fontSize: '0.85rem',
+          }}
+        >
+        Total monthly income: {revenue.totalIncome}
+        </Typography>
+
+        <Typography
+         variant="body2"
+         color="text.secondary"
+         sx={{
+          mt: 1,
+          fontSize: '0.85rem',
+          }}
+        >
+        Taxed monthly income: {revenue.taxedIncome}
         </Typography>
 
         {/* Buttons */}

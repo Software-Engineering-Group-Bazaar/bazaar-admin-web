@@ -17,7 +17,6 @@ const StoresPage = () => {
   useEffect(() => {
     const fetchStores = async () => {
       const data = await apiGetAllStoresAsync();
-      console.log(data);
       const mapped = data.map((store) => ({
         ...store,
         categoryId: store.categoryId || store.category?.id || 0,

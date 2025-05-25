@@ -58,11 +58,14 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
   const [storeId, setStoreId] = useState(null);
   const [buyerName] = useState(narudzba.buyerId);
   const [storeName] = useState(narudzba.storeId);
+    const [storeAddress] = useState(narudzba.storeAddress);
+  const [deliveryAddress] = useState(narudzba.deliveryAddress);
+
   const [date, setDate] = useState(
     new Date(narudzba.time).toISOString().slice(0, 16)
   );
   const [products, setProducts] = useState(narudzba.proizvodi || []);
-
+deliveryAddress
   useEffect(() => {
     const fetchMappings = async () => {
       const [stores, users] = await Promise.all([
@@ -304,6 +307,16 @@ const OrderComponent = ({ open, onClose, narudzba, onOrderUpdated }) => {
           <Box display='flex' justifyContent='space-between' mb={1}>
             <Typography color='text.secondary'>Store:</Typography>
             <Typography fontWeight={600}>{storeName}</Typography>
+          </Box>
+
+           <Box display='flex' justifyContent='space-between' mb={1}>
+            <Typography color='text.secondary'>Store address:</Typography>
+            <Typography fontWeight={600}>{storeAddress}</Typography>
+          </Box>
+
+           <Box display='flex' justifyContent='space-between' mb={1}>
+            <Typography color='text.secondary'>Delivery address:</Typography>
+            <Typography fontWeight={600}>{deliveryAddress}</Typography>
           </Box>
 
           <Box display='flex' justifyContent='space-between' mb={1}>
