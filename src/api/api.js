@@ -1685,9 +1685,44 @@ export const apiGetAllRoutesAsync = async () => {
   return axios.get(`${baseApiUrl}/api/Delivery/routes`);
 };
 
+
+
+export const apiGetStoreIncomeAsync = async (storeId, from, to) => {
+  const fromDate = from.toISOString();
+  const toDate = to.toISOString();
+  const response = await axios.get(
+    `${baseApiUrl}/api/Admin/store/${storeId}/income`,
+    { params: { from: fromDate, to: toDate } }
+  );
+  return response.data;
+};
+
+
+
+export const apiGetAdminProfitAsync = async (from, to, storeIds) => {
+  const response = await axios.get(`${baseApiUrl}/api/loyalty/admin/profit`, {
+    params: {
+      from: from?.toISOString(),
+      to: to?.toISOString(),
+      storeIds,
+    },
+    paramsSerializer: (params) => {
+      const query = new URLSearchParams();
+      if (params.from) query.append('from', params.from);
+      if (params.to) query.append('to', params.to);
+      if (params.storeIds) {
+        params.storeIds.forEach((id) => query.append('storeIds', id));
+      }
+      return query.toString();
+    },
+  });
+  return response.data;
+};
+
 export const apiFetchDeliveryAddressByIdAsync = async (addressId) => {
   const res = await axios.get(
     `${baseApiUrl}/api/user-profile/address/${addressId}`
   );
   return res.data; // Vraća objekat adrese
 };
+

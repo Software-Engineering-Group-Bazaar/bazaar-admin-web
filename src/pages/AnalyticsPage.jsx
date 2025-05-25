@@ -16,6 +16,7 @@ import Calendar from '@components/Calendar'; // From develop
 import DealsChart from '@components/DealsChart'; // From develop
 import SalesChart from '@components/SalesChart'; // From develop
 import { useState, useEffect, useRef } from 'react'; // useRef from develop
+import StoreEarningsTable from '@components/StoreEarningsTable';
 
 import {
   apiGetAllAdsAsync,
@@ -27,6 +28,8 @@ import {
   apiFetchAdClicksAsync,
   apiFetchAdViewsAsync,
   apiFetchAdConversionsAsync, // From HEAD, for ProductsSummary
+  apiGetStoreIncomeAsync, 
+  apiGetAdminProfitAsync
 } from '../api/api.js';
 // format and parseISO were in develop but not used in the conflicting part, subMonths is used by both
 import { subMonths, format, parseISO } from 'date-fns'; // Added format, parseISO from develop imports
@@ -40,6 +43,7 @@ const HUB_URL = `${baseUrl}${HUB_ENDPOINT_PATH}`;
 
 const AnalyticsPage = () => {
   // --- State from develop ---
+  const [totalAdminProfit, setTotalAdminProfit] = useState(0);
   const [ads, setAds] = useState([]); // For general ad data, updated by SignalR
   const [kpi, setKpi] = useState({
     totalViews: 0,
@@ -84,6 +88,9 @@ const AnalyticsPage = () => {
   const [storeSpecificViewData, setStoreSpecificViewData] = useState([]);
   const [storeSpecificConversionData, setStoreSpecificConversionData] =
     useState([]);
+
+  const [storeStats, setStoreStats] = useState([]);
+
 
   // --- Pagination Logic (from HEAD) ---
   const handlePageChange = (event, value) => {
@@ -320,6 +327,44 @@ const AnalyticsPage = () => {
         allFetchedProducts.length,
         calculatedProductsChange
       );
+
+      const adsWithProfitResp = await apiFetchAdsWithProfitAsync();
+      const adsWithProfit = adsWithProfitResp?.data || [];
+
+      const noww= new Date();
+
+      const from = new Date(noww.getFullYear(), noww.getMonth(), 1);
+      const to = new Date(noww.getFullYear(), noww.getMonth() + 1, 0); 
+
+      const earningsStats = await Promise.all(
+        stores.map(async (store) => {
+          try {
+            const income = await apiGetStoreIncomeAsync(store.id, from, to);
+            return {
+              storeId: income.StoreId,
+              name: income.StoreName ?? store.name,
+              storeRevenue: income.TotalIncome ,
+              adminProfit: income.TaxedIncome,
+              taxRate: (store.tax) * 100,
+            };
+          } catch (err) {
+            console.error(`❌ Error fetching income for store ${store.id}`, err);
+            return {
+              storeId: store.id,
+              name: store.name,
+              storeRevenue: 0,
+              adminProfit: 0,
+              taxRate: (store.tax) * 100,
+            };
+          }
+        })
+      );
+
+      setStoreStats(earningsStats);
+
+      
+      const adminProfit = await apiGetAdminProfitAsync(from, to, stores.map(s => s.id));
+      setTotalAdminProfit(adminProfit);
 
       // Other initial data if needed (orders, users - not directly used for KPIs in develop's version)
       // const ordersData = await apiFetchOrdersAsync();
@@ -815,6 +860,13 @@ const AnalyticsPage = () => {
           </Box>
         )}
       </Box>
+
+      <Box sx={{ px: 4, pb: 10 }}>
+        <Typography variant='h5' sx={{ mb: 2, color: 'primary.dark' }}>
+        Store Earnings (Past Month)
+      </Typography>
+      <StoreEarningsTable data={storeStats} />
+    </Box>
 
       <Box sx={{ width: '100%', mt: 6 }} id='seller-section'></Box>
       <Box sx={{ width: '100%', mt: 6 }} id='revenue-section'>
