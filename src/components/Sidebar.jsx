@@ -30,6 +30,7 @@ import { FiBarChart2 } from 'react-icons/fi';
 import { HiOutlineMegaphone } from 'react-icons/hi2';
 import { FiMessageCircle } from 'react-icons/fi';
 import { FaRoute } from 'react-icons/fa';
+import { FaLanguage } from 'react-icons/fa';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -87,6 +88,12 @@ const Sidebar = () => {
       icon: <FaRoute />,
       label: 'Routes',
       path: '/routes',
+      badge: null,
+    },
+    {
+      icon: <FaLanguage />,
+      label: 'Languages',
+      path: '/languages',
       badge: null,
     },
   ];
