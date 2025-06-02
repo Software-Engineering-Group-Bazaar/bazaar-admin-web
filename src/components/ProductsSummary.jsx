@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Box, Grid, Divider } from '@mui/material';
 import { Megaphone, ShoppingBag, CheckCircle, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { apiFetchAdsWithProfitAsync } from '@api/api';
 
 const ProductSummary = ({ product, ads }) => {
+  const { t } = useTranslation();
   const [adsData, setAdsData] = useState([]);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ const ProductSummary = ({ product, ads }) => {
             <Typography variant='h4' sx={{ ml: 1.5, fontWeight: 'bold' }}>
               {product?.name.length > 54
                 ? `${product.name.substring(0, 54)}...`
-                : product.name || 'Unknown Product'}{' '}
+                : product.name || t('common.unknownProduct')}{' '}
             </Typography>
           </Box>
         </Box>
@@ -59,7 +61,7 @@ const ProductSummary = ({ product, ads }) => {
           <Grid item xs={12} sm={6} md={3}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' color='text.secondary' gutterBottom>
-                Views
+                {t('analytics.totalViews')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Megaphone size={18} color='#6B7280' />
@@ -73,7 +75,7 @@ const ProductSummary = ({ product, ads }) => {
           <Grid item xs={12} sm={6} md={3}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' color='text.secondary' gutterBottom>
-                Clicks
+                {t('analytics.totalClicks')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <CheckCircle size={18} color='#10B981' />
@@ -87,7 +89,7 @@ const ProductSummary = ({ product, ads }) => {
           <Grid item xs={12} sm={6} md={3}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' color='text.secondary' gutterBottom>
-                Conversions
+                {t('analytics.totalConversions')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <TrendingUp size={18} color='#3B82F6' />
@@ -109,7 +111,7 @@ const ProductSummary = ({ product, ads }) => {
             >
               <Box>
                 <Typography variant='subtitle2' color='text.secondary'>
-                  Total Earned Profit from Ads
+                  {t('analytics.totalEarnedProfitFromAds')}
                 </Typography>
                 <Typography variant='h5' color='success.main'>
                   ${totalProfit > 0 ? totalProfit.toFixed(2) : 0}

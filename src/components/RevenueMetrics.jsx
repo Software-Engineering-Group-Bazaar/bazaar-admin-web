@@ -3,6 +3,7 @@ import { Grid, Paper, Typography, Box } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { DollarSign, Eye, MousePointerClick, ShoppingCart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import MetricCard from './MetricCard';
 import { apiFetchAdsWithProfitAsync } from '@api/api';
 
@@ -32,6 +33,7 @@ const groupByDay = (ads, eventType) => {
 };
 
 const RevenueMetrics = () => {
+  const { t } = useTranslation();
   const [ads, setAds] = useState([]);
 
   useEffect(() => {
@@ -89,51 +91,51 @@ const RevenueMetrics = () => {
   return (
     <Box sx={{ maxWidth: 1200, ml: '5', mb: 4 }}>
       <Typography variant='h5' sx={{ mb: 3 }}>
-        Revenue & Profit Analysis
+        {t('analytics.revenueAndProfitAnalysis')}
       </Typography>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
-            title='Total Revenue'
+            title={t('analytics.totalRevenue')}
             value={formatCurrency(totalRevenue)}
-            subtitle='From all advertising sources'
+            subtitle={t('analytics.fromAllAdvertisingSources')}
             icon={<DollarSign size={20} />}
             color='success'
-            tooltipText='Total revenue generated from all sources'
+            tooltipText={t('analytics.fromAllAdvertisingSources')}
           />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
-            title='Click Revenue'
+            title={t('analytics.clickRevenue')}
             value={formatCurrency(clickRevenue)}
-            subtitle={`From ${ads.reduce((s, a) => s + a.clicks, 0).toLocaleString()} clicks`}
+            subtitle={t('analytics.fromClicks', { count: ads.reduce((s, a) => s + a.clicks, 0).toLocaleString() })}
             icon={<MousePointerClick size={20} />}
             color='info'
-            tooltipText='Revenue from ad clicks'
+            tooltipText={t('analytics.clickRevenue')}
           />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
-            title='View Revenue'
+            title={t('analytics.viewRevenue')}
             value={formatCurrency(viewRevenue)}
-            subtitle={`From ${ads.reduce((s, a) => s + a.views, 0).toLocaleString()} views`}
+            subtitle={t('analytics.fromViews', { count: ads.reduce((s, a) => s + a.views, 0).toLocaleString() })}
             icon={<Eye size={20} />}
             color='secondary'
-            tooltipText='Revenue from ad views'
+            tooltipText={t('analytics.viewRevenue')}
           />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <MetricCard
-            title='Conversion Revenue'
+            title={t('analytics.conversionRevenue')}
             value={formatCurrency(conversionRevenue)}
-            subtitle={`From ${ads.reduce((s, a) => s + a.conversions, 0).toLocaleString()} conversions`}
+            subtitle={t('analytics.fromConversions', { count: ads.reduce((s, a) => s + a.conversions, 0).toLocaleString() })}
             icon={<ShoppingCart size={20} />}
             color='success'
-            tooltipText='Revenue from conversions'
+            tooltipText={t('analytics.conversionRevenue')}
           />
         </Grid>
       </Grid>
@@ -142,7 +144,7 @@ const RevenueMetrics = () => {
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3, height: '100%', width: '665px' }}>
             <Typography variant='h6' sx={{ mb: 2 }}>
-              Revenue by Source Over Time
+              {t('analytics.revenueBySourceOverTime')}
             </Typography>
             <LineChart
               series={[
@@ -196,7 +198,7 @@ const RevenueMetrics = () => {
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant='h6' sx={{ mb: 2 }}>
-              Revenue Distribution
+              {t('analytics.revenueDistribution')}
             </Typography>
             <Box
               sx={{

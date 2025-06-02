@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Typography, Box } from '@mui/material';
 import { apiGetAllAdsAsync } from '../api/api.js';
 import { format, parseISO } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 const colors = ['#6366F1', '#F59E0B'];
 const labels = ['Fixed', 'PopUp'];
@@ -94,6 +95,7 @@ function StackedBarRow({
 }
 
 export default function AdStackedBarChart() {
+  const { t } = useTranslation();
   const [data, setData] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
@@ -133,7 +135,7 @@ export default function AdStackedBarChart() {
           textAlign: 'center',
         }}
       >
-        Combination Chart: Fixed vs PopUp Ads
+        {t('analytics.combinationChart')}
       </Typography>
       <svg
         width={chartWidth + yAxisWidth + framePadding * 2 + 20}
@@ -190,7 +192,7 @@ export default function AdStackedBarChart() {
                 mr: 1,
               }}
             />
-            <Typography variant='caption'>{label}</Typography>
+            <Typography variant='caption'>{t(`analytics.${label.toLowerCase()}`)}</Typography>
           </Box>
         ))}
       </Box>

@@ -3,6 +3,7 @@ import { Card, CardContent, Typography, Box } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { apiGetAllAdsAsync } from '../api/api.js';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { useTranslation } from 'react-i18next';
 
 const gaugeColor = '#0F766E';
 const bgColor = '#E5E7EB';
@@ -11,6 +12,7 @@ const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
 const HUB_URL = `${baseUrl}${HUB_ENDPOINT_PATH}`;
 
 const UserDistribution = () => {
+  const { t } = useTranslation();
   const [conversionRate, setConversionRate] = useState(0);
   const [totalConversions, setTotalConversions] = useState(0);
   const [totalClicks, setTotalClicks] = useState(0);
@@ -162,10 +164,10 @@ const UserDistribution = () => {
     >
       <CardContent sx={{ flexShrink: 0 }}>
         <Typography variant='h6' align='center'>
-          Conversion Rate (All Ads)
+          {t('analytics.conversionRate')}
         </Typography>
         <Typography variant='body2' align='center' color='text.secondary'>
-          {totalConversions} conversions / {totalClicks} clicks
+          {totalConversions} {t('analytics.conversions')} / {totalClicks} {t('analytics.clicks')}
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, position: 'relative' }}>

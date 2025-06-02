@@ -8,6 +8,7 @@ import {
 } from '@mui/icons-material';
 import { apiGetAllAdsAsync } from '../api/api.js';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { useTranslation } from 'react-i18next';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
@@ -21,23 +22,24 @@ const funnelIcons = [
 ];
 
 export default function AdFunnelChart() {
+  const { t } = useTranslation();
   const [funnelSteps, setFunnelSteps] = useState([
     {
-      label: 'Viewed',
+      label: t('analytics.viewed'),
       value: 0,
       percent: 100,
       color: funnelColors[0],
       icon: funnelIcons[0],
     },
     {
-      label: 'Clicked',
+      label: t('analytics.clicked'),
       value: 0,
       percent: 0,
       color: funnelColors[1],
       icon: funnelIcons[1],
     },
     {
-      label: 'Converted',
+      label: t('analytics.converted'),
       value: 0,
       percent: 0,
       color: funnelColors[2],
@@ -124,14 +126,14 @@ export default function AdFunnelChart() {
 
     setFunnelSteps([
       {
-        label: 'Viewed',
+        label: t('analytics.viewed'),
         value: totalViews,
         percent: 100,
         color: funnelColors[0],
         icon: funnelIcons[0],
       },
       {
-        label: 'Clicked',
+        label: t('analytics.clicked'),
         value: totalClicks,
         percent:
           totalViews > 0 ? Math.round((totalClicks / totalViews) * 100) : 0,
@@ -139,7 +141,7 @@ export default function AdFunnelChart() {
         icon: funnelIcons[1],
       },
       {
-        label: 'Converted',
+        label: t('analytics.converted'),
         value: totalConversions,
         percent:
           totalClicks > 0
@@ -162,7 +164,7 @@ export default function AdFunnelChart() {
       }}
     >
       <Typography variant='h5' fontWeight={700} mb={3} textAlign='center'>
-        Sales Funnel Analysis
+        {t('analytics.salesFunnelAnalysis')}
       </Typography>
 
       <Box
