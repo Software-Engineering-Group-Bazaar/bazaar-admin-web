@@ -29,9 +29,10 @@ const LanguageManagementPage = () => {
     translations: {},
   });
   const [error, setError] = useState('');
+  const [translationsText, setTranslationsText] = useState('');
+  const [jsonError, setJsonError] = useState('');
 
   useEffect(() => {
-    // Fetch available languages from the backend
     fetchLanguages();
   }, []);
 
@@ -57,18 +58,23 @@ const LanguageManagementPage = () => {
       name: '',
       translations: {},
     });
+    setTranslationsText('');
+    setJsonError('');
     setError('');
   };
 
   const handleSaveLanguage = async () => {
     try {
-      // Validate the language code
       if (!newLanguage.code || !newLanguage.name) {
         setError('Language code and name are required');
         return;
       }
 
-      // Send the new language to the backend
+      if (jsonError) {
+        setError('Fix translation JSON errors before saving.');
+        return;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/translations/languages`, {
         method: 'POST',
         headers: {
@@ -81,7 +87,6 @@ const LanguageManagementPage = () => {
         throw new Error('Failed to add language');
       }
 
-      // Refresh the languages list
       await fetchLanguages();
       handleCloseModal();
     } catch (error) {
@@ -100,7 +105,6 @@ const LanguageManagementPage = () => {
         throw new Error('Failed to delete language');
       }
 
-      // Refresh the languages list
       await fetchLanguages();
     } catch (error) {
       console.error('Error deleting language:', error);
@@ -113,51 +117,31 @@ const LanguageManagementPage = () => {
   };
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'flex-start',
-        backgroundColor: '#fefefe',
-        minHeight: '100vh',
-      }}
-    >
-      <Box
-        sx={{
-          width: 'calc(100%)',
-          maxWidth: '1600px',
-          marginLeft: '260px',
-          pt: 2,
-          px: 2,
-        }}
-      >
+    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', backgroundColor: '#fefefe', minHeight: '100vh' }}>
+      <Box sx={{ width: 'calc(100%)', maxWidth: '1600px', marginLeft: '260px', pt: 2, px: 2 }}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
           {t('common.languageManagement')}
         </Typography>
 
-        {/* Current Language */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               {t('common.currentLanguage')}
             </Typography>
             <Typography>
-              {languages.find(lang => lang.code === i18n.language)?.name (i18n.language) || 'English (en)'} 
+              {
+                languages.find(lang => lang.code === i18n.language)?.name
+                ? `${languages.find(lang => lang.code === i18n.language).name} (${i18n.language})`
+                : `English (${i18n.language})`
+              }
             </Typography>
           </CardContent>
         </Card>
 
-        {/* Available Languages */}
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">
-              {t('common.availableLanguages')}
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddLanguage}
-            >
+            <Typography variant="h6">{t('common.availableLanguages')}</Typography>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddLanguage}>
               {t('common.addLanguage')}
             </Button>
           </Box>
@@ -182,7 +166,7 @@ const LanguageManagementPage = () => {
                         <IconButton
                           color="error"
                           onClick={() => handleDeleteLanguage(language.code)}
-                          disabled={language.code === 'en'} // Prevent deleting English
+                          disabled={language.code === 'en'}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -195,13 +179,7 @@ const LanguageManagementPage = () => {
           </Grid>
         </Box>
 
-        {/* Add Language Modal */}
-        <Dialog
-          open={isAddModalOpen}
-          onClose={handleCloseModal}
-          maxWidth="md"
-          fullWidth
-        >
+        <Dialog open={isAddModalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
           <DialogTitle>{t('common.addNewLanguage')}</DialogTitle>
           <DialogContent>
             {error && (
@@ -226,21 +204,26 @@ const LanguageManagementPage = () => {
                 placeholder="e.g., French, German, Spanish"
                 sx={{ mb: 2 }}
               />
-             <TextField
+              <TextField
                 fullWidth
                 label={t('common.translations')}
                 multiline
                 rows={10}
-                value={JSON.stringify(newLanguage.translations, null, 2)}
+                value={translationsText}
                 onChange={(e) => {
+                  const text = e.target.value;
+                  setTranslationsText(text);
                   try {
-                    const translations = JSON.parse(e.target.value);
-                    setNewLanguage({ ...newLanguage, translations });
-                  } catch (error) {
-                    // Invalid JSON, don't update
+                    const parsed = JSON.parse(text);
+                    setNewLanguage({ ...newLanguage, translations: parsed });
+                    setJsonError('');
+                  } catch {
+                    setJsonError('Invalid JSON');
                   }
                 }}
                 placeholder={t('common.pasteTranslations')}
+                error={!!jsonError}
+                helperText={jsonError || t('common.translationJsonHint')}
               />
             </Box>
           </DialogContent>
@@ -256,4 +239,4 @@ const LanguageManagementPage = () => {
   );
 };
 
-export default LanguageManagementPage; 
+export default LanguageManagementPage;
