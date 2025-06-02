@@ -160,5 +160,16 @@
   "common.confirmDeleteUser": "Jeste li sigurni da želite obrisati ovog korisnika?",
   "common.noUsers": "Nema dostupnih korisnika",
   "common.userManagement": "Upravljanje korisnicima",
-  "common.addUser": "Dodaj korisnika"
+  "common.addUser": "Dodaj korisnika",
+  "common.administrator": "Administrator",
+  "common.logout": "Odjava",
+  "common.analytics": "Analitika",
+  "common.users": "Korisnici",
+  "common.stores": "Prodavnice",
+  "common.categories": "Kategorije",
+  "common.advertisements": "Oglasi",
+  "common.chat": "Razgovori",
+  "common.languages": "Jezici",
+  "common.pasteTranslations" : "Zalijepi prijevod",
+  "common.translationJsonHint" : "Dodajte tekst u JSON formatu" 
 }

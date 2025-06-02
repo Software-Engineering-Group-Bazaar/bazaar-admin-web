@@ -135,6 +135,16 @@
     "auth.forgotPassword": "¿Olvidaste tu contraseña?",
     "auth.signIn": "Iniciar sesión",
     "auth.signUp": "Registrarse",
-    "auth.rememberMe": "Recuérdame"
+    "auth.rememberMe": "Recuérdame",
+    "common.administrator": "Administrador",
+    "common.logout": "Cerrar sesión",
+    "common.analytics": "Analíticas",
+    "common.users": "Usuarios",
+    "common.stores": "Tiendas",
+    "common.categories": "Categorías",
+    "common.advertisements": "Anuncios",
+    "common.chat": "Chat",
+    "common.languages": "Idiomas"
+  
   }
   
