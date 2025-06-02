@@ -7,8 +7,10 @@ import {
   InputAdornment,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { useTranslation } from 'react-i18next';
 
 const UserManagementHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -25,16 +27,16 @@ const UserManagementHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
     >
       <Box sx={{ textAlign: "left" }}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          User Management
+          {t('common.userManagement')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Admin Panel &gt; User Management
+          {t('common.adminPanel')} &gt; {t('common.userManagement')}
         </Typography>
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <TextField
-          placeholder="Search User"
+          placeholder={t('common.searchUser')}
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -65,7 +67,7 @@ const UserManagementHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
             },
           }}
         >
-          Add User
+          {t('common.addUser')}
         </Button>
       </Box>
     </Box>

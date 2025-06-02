@@ -7,6 +7,7 @@ import theme from "@styles/theme";
 import "./App.css";
 import "./index.css";
 import { PendingUsersProvider } from "./context/PendingUsersContext";
+import './i18n';
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

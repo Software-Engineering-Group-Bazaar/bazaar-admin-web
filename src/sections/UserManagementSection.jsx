@@ -4,6 +4,7 @@ import UserList from '../components/UserList.jsx';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import UserDetailsModal from '@components/UserDetailsModal';
 import { apiUpdateUserAsync, apiToggleUserAvailabilityAsync } from '@api/api';
+import { useTranslation } from 'react-i18next';
 
 export default function UserManagementSection({
   allUsers,
@@ -16,6 +17,7 @@ export default function UserManagementSection({
 }) {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const { t } = useTranslation();
 
   const handleDelete = (userId) => {
     setUserToDelete(userId);
@@ -73,7 +75,7 @@ export default function UserManagementSection({
         open={confirmDialogOpen}
         onClose={cancelDelete}
         onConfirm={confirmDelete}
-        message='Are you sure you want to delete this user?'
+        message={t('common.confirmDeleteUser')}
       />
     </Box>
   );

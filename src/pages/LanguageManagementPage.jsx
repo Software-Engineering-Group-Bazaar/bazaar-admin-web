@@ -37,7 +37,7 @@ const LanguageManagementPage = () => {
 
   const fetchLanguages = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/languages`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/translations/languages`);
       const data = await response.json();
       setLanguages(data);
     } catch (error) {
@@ -69,7 +69,7 @@ const LanguageManagementPage = () => {
       }
 
       // Send the new language to the backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/languages`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/translations/languages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ const LanguageManagementPage = () => {
 
   const handleDeleteLanguage = async (code) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/languages/${code}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/translations/languages/${code}`, {
         method: 'DELETE',
       });
 
@@ -142,7 +142,7 @@ const LanguageManagementPage = () => {
               {t('common.currentLanguage')}
             </Typography>
             <Typography>
-              {languages.find(lang => lang.code === i18n.language)?.name || 'English'} ({i18n.language})
+              {languages.find(lang => lang.code === i18n.language)?.name (i18n.language) || 'English (en)'} 
             </Typography>
           </CardContent>
         </Card>
@@ -226,7 +226,7 @@ const LanguageManagementPage = () => {
                 placeholder="e.g., French, German, Spanish"
                 sx={{ mb: 2 }}
               />
-              <TextField
+             <TextField
                 fullWidth
                 label={t('common.translations')}
                 multiline

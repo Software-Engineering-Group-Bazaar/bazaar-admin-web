@@ -9,10 +9,12 @@ import UserRoles from "../components/UserRoles.jsx";
 import UserEditForm from "../components/userEditForm.jsx";
 
 import { getUsers, updateUser } from "../data/usersDetails.js";
+import { useTranslation } from 'react-i18next';
 
 const UserDetailsSection = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const user = getUsers()[0];
@@ -29,7 +31,7 @@ const UserDetailsSection = () => {
   };
 
   if (!selectedUser) {
-    return <Typography component="div">Loading user data...</Typography>;
+    return <Typography component="div">{t('common.loadingUserData')}</Typography>;
   }
 
   return (

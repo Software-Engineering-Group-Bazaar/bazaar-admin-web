@@ -7,8 +7,10 @@ import {
   InputAdornment,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { useTranslation } from 'react-i18next';
 
 const RoutesHeader = ({ onAddRoute }) => {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -25,10 +27,10 @@ const RoutesHeader = ({ onAddRoute }) => {
     >
       <Box sx={{ textAlign: "left" , marginLeft: 2}}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          All Routes
+          {t('common.allRoutes')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Admin Panel &gt; Routes
+          {t('common.adminPanel')} &gt; {t('common.routes')}
         </Typography>
       </Box>
                 <Button
@@ -45,7 +47,7 @@ const RoutesHeader = ({ onAddRoute }) => {
                     },
                   }}
                 >
-                  Create Route
+                  {t('common.createRoute')}
                 </Button>
     </Box>
   );

@@ -4,8 +4,8 @@ import HttpBackend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Predefined language codes
-const PREDEFINED_LANG_CODES = ['en', 'de', 'es'];
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const PREDEFINED_LANG_CODES = ['en', 'ba', 'es'];
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 i18n
   .use(HttpBackend)
@@ -18,28 +18,13 @@ i18n
     defaultNS: 'translation',
     interpolation: {
       escapeValue: false, // React already escapes values
-    },
-    backend: {
-      loadPath: (langs, namespaces) => {
-        const lang = langs[0];
-        const ns = namespaces[0];
-
-        // Check if it's a predefined language
-        if (PREDEFINED_LANG_CODES.includes(lang)) {
-          // Load from public/locales directory
-          return `/locales/${lang}/${ns}.json`;
-        } else {
-          // Load from backend API
-          return `${API_BASE_URL}/api/translations/${lang}/${ns}`;
-        }
-      },
-    },
+    }
   });
 
 // Function to fetch and set supported languages
 async function fetchAndSetSupportedLanguages() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/languages`);
+    const response = await fetch('${API_BASE_URL}/api/translations/languages');
     const allLangsFromServer = await response.json();
     i18n.options.supportedLngs = allLangsFromServer.map(l => l.code);
   } catch (error) {

@@ -15,8 +15,10 @@ import { apiLoginUserAsync } from "../api/api.js";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { api } from "../utils/apiroutes";
+import { useTranslation } from 'react-i18next';
 
 const LoginFormSection = () => {
+  const { t } = useTranslation();
   var baseURL = import.meta.env.VITE_API_BASE_URL;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,10 +64,10 @@ const LoginFormSection = () => {
   return (
     <Box sx={formContainer}>
       <Typography variant="h4" color="text.secondary" fontWeight={700} mb={2}>
-        Welcome
+        {t('common.welcome')}
       </Typography>
       <Typography variant="body1" color="text.secondary" mb={3}>
-        Login to continue
+        {t('common.loginToContinue')}
       </Typography>
       <CustomTextField
         label="Email"
@@ -84,7 +86,7 @@ const LoginFormSection = () => {
       />
       <Box textAlign="right" mb={2}></Box>
       <CustomButton fullWidth onClick={handleSubmit}>
-        LOGIN
+        {t('common.login')}
       </CustomButton>
     </Box>
   );

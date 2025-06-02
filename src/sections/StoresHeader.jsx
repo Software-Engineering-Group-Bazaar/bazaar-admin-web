@@ -7,8 +7,10 @@ import {
   Button,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { useTranslation } from 'react-i18next';   
 
 const StoresHeader = ({ searchTerm, setSearchTerm, onAddStore }) => {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -25,16 +27,16 @@ const StoresHeader = ({ searchTerm, setSearchTerm, onAddStore }) => {
     >
       <Box sx={{ textAlign: "left" }}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Stores
+          {t('stores.stores')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Admin Panel &gt; Stores
+          {t('common.adminPanel')} &gt; {t('stores.stores')}
         </Typography>
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <TextField
-          placeholder="Search Store"
+          placeholder={t('stores.searchStore')}
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -66,7 +68,7 @@ const StoresHeader = ({ searchTerm, setSearchTerm, onAddStore }) => {
             },
           }}
         >
-          Add Store
+          {t('stores.addStore')}
         </Button>
       </Box>
     </Box>
