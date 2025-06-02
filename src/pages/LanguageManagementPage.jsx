@@ -41,6 +41,15 @@ const LanguageManagementPage = () => {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/translations/languages`);
       const data = await response.json();
       setLanguages(data);
+      const masterkeys = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/translations/master-keys`);
+      const keydata = await masterkeys.json();
+      console.log(keydata);
+      let obj = "{\n";
+      for (let index = 0; index < keydata.length; index++) {
+        obj += `\t "${keydata[index]}": "",\n`
+      }
+      obj += "}"
+      setTranslationsText(obj);
     } catch (error) {
       console.error('Failed to fetch languages:', error);
       setError('Failed to load languages');
@@ -74,7 +83,7 @@ const LanguageManagementPage = () => {
         setError('Fix translation JSON errors before saving.');
         return;
       }
-
+      console.log(JSON.stringify(newLanguage));
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/translations/languages`, {
         method: 'POST',
         headers: {
