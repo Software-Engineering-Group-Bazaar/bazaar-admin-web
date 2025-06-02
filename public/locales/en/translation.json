@@ -125,9 +125,9 @@
   "sellerAnalytics.clickRevenue": "Click Revenue",
   "sellerAnalytics.viewRevenue": "View Revenue",
   "sellerAnalytics.conversionRevenue": "Conversion Revenue",
-  "sellerAnalytics.clickRevenueOverTime": "Click Revenue Over Time",
-  "sellerAnalytics.viewRevenueOverTime": "View Revenue Over Time",
-  "sellerAnalytics.conversionRevenueOverTime": "Conversion Revenue Over Time",
+  "analytics.clickRevenueOverTime": "Click Revenue Over Time",
+  "analytics.viewRevenueOverTime": "View Revenue Over Time",
+  "analytics.conversionRevenueOverTime": "Conversion Revenue Over Time",
   "routes.availableRoutes": "Available Routes",
   "routes.noRoutes": "No routes available",
   "routes.loadingMap": "Loading map for Route ID: {{id}}...",
@@ -282,8 +282,8 @@
    "common.noTicketsFound": "No tickets found.",
    "common.ticket": "Ticket",
    "common.views": "Views",
-   "common.productCategory": "Product Category",
-   "common.storeCategory": "Store Category",
+   "common.productCategories": "Product Category",
+   "common.storeCategories": "Store Category",
    "common.orderNumber": "Order Number",
    "common.created": "Created"
 

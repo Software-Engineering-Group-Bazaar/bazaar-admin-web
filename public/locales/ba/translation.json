@@ -106,9 +106,9 @@
   "sellerAnalytics.clickRevenue": "Prihod od klikova",
   "sellerAnalytics.viewRevenue": "Prihod od pregleda",
   "sellerAnalytics.conversionRevenue": "Prihod od konverzija",
-  "sellerAnalytics.clickRevenueOverTime": "Prihod od klikova kroz vrijeme",
-  "sellerAnalytics.viewRevenueOverTime": "Prihod od pregleda kroz vrijeme",
-  "sellerAnalytics.conversionRevenueOverTime": "Prihod od konverzija kroz vrijeme",
+  "analytics.clickRevenueOverTime": "Prihod od klikova kroz vrijeme",
+  "analytics.viewRevenueOverTime": "Prihod od pregleda kroz vrijeme",
+  "analytics.conversionRevenueOverTime": "Prihod od konverzija kroz vrijeme",
   "routes.availableRoutes": "Dostupne rute",
   "routes.noRoutes": "Nema dostupnih ruta",
   "routes.loadingMap": "Učitavanje mape za ID rute: {{id}}...",
@@ -263,8 +263,8 @@
   "common.noTicketsFound": "Nijedan tiket nije pronađen.",
   "common.ticket": "Tiket",
   "common.views": "Pregledi",
-  "common.productCategory": "Kategorija proizvoda",
-  "common.storeCategory": "Kategorija prodavnice",
+  "common.productCategories": "Kategorija proizvoda",
+  "common.storeCategories": "Kategorija prodavnice",
   "common.orderNumber": "Broj narudžbe",
   "common.created": "Kreirano"
 }
