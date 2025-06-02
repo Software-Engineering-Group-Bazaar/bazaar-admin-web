@@ -15,6 +15,7 @@ import { Box, Typography } from '@mui/material';
 import { apiGetAllAdsAsync } from '../api/api.js';
 import { format, parseISO } from 'date-fns';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { useTranslation } from 'react-i18next';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
@@ -38,7 +39,8 @@ function groupByMonth(ads) {
 const ParetoChart = () => {
   const [data, setData] = useState([]);
   const [ads, setAds] = useState([]);
-  const connectionRef = useRef(null);
+  const connectionRef = useRef(null); 
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,7 +139,7 @@ const ParetoChart = () => {
           marginBottom: '20px',
         }}
       >
-        Pareto Chart
+        {t('analytics.paretoChart')}
       </Typography>
       <ResponsiveContainer width='100%' height={350}>
         <ComposedChart

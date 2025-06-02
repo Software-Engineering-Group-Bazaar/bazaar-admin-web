@@ -2,8 +2,10 @@ import React from "react";
 import { Box, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { FaBoxOpen } from "react-icons/fa"; 
 import { FaStore } from "react-icons/fa"; 
+import { useTranslation } from 'react-i18next';
 
 const CategoryTabs = ({ selectedType, onChangeType }) => {
+  const { t } = useTranslation();
   return (
     <Box sx={{ mt: 2 }}>
       <ToggleButtonGroup
@@ -50,7 +52,7 @@ const CategoryTabs = ({ selectedType, onChangeType }) => {
           }}
         >
           <FaBoxOpen />
-          Product Categories
+          {t('common.productCategories')}
         </ToggleButton>
 
         <ToggleButton
@@ -64,7 +66,7 @@ const CategoryTabs = ({ selectedType, onChangeType }) => {
           }}
         >
           <FaStore />
-          Store Categories
+          {t('common.storeCategories')}
         </ToggleButton>
       </ToggleButtonGroup>
     </Box>

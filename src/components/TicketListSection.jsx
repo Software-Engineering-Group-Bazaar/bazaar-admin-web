@@ -6,6 +6,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import DeleteConfirmModal from '@components/DeleteConfirmModal';
 import { apiUpdateTicketStatusAsync } from '../api/api.js'; // prilagodi path
 import { apiDeleteTicketAsync } from '../api/api.js'; // prilagodi path
+import { useTranslation } from 'react-i18next';
 
 export default function TicketListSection({
   tickets,
@@ -19,7 +20,7 @@ export default function TicketListSection({
   const [search, setSearch] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState(null);
-
+  const { t } = useTranslation();
   const handleOpenChat = async (ticketId) => {
     const ticket = tickets.find((t) => t.id === ticketId);
     if (ticket.status === 'Requested') {
@@ -77,10 +78,10 @@ export default function TicketListSection({
         }}
       >
         <Typography variant='h5' fontWeight={700} mb={2} ml={1}>
-          Tickets
+          {t('common.tickets')}
         </Typography>
         <TextField
-          placeholder='Search tickets...'
+          placeholder={t('common.searchTickets')}
           variant='outlined'
           size='small'
           fullWidth
@@ -125,7 +126,7 @@ export default function TicketListSection({
         >
           {filteredTickets.length === 0 ? (
             <Typography color='text.secondary' mt={4} align='center'>
-              No tickets found.
+              {t('common.noTicketsFound')}
             </Typography>
           ) : (
             filteredTickets.map((ticket) => (

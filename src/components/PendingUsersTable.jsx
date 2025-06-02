@@ -19,7 +19,7 @@ import ApproveUserButton from "./ApproveUserButton";
 import DeleteUserButton from "./DeleteUserButton";
 import axios from 'axios';
 import { apiApproveUserAsync, apiDeleteUserAsync } from "../api/api";
-
+import { useTranslation } from 'react-i18next'; 
 
 var baseURL = import.meta.env.VITE_API_BASE_URL
 
@@ -47,6 +47,7 @@ const PendingUsersTable = ({
   currentPage,
   usersPerPage,
 }) => {
+  const { t } = useTranslation();
   const [orderBy, setOrderBy] = useState("submitDate");
   const [order, setOrder] = useState("desc");
 
@@ -91,14 +92,14 @@ const PendingUsersTable = ({
         <TableHead>
           <TableRow>
             <TableCell>#</TableCell>
-            <TableCell>Picture</TableCell>
+            <TableCell>{t('common.picture')}</TableCell>
             <TableCell>
               <TableSortLabel
                 active={orderBy === "name"}
                 direction={order}
                 onClick={() => handleRequestSort("name")}
               >
-                Name
+                {t('common.name')}
               </TableSortLabel>
             </TableCell>
             <TableCell>
@@ -107,7 +108,7 @@ const PendingUsersTable = ({
                 direction={order}
                 onClick={() => handleRequestSort("email")}
               >
-                Email
+                {t('common.email')}
               </TableSortLabel>
             </TableCell>
             <TableCell>
@@ -116,10 +117,10 @@ const PendingUsersTable = ({
                 direction={order}
                 onClick={() => handleRequestSort("role")}
               >
-                Role
+                {t('common.role')}
               </TableSortLabel>
             </TableCell>
-            <TableCell align="center">Actions</TableCell>
+            <TableCell align="center">{t('common.actions')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -209,7 +210,7 @@ const PendingUsersTable = ({
           {users.length === 0 && (
             <TableRow>
               <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                No pending users found.
+                {t('common.noPendingUsersFound')}
               </TableCell>
             </TableRow>
           )}

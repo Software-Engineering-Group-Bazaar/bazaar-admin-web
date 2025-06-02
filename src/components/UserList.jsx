@@ -22,6 +22,7 @@ import DeleteUserButton from './DeleteUserButton';
 import { FiEdit2 } from 'react-icons/fi';
 import { FaUser, FaUserSlash } from 'react-icons/fa';
 import { MdDone } from 'react-icons/md';
+import { useTranslation } from 'react-i18next'; 
 
 const getStatus = (user) => {
   if (user.isApproved === true) return 'Approved';
@@ -82,7 +83,7 @@ export default function UserList({
   const [order, setOrder] = useState('asc');
   const [editingUserId, setEditingUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
-
+  const { t } = useTranslation();
   const handleSort = (field) => {
     const isAsc = orderBy === field && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -134,14 +135,14 @@ export default function UserList({
         <TableHead>
           <TableRow sx={{ backgroundColor: '#fafafa' }}>
             <TableCell>#</TableCell>
-            <TableCell>Pic</TableCell>
+            <TableCell>{t('common.picture')}</TableCell>
             <TableCell>
               <TableSortLabel
                 active={orderBy === 'userName'}
                 direction={order}
                 onClick={() => handleSort('userName')}
               >
-                Username
+                {t('common.username')}
               </TableSortLabel>
             </TableCell>
             <TableCell>
@@ -150,7 +151,7 @@ export default function UserList({
                 direction={order}
                 onClick={() => handleSort('email')}
               >
-                Email
+                {t('common.email')}
               </TableSortLabel>
             </TableCell>
             <TableCell>
@@ -159,7 +160,7 @@ export default function UserList({
                 direction={order}
                 onClick={() => handleSort('role')}
               >
-                Role
+                {t('common.role')}
               </TableSortLabel>
             </TableCell>
             <TableCell>
@@ -168,7 +169,7 @@ export default function UserList({
                 direction={order}
                 onClick={() => handleSort('isActive')}
               >
-                Active
+                {t('common.active')}
               </TableSortLabel>
             </TableCell>
             {/* <TableCell>
@@ -189,7 +190,7 @@ export default function UserList({
                 Status
               </TableSortLabel>
             </TableCell> */}
-            <TableCell align='right'>Actions</TableCell>
+            <TableCell align='right'>{t('common.actions')}</TableCell>
           </TableRow>
         </TableHead>
 
@@ -246,8 +247,8 @@ export default function UserList({
                       onChange={handleFieldChange}
                       variant='standard'
                     >
-                      <MenuItem value='Buyer'>Buyer</MenuItem>
-                      <MenuItem value='Seller'>Seller</MenuItem>
+                      <MenuItem value='Buyer'>{t('common.buyer')}</MenuItem>
+                      <MenuItem value='Seller'>{t('common.seller')}</MenuItem>
                     </Select>
                   ) : (
                     user.roles[0]
@@ -267,8 +268,8 @@ export default function UserList({
                       }
                       variant='standard'
                     >
-                      <MenuItem value='true'>Online</MenuItem>
-                      <MenuItem value='false'>Offline</MenuItem>
+                      <MenuItem value='true'>{t('common.online')}</MenuItem>
+                      <MenuItem value='false'>{t('common.offline')}</MenuItem>
                     </Select>
                   ) : (
                     <ActiveChip value={user.isActive} />

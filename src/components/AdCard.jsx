@@ -25,7 +25,7 @@ import EditAdModal from './EditAdModal';
 import { apiFetchApprovedUsersAsync } from '../api/api';
 const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
 import defaultAdImage from '@images/bazaarAd.jpg';
-
+import { useTranslation } from 'react-i18next';
 
 const IconStat = ({ icon, value, label, bg }) => (
   <Stack
@@ -62,6 +62,7 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [sellers, setSellers] = useState([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -219,7 +220,7 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
             <IconStat
               icon={<Eye size={18} color='#fff' />}
               value={ad.views}
-              label='Views'
+              label={t('common.views')}
               bg='#0284c7'
             />
           </Box>
@@ -227,7 +228,7 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
             <IconStat
               icon={<Hand size={18} color='#fff' />}
               value={ad.clicks}
-              label='Clicks'
+              label={t('common.clicks')}
               bg='#0d9488'
             />
           </Box>
@@ -235,7 +236,7 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
             <IconStat
               icon={<Clock size={18} color='#fff' />}
               value={dateRange}
-              label='Active'
+              label={t('common.active')}
               bg='#8b5cf6'
             />
           </Box>
@@ -262,7 +263,7 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
                 color='text.secondary'
                 sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                <Hand size={12} color='#0d9488' /> Click Price:{' '}
+                <Hand size={12} color='#0d9488' /> {t('common.clickPrice')}:{' '}
                 <b style={{ marginLeft: 2 }}>{ad.clickPrice ?? 'Mock'}</b>
               </Typography>
               <Typography
@@ -270,7 +271,7 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
                 color='text.secondary'
                 sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                <Eye size={18} color='#0284c7' /> View Price:{' '}
+                <Eye size={18} color='#0284c7' /> {t('common.viewPrice')}:{' '}
                 <b style={{ marginLeft: 2 }}>{ad.viewPrice ?? 'Mock'}</b>
               </Typography>
               <Typography
@@ -278,7 +279,7 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
                 color='text.secondary'
                 sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                <CheckCircle size={18} color='#f59e0b' /> Conversion Price:{' '}
+                <CheckCircle size={18} color='#f59e0b' /> {t('common.conversionPrice')}:{' '}
                 <b style={{ marginLeft: 2 }}>{ad.conversionPrice ?? 'Mock'}</b>
               </Typography>
             </Box>
@@ -292,8 +293,8 @@ const AdCard = ({ ad, stores, onDelete, onEdit, onViewDetails }) => {
                   <XCircle size={18} color='#fff' />
                 )
               }
-              value={ad.isActive ? 'Active' : 'Inactive'}
-              label='Status'
+              value={ad.isActive ? t('common.active') : t('common.inactive')}
+              label={t('common.status')}
               bg={ad.isActive ? '#22c55e' : '#f87171'}
             />
           </Box>

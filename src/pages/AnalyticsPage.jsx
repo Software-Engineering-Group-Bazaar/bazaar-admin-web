@@ -548,7 +548,7 @@ const AnalyticsPage = () => {
           lineHeight: 1.2,
         }}
       >
-        Dashboard Analytics{' '}
+        {t('analytics.dashboardAnalytics')}
         <span
           style={{
             fontSize: '0.8rem',

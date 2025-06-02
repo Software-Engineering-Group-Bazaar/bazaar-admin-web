@@ -16,6 +16,7 @@ import { FaTrash } from 'react-icons/fa6';
 import CircleIcon from '@mui/icons-material/FiberManualRecord';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { useTranslation } from 'react-i18next';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -52,16 +53,16 @@ const OrdersTable = ({
   };
 
   const formatOrderId = (id) => `#${String(id).padStart(5, '0')}`;
-
+  const { t } = useTranslation();
   const columns = [
-    { label: 'Order #', field: 'id' },
-    { label: 'Buyer', field: 'buyerName' },
-    { label: 'Store', field: 'storeName' },
-    { label: 'Delivery Address', field: 'deliveryAddress' }, // NOVA KOLONA
-    { label: 'Store Address', field: 'storeAddress' },     // NOVA KOLONA
-    { label: 'Status', field: 'status' },
-    { label: 'Total', field: 'totalPrice' },
-    { label: 'Created', field: 'createdAt' },
+    { label: t('common.orderNumber'), field: 'id' },
+    { label: t('common.buyer'), field: 'buyerName' },
+    { label: t('common.store'), field: 'storeName' },
+    { label: t('common.deliveryAddress'), field: 'deliveryAddress' }, // NOVA KOLONA
+    { label: t('common.storeAddress'), field: 'storeAddress' },     // NOVA KOLONA
+    { label: t('common.status'), field: 'status' },
+    { label: t('common.total'), field: 'totalPrice' },
+    { label: t('common.created'), field: 'createdAt' },
     { label: '', field: 'actions' },
   ];
 

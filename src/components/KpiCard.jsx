@@ -1,4 +1,5 @@
 import { Card, CardContent, Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import {
   PackageOpen,
   Users,
@@ -41,7 +42,7 @@ const iconMap = {
 
 const KpiCard = ({ label, value, percentageChange = 0, type = 'orders' }) => {
   const isPositive = percentageChange >= 0;
-
+  const { t } = useTranslation();
   return (
     <Card
       sx={{
@@ -81,8 +82,7 @@ const KpiCard = ({ label, value, percentageChange = 0, type = 'orders' }) => {
       >
         {isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
         <Typography variant='caption' ml={1}>
-          {Math.abs(Number(percentageChange)).toFixed(2)}% Compared to last
-          month{' '}
+          {Math.abs(Number(percentageChange)).toFixed(2)}% {t('analytics.comparedToLastMonth')}
         </Typography>
       </Box>
     </Card>

@@ -21,6 +21,8 @@ import {
   Legend,
 } from 'chart.js';
 import { apiGetAllStoresAsync, apiGetAllAdsAsync } from '../api/api.js'; // From develop
+import { useTranslation } from 'react-i18next';
+
 
 ChartJS.register(
   CategoryScale,
@@ -32,6 +34,7 @@ ChartJS.register(
 );
 
 function DealsChart() {
+  const { t } = useTranslation();
   const [filterType, setFilterType] = useState('topRated'); // 'topRated' or 'lowestRated'
   const [anchorEl, setAnchorEl] = useState(null);
   const [storesData, setStoresData] = useState({
@@ -328,7 +331,7 @@ function DealsChart() {
       {/* Text at the bottom - "by store" from develop */}
       <Box sx={{ mt: 4, textAlign: 'center' }}>
         <Typography variant='body1' sx={{ fontWeight: 'medium' }}>
-          Deals amount
+          {t('analytics.dealsAmount')}
         </Typography>
         <Box
           sx={{
