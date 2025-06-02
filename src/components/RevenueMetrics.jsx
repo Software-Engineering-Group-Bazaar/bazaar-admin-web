@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import MetricCard from './MetricCard';
 import { apiFetchAdsWithProfitAsync } from '@api/api';
 
-
 const formatCurrency = (value, currency = 'USD') =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -36,7 +35,7 @@ const groupByDay = (ads, eventType) => {
 const RevenueMetrics = () => {
   const { t } = useTranslation();
   const [ads, setAds] = useState([]);
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   useEffect(() => {
     const fetchData = async () => {
       const adsData = await apiFetchAdsWithProfitAsync();
@@ -111,7 +110,9 @@ const RevenueMetrics = () => {
           <MetricCard
             title={t('analytics.clickRevenue')}
             value={formatCurrency(clickRevenue)}
-            subtitle={t('analytics.fromClicks', { count: ads.reduce((s, a) => s + a.clicks, 0).toLocaleString() })}
+            subtitle={t('analytics.fromClicks', {
+              count: ads.reduce((s, a) => s + a.clicks, 0).toLocaleString(),
+            })}
             icon={<MousePointerClick size={20} />}
             color='info'
             tooltipText={t('analytics.clickRevenue')}
@@ -122,7 +123,9 @@ const RevenueMetrics = () => {
           <MetricCard
             title={t('analytics.viewRevenue')}
             value={formatCurrency(viewRevenue)}
-            subtitle={t('analytics.fromViews', { count: ads.reduce((s, a) => s + a.views, 0).toLocaleString() })}
+            subtitle={t('analytics.fromViews', {
+              count: ads.reduce((s, a) => s + a.views, 0).toLocaleString(),
+            })}
             icon={<Eye size={20} />}
             color='secondary'
             tooltipText={t('analytics.viewRevenue')}
@@ -133,7 +136,11 @@ const RevenueMetrics = () => {
           <MetricCard
             title={t('analytics.conversionRevenue')}
             value={formatCurrency(conversionRevenue)}
-            subtitle={t('analytics.fromConversions', { count: ads.reduce((s, a) => s + a.conversions, 0).toLocaleString() })}
+            subtitle={t('analytics.fromConversions', {
+              count: ads
+                .reduce((s, a) => s + a.conversions, 0)
+                .toLocaleString(),
+            })}
             icon={<ShoppingCart size={20} />}
             color='success'
             tooltipText={t('analytics.conversionRevenue')}
