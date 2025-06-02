@@ -9,8 +9,11 @@ import {
 } from '@mui/material';
 import StoreMallDirectoryIcon from '@mui/icons-material/StoreMallDirectory';
 import { apiGetStoreCategoriesAsync, apiFetchGeographyAsync } from '@api/api';
+import { useTranslation } from 'react-i18next';
+
 
 const AddStoreModal = ({ open, onClose, onAddStore }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -63,13 +66,13 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <StoreMallDirectoryIcon sx={{ fontSize: 48, color: '#fbbc05' }} />
           <Typography variant='h5' fontWeight={700} mt={1}>
-            Add New Store
+            {t('common.addNewStore')}
           </Typography>
         </Box>
 
         <TextField
           name='name'
-          label='Store Name'
+          label={t('common.storeName')}
           fullWidth
           value={formData.name}
           onChange={handleChange}
@@ -79,7 +82,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
 
         <TextField
           name='address'
-          label='Address'
+          label={t('common.address')}
           fullWidth
           value={formData.address}
           onChange={handleChange}
@@ -89,7 +92,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
 
         <TextField
           name='description'
-          label='Description'
+          label={t('common.description')}
           fullWidth
           multiline
           rows={2}
@@ -102,7 +105,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
         <TextField
           select
           name='placeId'
-          label='Place'
+          label={t('common.place')}
           fullWidth
           value={formData.placeId}
           onChange={handleChange}
@@ -119,7 +122,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
         <TextField
           select
           name='categoryid'
-          label='Category'
+          label={t('common.category')}
           fullWidth
           value={formData.categoryid}
           onChange={handleChange}
@@ -145,7 +148,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
               px: 3,
             }}
           >
-            Cancel
+              {t('common.cancel')}
           </Button>
           <Button
             variant='contained'
@@ -161,7 +164,7 @@ const AddStoreModal = ({ open, onClose, onAddStore }) => {
               '&:hover': { backgroundColor: '#3a0202' },
             }}
           >
-            Save Store
+            {t('common.saveStore')}
           </Button>
         </Box>
       </Box>

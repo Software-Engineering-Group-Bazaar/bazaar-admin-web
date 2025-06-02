@@ -9,8 +9,10 @@ import AdContentCard from '@components/AdContentCard';
 import HorizontalScroll from './HorizontalScroll';
 import { apiGetAllStoresAsync, apiGetStoreProductsAsync } from '@api/api';
 import { useAdSignalR } from '@hooks/useAdSignalR';
+import { useTranslation } from 'react-i18next';
 
 const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
     adData: ad?.adData || [],
@@ -181,20 +183,20 @@ const AdvertisementDetailsModal = ({ open, onClose, ad, onSave, onDelete }) => {
           }}
         >
           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Hand size={25} color="#0d9488" /> Click Price: <b style={{ marginLeft: 5 }}>{adToShow.clickPrice ?? '1000'}</b>
+            <Hand size={25} color="#0d9488" /> {t('common.clickPrice')}: <b style={{ marginLeft: 5 }}>{adToShow.clickPrice ?? '1000'}</b>
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Eye size={25} color="#0284c7" /> View Price: <b style={{ marginLeft: 2 }}>{adToShow.viewPrice ?? '1000'}</b>
+            <Eye size={25} color="#0284c7" /> {t('common.viewPrice')}: <b style={{ marginLeft: 2 }}>{adToShow.viewPrice ?? '1000'}</b>
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <CheckCircle size={25} color="#f59e0b" /> Conversion Price: <b style={{ marginLeft: 2 }}>{adToShow.conversionPrice ?? '1000'}</b>
+            <CheckCircle size={25} color="#f59e0b" /> {t('common.conversionPrice')}: <b style={{ marginLeft: 2 }}>{adToShow.conversionPrice ?? '1000'}</b>
           </Typography>
         </Box>
 
         {/* Content Section */}
         <Box mt={5}>
           <Typography variant="h6" fontWeight={700} sx={{ color: '#FF8000', mb: 2 }}>
-            Advertisement Content
+            {t('common.advertisementContent')}
           </Typography>
           <HorizontalScroll>
             {adToShow.adData.map((item, index) => (

@@ -10,11 +10,13 @@ import {
 import CategoryIcon from "@mui/icons-material/Category";
 import { FiEdit2, FiTrash } from "react-icons/fi";
 import ConfirmDeleteModal from "@components/ConfirmDeleteModal";
+import { useTranslation } from 'react-i18next';
 
 const CategoryCard = ({ category, onUpdateCategory, onDeleteCategory }) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(category.name);
+  const { t } = useTranslation();
 
   const handleEditToggle = () => setIsEditing(true);
 
@@ -123,7 +125,7 @@ const CategoryCard = ({ category, onUpdateCategory, onDeleteCategory }) => {
 
             {/* Label */}
             <Chip
-              label={category.type === "store" ? "Store" : "Product"}
+              label={category.type === "store" ? t('common.store') : t('common.product')}
               size="small"
               sx={{
                 mt: 0.5,

@@ -3,8 +3,9 @@ import { Box, Typography, Button } from '@mui/material';
 import mapa from '@images/routing-pointa-ppointb.png';
 import DeleteConfirmationModal from './DeleteRouteConfirmation';
 import RouteDetailsModal from './RouteDetailsModal';
+import { useTranslation } from 'react-i18next';
 const RouteCard = ({route, onViewDetails, onDelete, googleMapsApiKey}) => {
-
+  const { t } = useTranslation();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -71,7 +72,7 @@ const RouteCard = ({route, onViewDetails, onDelete, googleMapsApiKey}) => {
           onClick={() => setDetailsOpen(true)}
           sx={{ flex: 1 }}
         >
-          Details
+          {t('common.details')}
         </Button>
         <Button
           variant="contained"
@@ -86,7 +87,7 @@ const RouteCard = ({route, onViewDetails, onDelete, googleMapsApiKey}) => {
             },
           }}
         >
-          Delete
+          {t('common.delete')}
         </Button>
       </Box>
       <RouteDetailsModal

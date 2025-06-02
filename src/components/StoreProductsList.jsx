@@ -9,12 +9,14 @@ import {
 } from '@api/api';
 import EditProductModal from './EditProductModal';
 import ProductDetailsModal from './ProductDetailsModal';
+import { useTranslation } from 'react-i18next';
 
 const StoreProductsList = ({ storeId }) => {
   const [products, setProducts] = useState([]);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDetailsModal, setOpenDetailsModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -95,7 +97,7 @@ const StoreProductsList = ({ storeId }) => {
   return (
     <Box sx={{ mt: 1 }}>
       <Typography variant='subtitle1' fontWeight={800} mb={1}>
-        Products
+        {t('common.products')}
       </Typography>
       <Box
         sx={{

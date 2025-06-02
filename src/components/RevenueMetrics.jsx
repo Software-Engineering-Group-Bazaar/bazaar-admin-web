@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import MetricCard from './MetricCard';
 import { apiFetchAdsWithProfitAsync } from '@api/api';
 
+
 const formatCurrency = (value, currency = 'USD') =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -35,7 +36,7 @@ const groupByDay = (ads, eventType) => {
 const RevenueMetrics = () => {
   const { t } = useTranslation();
   const [ads, setAds] = useState([]);
-
+  const { t } = useTranslation();
   useEffect(() => {
     const fetchData = async () => {
       const adsData = await apiFetchAdsWithProfitAsync();
@@ -150,19 +151,19 @@ const RevenueMetrics = () => {
               series={[
                 {
                   data: clickRevenueByDay,
-                  label: 'Click Revenue',
+                  label: t('analytics.clickRevenue'),
                   color: '#3B82F6',
                   showMark: false,
                 },
                 {
                   data: viewRevenueByDay,
-                  label: 'View Revenue',
+                  label: t('analytics.viewRevenue'),
                   color: '#0D9488',
                   showMark: false,
                 },
                 {
                   data: conversionRevenueByDay,
-                  label: 'Conversion Revenue',
+                  label: t('analytics.conversionRevenue'),
                   color: '#10B981',
                   showMark: false,
                 },

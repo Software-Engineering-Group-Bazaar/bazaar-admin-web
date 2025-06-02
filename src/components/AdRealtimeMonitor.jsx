@@ -1,7 +1,7 @@
 // AdRealtimeMonitor.jsx
 import React from 'react';
 import { useAdSignalR } from '../hooks/useAdSignalR'; // putanja do custom hooka
-
+import { useTranslation } from 'react-i18next';
 export default function AdRealtimeMonitor() {
   const {
     connectionStatus,
@@ -12,24 +12,26 @@ export default function AdRealtimeMonitor() {
     adUpdatesHistory,
   } = useAdSignalR();
 
+  const { t } = useTranslation();
+
   return (
     <div>
       <div>Status: {connectionStatus}</div>
       <div>
-        <b>Latest Ad Update:</b>{' '}
+        <b>{t('common.latestAdUpdate')}:</b>{' '}
         {latestAdUpdate ? JSON.stringify(latestAdUpdate) : 'None'}
       </div>
       <div>
-        <b>Latest Click:</b> {latestClickTime}
+        <b>{t('common.latestClick')}:</b> {latestClickTime}
       </div>
       <div>
-        <b>Latest View:</b> {latestViewTime}
+        <b>{t('common.latestView')}:</b> {latestViewTime}
       </div>
       <div>
-        <b>Latest Conversion:</b> {latestConversionTime}
+        <b>{t('common.latestConversion')}:</b> {latestConversionTime}
       </div>
       <div>
-        <b>History:</b>
+        <b>{t('common.history')}:</b>
         <ul>
           {adUpdatesHistory.map((item, idx) => (
             <li key={idx}>

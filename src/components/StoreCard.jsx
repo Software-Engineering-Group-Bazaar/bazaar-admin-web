@@ -28,8 +28,11 @@ import ConfirmDeleteStoreModal from '@components/ConfirmDeleteStoreModal';
 import StoreProductsList from '@components/StoreProductsList';
 import * as XLSX from 'xlsx';
 import { apiGetStoreByIdAsync } from '../api/api';
+import { useTranslation } from 'react-i18next';
+
 
 const StoreCard = ({ store }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [storeData, setStoreData] = useState(store);
@@ -290,7 +293,7 @@ const StoreCard = ({ store }) => {
           fontSize: '0.85rem',
           }}
         >
-        Tax: {(storeData.tax*100).toFixed(2)}
+        {t('common.tax')}: {(storeData.tax*100).toFixed(2)}
         </Typography>
 
         <Typography
@@ -301,7 +304,7 @@ const StoreCard = ({ store }) => {
           fontSize: '0.85rem',
           }}
         >
-        Total monthly income: {revenue.totalIncome}
+        {t('common.totalMonthlyIncome')}: {revenue.totalIncome}
         </Typography>
 
         <Typography
@@ -312,7 +315,7 @@ const StoreCard = ({ store }) => {
           fontSize: '0.85rem',
           }}
         >
-        Taxed monthly income: {revenue.taxedIncome}
+        {t('common.taxedMonthlyIncome')}: {revenue.taxedIncome}
         </Typography>
 
         {/* Buttons */}
@@ -343,7 +346,7 @@ const StoreCard = ({ store }) => {
                 },
               }}
             >
-              Add Product
+              {t('common.addProduct')}
             </Button>
             <Box
               onClick={handleMenuClick}

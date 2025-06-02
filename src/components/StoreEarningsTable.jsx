@@ -3,8 +3,10 @@ import {
   Table, TableHead, TableRow, TableCell, TableBody,
   TablePagination, TableSortLabel, Paper, Box
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const StoreEarningsTable = ({ data }) => {
+  const { t } = useTranslation(); 
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
   const [orderBy, setOrderBy] = useState('storeRevenue');
@@ -30,14 +32,16 @@ const StoreEarningsTable = ({ data }) => {
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: '#ffffba' }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>Store Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>
+                {t('common.storeName')}
+              </TableCell>
               <TableCell sortDirection={orderBy === 'storeRevenue' ? order : false} sx={{ fontWeight: 'bold' }}>
                 <TableSortLabel
                   active={orderBy === 'storeRevenue'}
                   direction={order}
                   onClick={() => handleSort('storeRevenue')}
                 >
-                  Store Revenue
+                  {t('analytics.storeRevenue')}
                 </TableSortLabel>
               </TableCell>
               <TableCell sortDirection={orderBy === 'adminProfit' ? order : false} sx={{ fontWeight: 'bold' }}>
@@ -46,7 +50,7 @@ const StoreEarningsTable = ({ data }) => {
                   direction={order}
                   onClick={() => handleSort('adminProfit')}
                 >
-                  Admin Profit
+                  {t('analytics.adminProfit')}
                 </TableSortLabel>
               </TableCell>
               <TableCell sortDirection={orderBy === 'taxRate' ? order : false} sx={{ fontWeight: 'bold' }}>
@@ -55,7 +59,7 @@ const StoreEarningsTable = ({ data }) => {
                   direction={order}
                   onClick={() => handleSort('taxRate')}
                 >
-                  Tax Rate (%)
+                  {t('analytics.taxRate')}
                 </TableSortLabel>
               </TableCell>
             </TableRow>

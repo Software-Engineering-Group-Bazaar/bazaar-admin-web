@@ -16,6 +16,7 @@ import {
   apiFetchApprovedUsersAsync,
   apiCreateAdAsync,
 } from '@api/api';
+import { useTranslation } from 'react-i18next';
 
 const triggerArrayToBitmask = (arr) => {
   const triggerMap = {
@@ -27,6 +28,7 @@ const triggerArrayToBitmask = (arr) => {
 };
 
 const AddAdModal = ({ open, onClose, onAddAd }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     sellerId: '',
     Views: 0,
@@ -168,7 +170,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
         <Box display="flex" alignItems="center" justifyContent="center" mb={4} gap={1}>
           <SellIcon sx={{ fontSize: 28, color: '#fbbc05' }} />
           <Typography variant="h5" fontWeight={700}>
-            Create Ad
+            {t('common.createAd')}
           </Typography>
         </Box>
 
@@ -178,7 +180,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
               select
               size="small"
               name="sellerId"
-              label="Seller"
+              label={t('common.seller')}
               value={formData.sellerId}
               onChange={handleChange}
               error={!!formErrors.sellerId}
@@ -213,7 +215,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
             <TextField
               name="endTime"
-              label="End time"
+              label={t('common.endTime')}
               type="datetime-local"
               size="small"
               value={formData.endTime}
@@ -237,7 +239,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
             <TextField
               name="clickPrice"
-              label="Click Price"
+              label={t('common.clickPrice')}
               type="number"
               size="small"
               value={formData.clickPrice}
@@ -254,7 +256,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
             <TextField
               name="viewPrice"
-              label="View Price"
+              label={t('common.viewPrice')}
               type="number"
               size="small"
               value={formData.viewPrice}
@@ -271,7 +273,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
 
             <TextField
               name="conversionPrice"
-              label="Conversion Price"
+              label={t('common.conversionPrice')}
               type="number"
               size="small"
               value={formData.conversionPrice}
@@ -289,7 +291,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
           <TextField
   select
   name='AdType'
-  label='Ad Type'
+  label={t('common.adType')}
   value={formData.AdType}
   onChange={handleChange}
   fullWidth
@@ -308,7 +310,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
     renderValue: (selected) => selected.join(', '),
   }}
   name="Triggers"
-  label="Triggers"
+  label={t('common.triggers')}
   value={Array.isArray(formData.Triggers) ? formData.Triggers : []}
   onChange={(e) => {
     const { value } = e.target;
@@ -342,7 +344,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
                 borderRadius: 2,
               }}
             >
-              Add Item
+              {t('common.addItem')}
             </Button>
             {formData.AdData.map((item, index) => (
               <Box
@@ -350,13 +352,13 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
                 sx={{ p: 1, border: '1px solid #ddd', borderRadius: 2, mb: 1 }}
               >
                 <Typography variant="body2">
-                  <strong>Ad Text:</strong> {item.Description}
+                  <strong>{t('common.adText')}:</strong> {item.Description}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Store:</strong> {item.StoreLink}
+                  <strong>{t('common.store')}:</strong> {item.StoreLink}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Product:</strong> {item.ProductLink}
+                  <strong>{t('common.product')}:</strong> {item.ProductLink}
                 </Typography>
               </Box>
             ))}
@@ -373,7 +375,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
                   px: 3,
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="contained"
@@ -389,7 +391,7 @@ const AddAdModal = ({ open, onClose, onAddAd }) => {
                   '&:hover': { backgroundColor: '#3a0202' },
                 }}
               >
-                Save Ad
+                {t('common.saveAd')}
               </Button>
             </Box>
           </Box>

@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography, IconButton, Button } from "@mui/material";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { useTranslation } from 'react-i18next';
 
 const UserManagementPagination = ({
   currentPage,
@@ -21,6 +22,8 @@ const UserManagementPagination = ({
     return pages;
   };
 
+  const { t } = useTranslation();
+
   return (
     <Box
       sx={{
@@ -35,7 +38,7 @@ const UserManagementPagination = ({
       }}
     >
       <Typography variant="body2" color="text.secondary">
-        displaying page
+        {t('common.displayingPage')}
       </Typography>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -45,7 +48,7 @@ const UserManagementPagination = ({
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
         >
-          First
+          {t('common.first')}
         </Button>
 
         <IconButton
@@ -88,7 +91,7 @@ const UserManagementPagination = ({
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
         >
-          Last
+          {t('common.last')}
         </Button>
       </Box>
     </Box>
