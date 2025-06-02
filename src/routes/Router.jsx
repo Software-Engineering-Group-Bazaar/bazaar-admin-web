@@ -21,6 +21,7 @@ import SellerAnalyticsPage from '@pages/SellerAnalyticsPage';
 import ChatPage from '@pages/ChatPage';
 import RoutesPage from '@pages/RoutesPage';
 import RoutesPage2 from '../pages/DelRoutePage';
+import LanguageManagementPage from '../pages/LanguageManagementPage';
 
 const isAuthenticated = () => {
   console.log(localStorage.getItem('auth'));
@@ -164,6 +165,19 @@ const AppRoutes = () => {
                   <CssBaseline />
                   {/* <RoutesPage /> */}
                   <RoutesPage />
+                </ThemeProvider>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/languages'
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <LanguageManagementPage />
                 </ThemeProvider>
               </Layout>
             </ProtectedRoute>

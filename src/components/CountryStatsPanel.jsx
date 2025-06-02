@@ -14,8 +14,10 @@ import {
   apiFetchOrdersAsync,
   apiGetGeographyAsync,
 } from '../api/api.js';
+import { useTranslation } from 'react-i18next';
 
 const CountryStatsPanel = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState(0);
   const [data, setData] = useState({ revenue: [], orders: [] });
 
@@ -140,7 +142,7 @@ const CountryStatsPanel = () => {
     fetchData();
   }, []);
 
-  const labels = ['Orders Revenue by Regions', 'Orders by Regions'];
+  const labels = [t('analytics.ordersRevenueByRegions'), t('analytics.ordersByRegions')];
   const keys = ['revenue', 'orders'];
   const currentData = data[keys[tab]] || [];
 
@@ -158,8 +160,8 @@ const CountryStatsPanel = () => {
           indicatorColor='primary'
           sx={{ mb: 2 }}
         >
-          <Tab label='Revenue' />
-          <Tab label='Orders' />
+          <Tab label={t('analytics.revenue')} />
+          <Tab label={t('analytics.orders')} />
         </Tabs>
 
         {currentData.map((item, index) => (

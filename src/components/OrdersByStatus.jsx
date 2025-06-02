@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { apiGetAllAdsAsync } from '../api/api.js';
+import { useTranslation } from 'react-i18next';
 
 // Dodijeli boje svakom triggeru
 const triggerColors = {
@@ -13,6 +14,7 @@ const triggerColors = {
 const triggerLabels = ['Search', 'Order', 'View'];
 
 const OrdersBystatus = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -56,7 +58,7 @@ const OrdersBystatus = () => {
     >
       <CardContent sx={{ flexShrink: 0 }}>
         <Typography variant='h6' align='center' gutterBottom>
-          Ad Triggers Breakdown
+          {t('analytics.adTriggersBreakdown')}
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, position: 'relative' }}>

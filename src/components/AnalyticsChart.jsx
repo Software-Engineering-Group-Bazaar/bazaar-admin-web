@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Tabs, Tab, Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import {
   LineChart,
   Line,
@@ -37,6 +38,7 @@ function generateTargets(realValues, minOffset = -0.1, maxOffset = 0.15) {
 }
 
 const AdsRevenueChart = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState(0);
   const [chartData, setChartData] = useState({
     conversions: [],
@@ -199,9 +201,9 @@ const AdsRevenueChart = () => {
         }}
       >
         <Typography variant='h6' fontWeight={600}>
-          {tab === 0 && 'Conversions Revenue'}
-          {tab === 1 && 'Clicks Revenue'}
-          {tab === 2 && 'Views Revenue'}
+          {tab === 0 && t('analytics.conversionsRevenue')}
+          {tab === 1 && t('analytics.clicksRevenue')}
+          {tab === 2 && t('analytics.viewsRevenue')}
         </Typography>
         <Tabs
           value={tab}
@@ -209,9 +211,9 @@ const AdsRevenueChart = () => {
           textColor='primary'
           indicatorColor='primary'
         >
-          <Tab label='Conversions' />
-          <Tab label='Clicks' />
-          <Tab label='Views' />
+          <Tab label={t('analytics.conversions')} />
+          <Tab label={t('analytics.clicks')} />
+          <Tab label={t('analytics.views')} />
         </Tabs>
       </Box>
 
@@ -233,14 +235,14 @@ const AdsRevenueChart = () => {
             dataKey='revenue'
             stroke='#0f766e'
             strokeWidth={2}
-            name='Total Revenue'
+            name={t('analytics.totalRevenue')}
           />
           <Line
             type='monotone'
             dataKey='target'
             stroke='#f59e0b'
             strokeWidth={2}
-            name='Target'
+            name={t('analytics.target')}
             strokeDasharray='5 5'
           />
         </LineChart>

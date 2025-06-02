@@ -7,10 +7,11 @@ import UserInfoSidebar from '@components/UserInfoSidebar';
 import LockOverlay from '@components/LockOverlay';
 import { useSignalR } from '@hooks/useSignalR';
 import { apiFetchMessagesForConversationAsync } from '../api/api.js';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminChatSection({ ticket, conversation }) {
   const [messages, setMessages] = useState([]);
-
+  const { t } = useTranslation();
   const adminUserId = conversation?.adminUserId;
 
   // Prikaz korisnika
@@ -107,7 +108,7 @@ export default function AdminChatSection({ ticket, conversation }) {
         >
           <ChatMessages messages={messages} userId={adminUserId} />
           {locked && (
-            <LockOverlay message='Open this ticket to view the chat.' />
+            <LockOverlay message={t('chat.openTicketToViewChat')} />
           )}
         </Box>
         <ChatInput disabled={locked} onSendMessage={handleSendMessage} />

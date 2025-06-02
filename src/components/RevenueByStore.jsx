@@ -10,11 +10,13 @@ import {
   Cell,
 } from 'recharts';
 import { apiGetAllStoresAsync, apiGetAllAdsAsync } from '../api/api.js';
+import { useTranslation } from 'react-i18next';
 
 const barColor = '#6366F1';
 const TOP_N = 5;
 
 const RevenueByStore = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ const RevenueByStore = () => {
     >
       <CardContent sx={{ flexShrink: 0 }}>
         <Typography variant='h6' align='center'>
-          Top Stores by Ad Revenue
+          {t('analytics.topStoresByAdRevenue')}
         </Typography>
       </CardContent>
       <Box sx={{ flexGrow: 1, px: 2 }}>

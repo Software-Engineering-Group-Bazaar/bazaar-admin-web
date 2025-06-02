@@ -7,8 +7,10 @@ import {
   InputAdornment,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import { useTranslation } from 'react-i18next';
 
 const AdsManagementHeader = ({ onCreateAd, searchTerm, setSearchTerm }) => {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -26,16 +28,16 @@ const AdsManagementHeader = ({ onCreateAd, searchTerm, setSearchTerm }) => {
     >
       <Box sx={{ textAlign: 'left' }}>
         <Typography variant='h5' fontWeight='bold' color='text.primary'>
-          Ads Management
+          {t('ads.adsManagement')}
         </Typography>
         <Typography variant='body2' color='text.secondary'>
-          Admin Panel &gt; Advertisements
+          {t('ads.adminPanel')} &gt; {t('ads.advertisements')}
         </Typography>
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <TextField
-          placeholder='Search Ads'
+          placeholder={t('ads.searchAds')}
           size='small'
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -66,7 +68,7 @@ const AdsManagementHeader = ({ onCreateAd, searchTerm, setSearchTerm }) => {
             },
           }}
         >
-          Create Ad
+          {t('ads.createAd')}
         </Button>
       </Box>
     </Box>

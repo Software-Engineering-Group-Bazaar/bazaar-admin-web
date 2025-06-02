@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from 'react-i18next';
 
 export default function DeleteConfirmModal({
   open,
@@ -16,23 +17,25 @@ export default function DeleteConfirmModal({
   onConfirm,
   ticketTitle,
 }) {
+  const { t } = useTranslation();
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>
         <DeleteIcon color='error' sx={{ mr: 1, verticalAlign: 'middle' }} />
-        Delete Ticket
+        {t('common.delete')}
       </DialogTitle>
       <DialogContent>
         <Typography>
-          Are you sure you want to delete ticket <b>{ticketTitle}</b>?
+          {t('common.confirmDelete', { item: ticketTitle })}
         </Typography>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} variant='outlined'>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button onClick={onConfirm} color='error' variant='contained'>
-          Delete
+          {t('common.delete')}
         </Button>
       </DialogActions>
     </Dialog>

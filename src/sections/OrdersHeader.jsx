@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-
+import { useTranslation } from 'react-i18next';
 
 const OrdersHeader = ({
   searchTerm,
@@ -16,6 +16,7 @@ const OrdersHeader = ({
   statusFilter,
   setStatusFilter,
 }) => {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -32,24 +33,24 @@ const OrdersHeader = ({
     >
       <Box sx={{ textAlign: 'left' }}>
         <Typography variant='h5' fontWeight='bold' color='text.primary'>
-          Orders
+          {t('common.orders')}
         </Typography>
         <Typography variant='body2' color='text.secondary'>
-          Admin Panel &gt; Orders
+          {t('common.adminPanel')} &gt; {t('common.orders')}
         </Typography>
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         {/* 🔽 Filter by Status */}
         <FormControl size='small' sx={{ minWidth: 140 }}>
-          <InputLabel shrink>Status</InputLabel>
+          <InputLabel shrink>{t('common.status')}</InputLabel>
           <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             displayEmpty
-            label='Status'
+            label={t('common.status')}
           >
-            <MenuItem value=''>All</MenuItem>
+            <MenuItem value=''>{t('common.all')}</MenuItem>
             {[
               'Confirmed',
               'Rejected',
@@ -67,7 +68,7 @@ const OrdersHeader = ({
 
         {/* 🔍 Search */}
         <TextField
-          placeholder='Search Orders'
+          placeholder={t('common.searchOrders')}
           size='small'
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}

@@ -1,8 +1,10 @@
 import React from "react";
 import { Box, Typography, TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { useTranslation } from 'react-i18next'; 
 
 const PendingUsersHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -19,16 +21,16 @@ const PendingUsersHeader = ({ onAddUser, searchTerm, setSearchTerm }) => {
     >
       <Box sx={{ textAlign: "left", mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Requests
+          {t('common.requests')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Admin Panel &gt; Requests
+          {t('common.adminPanel')} &gt; {t('common.requests')}
         </Typography>
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <TextField
-          placeholder="Search User"
+          placeholder={t('common.searchUser')}
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}

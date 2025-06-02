@@ -30,63 +30,73 @@ import { FiBarChart2 } from 'react-icons/fi';
 import { HiOutlineMegaphone } from 'react-icons/hi2';
 import { FiMessageCircle } from 'react-icons/fi';
 import { FaRoute } from 'react-icons/fa';
+import { FaLanguage } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+
 
 const Sidebar = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pendingUsers } = usePendingUsers();
   const menuItems = [
     {
       icon: <FiBarChart2 />,
-      label: 'Analytics',
+      label: t('common.analytics'),
       path: '/analytics',
       badge: null,
     },
     {
       icon: <HiOutlineUserGroup />,
-      label: 'Users',
+      label: t('common.users'),
       path: '/users',
       badge: null,
     },
     {
       icon: <HiOutlineBell />,
-      label: 'Requests',
+      label: t('common.requests'),
       path: '/requests',
       badge: pendingUsers.length,
     },
     {
       icon: <FiShoppingBag />,
-      label: 'Stores',
+      label: t('common.stores'),
       path: '/stores',
       badge: null,
     },
     {
       icon: <FiGrid />,
-      label: 'Categories',
+      label: t('common.categories'),
       path: '/categories',
       badge: null,
     },
     {
       icon: <FiClipboard />,
-      label: 'Orders',
+      label: t('common.orders'),
       path: '/orders',
       badge: null,
     },
     {
       icon: <HiOutlineMegaphone />,
-      label: 'Advertisements',
+      label: t('common.advertisements'),
       path: '/ads',
       badge: null,
     },
     {
       icon: <FiMessageCircle />,
-      label: 'Chat',
+      label: t('common.chat'),
       path: '/chat',
       badge: null,
     },
      {
       icon: <FaRoute />,
-      label: 'Routes',
+      label: t('common.routes'),
       path: '/routes',
+      badge: null,
+    },
+    {
+      icon: <FaLanguage />,
+      label: t('common.languages'),
+      path: '/languages',
       badge: null,
     },
   ];
@@ -143,7 +153,7 @@ const Sidebar = () => {
         >
           <Typography fontWeight={600}>Bazaar</Typography>
           <Typography variant='caption' color='text.secondary'>
-            Administrator
+            {t('common.administrator')}
           </Typography>
         </Box>
         <IconButton size='small' sx={{ ml: 'auto' }}>
@@ -193,7 +203,7 @@ const Sidebar = () => {
             onClick={handleLogout}
             startIcon={<LogoutIcon />} // Optional icon
           >
-            Logout
+            {t('common.logout')}
           </Button>
         }
       </Box>

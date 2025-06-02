@@ -8,11 +8,13 @@ import {
   IconButton,
 } from '@mui/material';
 import { CloudUpload, Cancel } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const MAX_SIZE_MB = 50;
 
 const ImageUploader = ({ onFilesSelected }) => {
   const [files, setFiles] = useState([]);
+  const { t } = useTranslation();
 
   const onDrop = useCallback(
     (acceptedFiles) => {
@@ -54,7 +56,7 @@ const ImageUploader = ({ onFilesSelected }) => {
           border: '2px dashed #ccc',
           borderRadius: 4,
           px: 4,
-          py:1,
+          py: 1,
           textAlign: 'center',
           backgroundColor: isDragActive ? '#f0f0f0' : '#fafafa',
           cursor: 'pointer',
@@ -64,16 +66,16 @@ const ImageUploader = ({ onFilesSelected }) => {
         <input {...getInputProps()} />
         <CloudUpload sx={{ fontSize: 40, color: '#00BCD4' }} />
         <Typography variant='h6' mt={1}>
-          Drag files to upload
+          {t('common.dragFilesToUpload')}
         </Typography>
         <Typography variant='body2' color='textSecondary'>
-          or
+          {t('common.or')}
         </Typography>
         <Button variant='outlined' sx={{ mt: 1 }}>
-          Browse Files
+          {t('common.browseFiles')}
         </Button>
         <Typography variant='caption' display='block' mt={1}>
-          Max file size: 50MB — Supported types: JPG, PNG, GIF, SVG, WEBP
+          {t('common.maxFileSize')}
         </Typography>
       </Box>
 

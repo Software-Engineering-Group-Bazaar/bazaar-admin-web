@@ -1,5 +1,6 @@
 import React from 'react';
 import { Grid, Typography, Box, Pagination } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import KpiCard from '@components/KpiCard';
 import AnalyticsChart from '@components/AnalyticsChart';
 import CountryStatsPanel from '@components/CountryStatsPanel';
@@ -42,6 +43,7 @@ const HUB_ENDPOINT_PATH = '/Hubs/AdvertisementHub';
 const HUB_URL = `${baseUrl}${HUB_ENDPOINT_PATH}`;
 
 const AnalyticsPage = () => {
+  const { t } = useTranslation();
   // --- State from develop ---
   const [totalAdminProfit, setTotalAdminProfit] = useState(0);
   const [ads, setAds] = useState([]); // For general ad data, updated by SignalR
@@ -570,53 +572,53 @@ const AnalyticsPage = () => {
         {/* Adjusted spacing and maxWidth */}
         {[
           {
-            label: 'Total Ads',
+            label: t('analytics.totalAds'),
             value: kpi.totalAds,
             change: kpi.totalAdsChange,
             type: 'totalAds',
           },
           {
-            label: 'Total Views',
+            label: t('analytics.totalViews'),
             value: kpi.totalViews,
             change: kpi.viewsChange,
             type: 'views',
           },
           {
-            label: 'Total Clicks',
+            label: t('analytics.totalClicks'),
             value: kpi.totalClicks,
             change: kpi.clicksChange,
             type: 'clicks',
           },
           {
-            label: 'Total Conversions',
+            label: t('analytics.totalConversions'),
             value: kpi.totalConversions,
             change: kpi.conversionsChange,
             type: 'conversions',
-          }, // Changed type
+          },
           {
-            label: 'Conversion Revenue',
+            label: t('analytics.conversionRevenue'),
             value: kpi.totalConversionRevenue,
             change: kpi.conversionRevenueChange,
             type: 'conversionRevenue',
           },
           {
-            label: 'Clicks Revenue',
+            label: t('analytics.clicksRevenue'),
             value: kpi.totalClicksRevenue,
             change: kpi.clicksRevenueChange,
             type: 'clicksRevenue',
-          }, // Changed type
+          },
           {
-            label: 'Views Revenue',
+            label: t('analytics.viewsRevenue'),
             value: kpi.totalViewsRevenue,
             change: kpi.viewsRevenueChange,
             type: 'viewsRevenue',
-          }, // Changed type
+          },
           {
-            label: 'Total Products',
+            label: t('analytics.totalProducts'),
             value: kpi.totalProducts,
             change: kpi.productsChange,
             type: 'products',
-          }, // Changed type
+          },
         ].map((item, i) => (
           <Grid item xs={12} sm={6} md={3} lg={1.5} key={i}>
             {' '}
@@ -746,11 +748,11 @@ const AnalyticsPage = () => {
         {' '}
         {/* Responsive width */}
         <Typography variant='h5' sx={{ mb: 2, color: 'primary.dark' }}>
-          Product Performance
+          {t('analytics.productPerformance')}
         </Typography>
         {products.length === 0 && (
           <Typography sx={{ textAlign: 'center', my: 4 }}>
-            No products to display or still loading...
+            {t('analytics.noProductsToDisplay')}
           </Typography>
         )}
         {paginatedProducts.map((product, i) => (
@@ -790,14 +792,12 @@ const AnalyticsPage = () => {
 
       {/* Store List with Pagination (from HEAD) */}
       <Box sx={{ width: '100%', mt: 6 }} id='storeanal-section'>
-        {' '}
-        {/* Responsive width */}
         <Typography variant='h5' sx={{ mb: 2, color: 'primary.dark' }}>
-          Store Performance
+          {t('analytics.storePerformance')}
         </Typography>
         {stores.length === 0 && (
           <Typography sx={{ textAlign: 'center', my: 4 }}>
-            No stores to display or still loading...
+            {t('analytics.noStoresToDisplay')}
           </Typography>
         )}
         {stores.length &&
@@ -855,10 +855,10 @@ const AnalyticsPage = () => {
 
       <Box sx={{ px: 4, pb: 10 }}>
         <Typography variant='h5' sx={{ mb: 2, color: 'primary.dark' }}>
-        Store Earnings (Past Month)
-      </Typography>
-      <StoreEarningsTable data={storeStats} />
-    </Box>
+          {t('analytics.storeEarningsPastMonth')}
+        </Typography>
+        <StoreEarningsTable data={storeStats} />
+      </Box>
 
       <Box sx={{ width: '100%', mt: 6 }} id='seller-section'></Box>
       <Box sx={{ width: '100%', mt: 6 }} id='revenue-section'>

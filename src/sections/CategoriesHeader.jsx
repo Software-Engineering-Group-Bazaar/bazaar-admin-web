@@ -7,8 +7,10 @@ import {
   Button,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { useTranslation } from 'react-i18next';
 
 const CategoriesHeader = ({ searchTerm, setSearchTerm, onAddCategory }) => {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -25,16 +27,16 @@ const CategoriesHeader = ({ searchTerm, setSearchTerm, onAddCategory }) => {
     >
       <Box sx={{ textAlign: "left" }}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Categories
+          {t('categories.categories')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Admin Panel &gt; Categories
+          {t('common.adminPanel')} &gt; {t('categories.categories')}
         </Typography>
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <TextField
-          placeholder="Search Category"
+          placeholder={t('categories.searchCategory')}
           size="small"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -66,7 +68,7 @@ const CategoriesHeader = ({ searchTerm, setSearchTerm, onAddCategory }) => {
             },
           }}
         >
-          Add Category
+          {t('categories.addCategory')}
         </Button>
       </Box>
     </Box>

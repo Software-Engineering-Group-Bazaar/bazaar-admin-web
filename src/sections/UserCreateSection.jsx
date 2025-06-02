@@ -11,8 +11,10 @@ import {
 } from '@mui/material';
 import ValidatedTextField from '../components/ValidatedTextField';
 import CustomButton from '../components/CustomButton';
+import { useTranslation } from 'react-i18next';
 
 const UserCreateSection = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -52,7 +54,7 @@ const UserCreateSection = () => {
   return (
     <Box sx={{ maxWidth: 450, mx: 'auto', mt: 5 }}>
       <Typography variant="h5" gutterBottom>
-        Create New User
+        {t('common.createNewUser')}
       </Typography>
 
       <ValidatedTextField
@@ -90,19 +92,19 @@ const UserCreateSection = () => {
       />
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel id="role-label">Role</InputLabel>
+        <InputLabel id="role-label">{t('common.role')}</InputLabel>
         <Select
           labelId="role-label"
           name="role"
           value={formData.role}
           onChange={handleChange}
         >
-          <MenuItem value="buyer">Buyer</MenuItem>
-          <MenuItem value="seller">Seller</MenuItem>
+          <MenuItem value="buyer">{t('roles.buyer')}</MenuItem>
+          <MenuItem value="seller">{t('roles.seller')}</MenuItem>
         </Select>
       </FormControl>
 
-      <CustomButton onClick={handleSubmit}>Create User</CustomButton>
+      <CustomButton onClick={handleSubmit}>{t('common.createUser')}</CustomButton>
 
       <Snackbar
         open={snackbarOpen}
@@ -115,7 +117,7 @@ const UserCreateSection = () => {
           severity="success"
           sx={{ width: '100%' }}
         >
-          User created successfully!
+          {t('common.userCreatedSuccessfully')}
         </Alert>
       </Snackbar>
     </Box>

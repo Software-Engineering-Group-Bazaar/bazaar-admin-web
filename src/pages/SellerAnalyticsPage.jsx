@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, Card, CardContent } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import {
   LineChart,
   Line,
@@ -259,6 +260,7 @@ const SellerAnalytics = ({
   allViews, // Expected: [{ id: adId, views: [timestamp1, ...] }, ...]
   allConversions, // Expected: [{ id: adId, conversions: [timestamp1, ...] }, ...]
 }) => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState(mockStats);
   const [summary, setSummary] = useState(mockRealtimeStats);
 
@@ -304,27 +306,27 @@ const SellerAnalytics = ({
 
   const topStats = [
     {
-      label: 'Total Earnings',
+      label: t('sellerAnalytics.totalEarnings'),
       value: `${summary.totalEarnings.toFixed(2)} €`,
       change: -5.2,
-    }, // Change data is static for now
+    },
     {
-      label: 'Seller Profit',
+      label: t('sellerAnalytics.sellerProfit'),
       value: `${summary.sellerProfit.toFixed(2)} €`,
       change: 2.1,
     },
     {
-      label: 'Click Revenue',
+      label: t('sellerAnalytics.clickRevenue'),
       value: `${summary.earningsFromClicks.toFixed(2)} €`,
       change: 1.5,
-    }, // Added Click Revenue
+    },
     {
-      label: 'View Revenue',
+      label: t('sellerAnalytics.viewRevenue'),
       value: `${summary.earningsFromViews.toFixed(2)} €`,
       change: -3.6,
     },
     {
-      label: 'Conversion Revenue',
+      label: t('sellerAnalytics.conversionRevenue'),
       value: `${summary.earningsFromConversions.toFixed(2)} €`,
       change: 4.9,
     },
@@ -344,12 +346,12 @@ const SellerAnalytics = ({
       }}
     >
       <Typography variant='h5' fontWeight={700} mb={1} color='primary.dark'>
-        Store Performance: {summary.sellerName}
+        {t('analytics.storePerformance')}: {summary.sellerName}
       </Typography>
       <Box display='flex' alignItems='center' mb={4} gap={1}>
         <Store size={20} color='#0f766e' />
         <Typography variant='subtitle1' fontWeight={600} color='text.secondary'>
-          Detailed Analytics for {summary.sellerName}
+          {t('analytics.detailedAnalyticsFor', { storeName: summary.sellerName })}
         </Typography>
       </Box>
 
@@ -425,17 +427,17 @@ const SellerAnalytics = ({
         {/* Adjusted spacing */}
         {[
           {
-            title: 'Click Revenue Over Time',
+            title: t('analytics.clickRevenueOverTime'),
             color: '#0f766e',
             data: summary.earningsFromClicksOverTime,
           },
           {
-            title: 'View Revenue Over Time',
+            title: t('analytics.viewRevenueOverTime'),
             color: '#f59e0b',
             data: summary.earningsFromViewsOverTime,
           },
           {
-            title: 'Conversion Revenue Over Time',
+            title: t('analytics.conversionRevenueOverTime'),
             color: '#ef4444',
             data: summary.earningsFromConversionsOverTime,
           },
