@@ -34,6 +34,7 @@ const groupByDay = (ads, eventType) => {
 };
 
 const RevenueMetrics = () => {
+  const { t } = useTranslation();
   const [ads, setAds] = useState([]);
   const { t } = useTranslation();
   useEffect(() => {

@@ -171,6 +171,7 @@
   "common.chat": "Razgovori",
   "common.languages": "Jezici",
   "common.pasteTranslations" : "Zalijepi prijevod",
+
   "common.translationJsonHint" : "Dodajte tekst u JSON formatu" ,
   "common.totalAds": "Ukupno oglasa",
   "analytics.storePerformance": "Učinkovitost prodavnice",

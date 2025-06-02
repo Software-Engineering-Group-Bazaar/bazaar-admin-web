@@ -209,6 +209,7 @@
    "analytics.unknownStore": "Unknown Store",
    "analytics.storeEarningsPastMonth": "Store Earnings (Past Month)",
    "analytics.noProductsToDisplay": "No products to display or still loading...",
+
    "analytics.noStoresToDisplay": "No stores to display or still loading...",
    "analytics.conversionsRevenue": "Conversions Revenue",
    "analytics.dashboardAnalytics": "Dashboard Analytics",
@@ -285,4 +286,5 @@
    "common.storeCategory": "Store Category",
    "common.orderNumber": "Order Number",
    "common.created": "Created"
+
 }
